@@ -1,6 +1,6 @@
 import React,{useState} from 'react';
 import LoginForm from './components/LoginForm';
-
+import Game from './components/employee_game';
 function App() {
       // Remove this part after making a connection to authentication DB
       const adminUser = {
@@ -8,11 +8,11 @@ function App() {
         password:"admin"
       }
       // 
-      const [user,setUser] = useState({name :"", email: ""});
+      const [user,setUser] = useState({name :"", email: "a"});
       const [error,setError] = useState("");
 
       const Login = details => {
-        if (details.email == adminUser.email && details.password == adminUser.password){
+        if (details.email === adminUser.email && details.password === adminUser.password){
           setUser({
             name: details.name,
             email: details.email
@@ -21,17 +21,14 @@ function App() {
           setError("Details not found !")
         }
       }
+      // eslint-disable-next-line
       const Logout = () => {
         setUser({name: "", email: ""});
       }
       return(
         <div className="App">
-          {(user.email != "") ? (
-            // put a link to a dashborad, and remove the "Welcome" part 
-            <div className="welcome">
-              <h2>Welcome,<span>{user.name}</span></h2>
-              <button onClick={Logout}>Logout</button>
-              </div>
+          {(user.email !== "") ? (
+            <Game></Game>
           ) : ( 
             <LoginForm Login={Login} error={error}/>
           )}

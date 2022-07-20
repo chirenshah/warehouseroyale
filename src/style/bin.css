@@ -15,13 +15,15 @@
 }
 
 .circle{
+    display: flex;
     font-size: smaller;
     margin: 5px;
-    padding: 5px;
     text-align: center;
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     background-color: #5D5FEF;
     color: white;
     border-radius: 50%;
+    align-items: center;
+    justify-content: center;
 }

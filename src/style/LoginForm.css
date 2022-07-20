@@ -38,7 +38,7 @@ body {
     color: #FFFFFF;
     background-size: cover;
     background-repeat: no-repeat;
-    background-image: url("./../images/warehouse-wallpapers.jpg");
+    background-image: url("../assets/warehouse-wallpapers.jpg");
     overflow: hidden;
     flex:2.5;
   }

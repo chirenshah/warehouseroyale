@@ -1,0 +1,80 @@
+body{
+  background: none;
+}
+.inventory{
+    border-right: 1px black solid;
+    height:100vh;
+    float: left;
+    width: 20%;
+  }
+  .barcode{
+    text-align: center;
+    border-bottom: 1px black solid;
+    margin: 0;
+    height: max(20%,150px);
+  }
+  .barcode img{
+    width: max(100px,80%);
+    margin-top: 5%;
+  }
+  .sku_container{
+    overflow: scroll;
+    height: 80%;
+  }
+  
+  .center{
+    height:100vh;
+    float: left;
+    width: 59%;
+  }
+
+  .bins{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    height: 70%;
+    overflow-y:auto;
+  }
+
+  .order_bins{
+    display: flex;
+    justify-content: space-around;
+  }
+
+  .sku{
+    display: flex;
+    border: 1px solid black;
+    border-radius: 5%;
+    box-shadow: 3px 2px gray;
+    margin: 5%;
+    height: 2em;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .carts{
+    height: 30%;
+    border-top: 1px solid black;
+  }
+  
+  .record{
+    border-left: 1px black solid;
+    height:100vh;
+    float: right;
+    width: 20%;
+  }
+  
+  .scan_container{
+    height: 50%;
+    text-align: center;
+    border-bottom: 1px solid black;
+  }
+  
+  .record_call_to_action{
+    text-align: center;
+    height: 50%;
+  }
+
+  .record_call_to_action img{
+    margin: 5%;
+  }
