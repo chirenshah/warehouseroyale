@@ -3,34 +3,24 @@ import LoginForm from './components/LoginForm';
 import Game from './components/employee_game';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
-
+import { emailPasswordAuth } from './Database/Auth';
 function App() {
-      // Remove this part after making a connection to authentication DB
-      const adminUser = {
-        email: "admin@admin.com",
-        password:"admin"
+      const [user,setUser] = useState(null);
+      const [error,setError] = useState(null);
+      console.log(window.location.href)
+      if(!user && window.localStorage.admin){
+        setUser(window.localStorage.admin)
       }
-      // 
-      const [user,setUser] = useState({name :"", email: "a"});
-      const [error,setError] = useState("");
-
       const Login = details => {
-        if (details.email === adminUser.email && details.password === adminUser.password){
-          setUser({
-            name: details.name,
-            email: details.email
-          })    
-        } else{
-          setError("Details not found !")
-        }
-      }
+        emailPasswordAuth(details.email,details.password,setUser,setError)
+    }
       // eslint-disable-next-line
       const Logout = () => {
-        setUser({name: "", email: ""});
+        setUser("");
       }
       return(
         <div className="App">
-          {(user.email !== "") ? (
+          { user ? (
             <DndProvider backend={HTML5Backend}><Game/></DndProvider>
           ) : ( 
             <LoginForm Login={Login} error={error}/>

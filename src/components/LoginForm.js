@@ -7,7 +7,6 @@ function LoginForm({Login,error}) {
     const submitHandler = e =>{
         e.preventDefault();
         Login(details);
-
     }
     return (
         <form onSubmit={submitHandler}>
