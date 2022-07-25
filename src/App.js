@@ -1,6 +1,9 @@
 import React,{useState} from 'react';
 import LoginForm from './components/LoginForm';
 import Game from './components/employee_game';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { DndProvider } from 'react-dnd';
+
 function App() {
       // Remove this part after making a connection to authentication DB
       const adminUser = {
@@ -28,7 +31,7 @@ function App() {
       return(
         <div className="App">
           {(user.email !== "") ? (
-            <Game></Game>
+            <DndProvider backend={HTML5Backend}><Game/></DndProvider>
           ) : ( 
             <LoginForm Login={Login} error={error}/>
           )}

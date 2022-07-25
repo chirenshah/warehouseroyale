@@ -1,17 +1,25 @@
 .bin_body{
     margin: 10px;
     border: 1px black solid;
-    width: 180px;
-    height: 140px;
+    width: 250px;
+    height: 180px;
 }
 
 .bin_dropdown{
     border-bottom: 1px black solid;
     height: 70%;
+    overflow: scroll;
 }
 
 .bin_identifier{
+    justify-content: space-around;
+    display: flex;
+    align-items: center;
     height: 30%;
+}
+
+.bin_identifier img{
+    width: 40%;
 }
 
 .circle{

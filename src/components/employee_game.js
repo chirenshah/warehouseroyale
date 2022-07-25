@@ -1,15 +1,26 @@
 import Bins from './bins'
 import barcode from '../assets/barcode.svg'
 import '../style/employee_game.css'
+import Sku from './sku'
+
+import { useState } from 'react'
 
 export default function Game(){
     var label = ""
-    const Sku = ({id}) => {
-        return (
-            <div className='sku'><p>{id}</p></div>
-        )
+    
+    // Low medium and high complexity for data
+    // low is the numbering is ordered
+    // medium is when you need to check more digits
+    // hard is last 3 or 4 digits are same and middle would be different
+    const data = Array.from({length: 20}, () =>  String.fromCharCode(65+Math.floor(Math.random() * 26))  +"123" + Math.floor(Math.random() * 100000).toString());
+    const [sku_list,setSkuList] = useState(data)
+    const [dellabel,setdelabel] = useState("")
+    const [delid,setdelid] = useState("")
+    const delsku = (parent,id) => {
+        setdelabel(parent)
+        setdelid(id)
+        setSkuList(prev => prev.filter((val) => val !== id))
     }
-    const data = Array.from({length: 20}, () =>  String.fromCharCode(65+Math.floor(Math.random() * 26))  + Math.floor(Math.random() * 100000000).toString());
     const bins = Array.from({length: 16}, (_, index) => {
         if(index < 4){
           label = "A" + (index+1).toString()
@@ -23,9 +34,8 @@ export default function Game(){
         else{
           label = "D" + (index - 11).toString()
         }
-        return <Bins key={index} label={label}/>;
+        return <Bins key={index} binId={label} delsku={delsku} delbinId={dellabel} delid={delid}></Bins>;
       });
-      
       return (
         <div>
             <section className='inventory'>
@@ -34,8 +44,8 @@ export default function Game(){
                     <h3>RECEIVING</h3>
                 </div>
                 <div className='sku_container'>
-                    {data.map((value,key) => (
-                        <Sku key={key} id={value}/>
+                    {sku_list.map((value,key) => (
+                        <Sku key={key} id={value} parent={""}/>
                     ))}
                     </div>
             </section>
@@ -45,13 +55,13 @@ export default function Game(){
                 </div>
                 <div className='carts'>
                     <div className='order_bins'>
-                        <Bins label={"O1"}></Bins>
+                        <Bins binId={"O1"} delsku={delsku} delbinId={dellabel} delid={delid}></Bins>
                         <div>Order 1</div>
-                        <Bins label={"O2"}></Bins>
+                        <Bins binId={"O2"} delsku={delsku} delbinId={dellabel} delid={delid}></Bins>
                         <div>Order 2</div>
                     </div>
                     <div>
-                        <div>Send Order 1</div>
+                        <div draggable onDragStart={()=>console.log("dragging")}>Send Order 1</div>
                         <div>Sednd Order 2</div>
                     </div>
                 </div>
