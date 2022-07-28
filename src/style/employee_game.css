@@ -1,12 +1,15 @@
 body{
   background: none;
+  overflow: hidden;
 }
 .inventory{
     border-right: 1px black solid;
     height:100vh;
     float: left;
     width: 20%;
+    box-sizing: border-box;
   }
+
   .barcode{
     text-align: center;
     border-bottom: 1px black solid;
@@ -25,7 +28,8 @@ body{
   .center{
     height:100vh;
     float: left;
-    width: 59%;
+    width: 60%;
+    box-sizing: border-box;
   }
 
   .bins{
@@ -36,10 +40,6 @@ body{
     overflow-y:auto;
   }
 
-  .order_bins{
-    display: flex;
-    justify-content: space-around;
-  }
 
   .sku{
     display: flex;
@@ -55,6 +55,78 @@ body{
   .carts{
     height: 30%;
     border-top: 1px solid black;
+    overflow: scroll;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+
+  .send-btn,.submit-btn:hover{
+    border: 1px solid #5D5FEF;
+    color: #5D5FEF;
+    background-color: white;
+    height: 35px;
+    width: 250px;
+    margin: 0px 10px;
+  }
+
+  .send-btn:hover,.submit-btn{
+    border: 1px solid white;
+    color: white;
+    height: 35px;
+    width: 250px;
+    margin: 0px 10px;
+    background-color: #5D5FEF;
+  }
+
+  .black{
+    margin: 10px;
+    height: 10%;
+    background-color: white;
+    border: 1px solid black;
+    color: black;
+  }
+  
+  .white{
+    margin: 10px;
+    height: 10%;
+    border: 1px solid white;
+    color: white;
+    background-color: black ;
+  }
+  .black:hover{
+    opacity: 0.4;
+    height: 10%;
+    margin: 10px;
+    background-color: white;
+    color: black;
+    border: 1px solid black;
+
+  }
+  .white:hover{
+    opacity: 0.7;
+    margin: 10px;
+    height: 10%;
+    background-color: black ;
+  }
+  .order{
+    margin: 10px;
+    border: 1px solid black;
+    height: 215px;
+    width: 120px;
+    text-align: center;
+  }
+
+  .order-content{
+    height: 75%;
+    overflow: scroll;
+  }
+  
+
+  .cards{
+    border-top: 1px solid gray;
+    border-bottom: 1px solid gray;
+    padding: 4px;
   }
   
   .record{
@@ -62,19 +134,61 @@ body{
     height:100vh;
     float: right;
     width: 20%;
+    box-sizing: border-box;
+  }
+
+  .record input[type="submit"]{
+    margin: 0 auto;
+  }
+
+  .record input[type="text"]{
+    width: 100px;
+    margin-right: 10px;
+  }
+
+  .record label{
+    padding: 5px;
+  }
+
+  .selected{
+    border: 1px gray dashed;
+  }
+
+  .record form{
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    text-align: end;
+    height: 70%;
+    overflow: scroll;
   }
   
   .scan_container{
-    height: 50%;
+    height: 40%;
     text-align: center;
     border-bottom: 1px solid black;
   }
   
   .record_call_to_action{
     text-align: center;
-    height: 50%;
+    height: 55%;
   }
 
   .record_call_to_action img{
     margin: 5%;
+  }
+
+  .chat{
+    position: absolute;
+    bottom: 0px;
+    right: 0px;
+    margin: 0px;
+    width: 20%;
+    height: 7%;
+  }
+
+  .chat:hover{
+    margin: 0px;
+    width: 20%;
+    height: 7%;
   }
