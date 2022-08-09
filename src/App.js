@@ -7,7 +7,6 @@ import { emailPasswordAuth } from './Database/Auth';
 function App() {
       const [user,setUser] = useState(null);
       const [error,setError] = useState(null);
-      console.log(window.location.href)
       if(!user && window.localStorage.admin){
         setUser(window.localStorage.admin)
       }
