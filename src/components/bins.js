@@ -6,10 +6,12 @@ import barcode from "../assets/barcode.svg";
 function Bins({ binId, delsku, delbinId, delid, updateSelected, setSku }) {
     const [disp, setdisp] = useState([]);
     const [parent, setparent] = useState("");
+    const [expiretime, setexpiretime] = useState("");
     const [{ isOver }, drop] = useDrop(
         () => ({
             accept: "sku",
             drop: (item) => {
+                setexpiretime(item["timer"]);
                 setparent(item["parent"]);
                 delsku(item["parent"], item["id"]);
                 if (binId !== item["parent"])
@@ -47,6 +49,7 @@ function Bins({ binId, delsku, delbinId, delid, updateSelected, setSku }) {
                               id={val}
                               parent={binId}
                               setSku={setSku}
+                              expiretime = {expiretime}
                           ></Sku>
                       ))
                     : null}

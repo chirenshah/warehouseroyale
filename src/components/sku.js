@@ -1,24 +1,23 @@
 import { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
-export default function Sku({ id, parent, setSku }) {
-    const expiretime = "01:10"
+export default function Sku({ id, parent, setSku , expiretime }) {
     const [timer,settimer]  = useState(expiretime)
     const [{ isDragging }, drag] = useDrag(
         () => ({
             type: "sku",
-            item: { id, parent },
+            item: { id, parent,timer},
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
         }),
-        [id]
+        [id,timer]
     );
     //settimer(() => timeObject.getSeconds().toString());
     useEffect(() => {
         if(parent !== ""){
             const timeout = setTimeout(() => {
                 const timeObject = new Date("1970-01-01 00:" + timer);
-                if(timer !== "00:00"){
+                if(timer !== "00:00" && timer !== "Expired"){
                     timeObject.setSeconds(timeObject.getSeconds()-1);
                     var minute = timeObject.getMinutes();
                     var seconds = timeObject.getSeconds();
@@ -27,7 +26,7 @@ export default function Sku({ id, parent, setSku }) {
                     settimer(minute +":"+seconds);
                 }
                 else{
-                    settimer(() => "Expired")
+                    settimer(() => "Expired");
                 }
             }, 1000);
             return () => clearTimeout(timeout);

@@ -4,6 +4,8 @@ import {
     getFirestore,
     collection,
     setDoc,
+    updateDoc,
+    getDoc
 } from "firebase/firestore";
 import app from "./config";
 
@@ -33,4 +35,40 @@ export async function updateCursor(x, y) {
     }
 }
 
+export async function writeConfig(roomWithOffer){
+    updateDoc(
+        doc(db,"instance1","Room 1"),{
+            roomWithOffer:roomWithOffer
+        }
+    ).catch((error)=>{
+        console.log(error.code);
+    })
+}
+
+export async function readConfig(){
+    const docRef = doc(db, "instance1", "Room 1");
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return docSnap.data();
+    } else {
+    // doc.data() will be undefined in this case
+    console.log("No such document!");
+}
+}
+  
+export async function addIceCandidate(json){
+    await setDoc(collection(db, "instance1", "Room 1","iceCandidates"),{
+        json
+    })
+}
+export async function icelistners(peerConnection){
+    onSnapshot(collection(db, "instance1", "Room 1","iceCandidates"),(snapshot) => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added") {
+                const candidate = new RTCIceCandidate(change.doc.data());
+                peerConnection.addIceCandidate(candidate);
+            }
+        });
+    })
+}
 export async function createInstance() {}

@@ -11,13 +11,7 @@ export default function Game() {
   var to = createRef();
   var sku = createRef();
   var selected;
-  const handleWindowMouseMove = (event) => {
-    var now = Date.now();
-    if (now % 20 === 0) {
-      //updateCursor(event.clientX,event.clientY);
-    }
-  };
-  window.addEventListener("mousemove", handleWindowMouseMove);
+  let expiretime = "10:00"
   // Low medium and high complexity for data
   // low is the numbering is ordered
   // medium is when you need to check more digits
@@ -34,10 +28,18 @@ export default function Game() {
   const [delid, setdelid] = useState("");
   const [skuSelected, setskuSelected] = useState("");
   const [coord, setcoord] = useState([]);
-  // useEffect(() => {
-  //     // unsub(setcoord);
-  //     test();
-  //   }, [])
+  useEffect(() => {
+      // unsub(setcoord);
+      test();
+    }, [])
+
+  const handleWindowMouseMove = (event) => {
+    var now = Date.now();
+    if (now % 20 === 0) {
+      //updateCursor(event.clientX,event.clientY);
+    }
+  };
+  window.addEventListener("mousemove", handleWindowMouseMove);
   const delsku = (parent, id) => {
     setdelabel(parent);
     setdelid(id);
@@ -125,7 +127,7 @@ export default function Game() {
         </div>
         <div className="sku_container">
           {sku_list.map((value, key) => (
-            <Sku key={key} id={value} parent={""} setSku={setSku} />
+            <Sku key={key} id={value} parent={""} setSku={setSku} expiretime={expiretime}/>
           ))}
         </div>
       </section>
@@ -192,7 +194,7 @@ export default function Game() {
             <label ref={sku} onClick={() => chooseSelected(sku)}>
               SKU - <input type="text" name="sku" />
             </label>
-            <label ref={sku} onClick={() => chooseSelected(sku)}>
+            <label >
               Quantity - <input type="text" name="sku" />
             </label>
             <br></br>
