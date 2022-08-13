@@ -4,18 +4,29 @@ import "../style/employee_game.css";
 import Sku from "./sku";
 import { useState, createRef, useEffect } from "react";
 import unsub, { updateCursor } from "../Database/firestore";
-import {test} from './webRTC';
+import {test,sendMessage,cursorListner} from './webRTC';
 export default function Game() {
   var label = "";
   var from = createRef();
   var to = createRef();
   var sku = createRef();
   var selected;
-  let expiretime = "10:00"
+  let expiretime = "00:30"
+
+
   // Low medium and high complexity for data
   // low is the numbering is ordered
   // medium is when you need to check more digits
   // hard is last 3 or 4 digits are same and middle would be different
+
+  // A - l ~ fast normal distribution  m - z ~ slow normal distribution
+  //   (x//2) +- 20%                            x +- 10%
+  //admin can influence the time by default its 10 mins
+
+  //prepopulation
+  //None : 
+  //Some : 
+  //many :
   const data = Array.from(
     { length: 20 },
     () =>
@@ -29,14 +40,14 @@ export default function Game() {
   const [skuSelected, setskuSelected] = useState("");
   const [coord, setcoord] = useState([]);
   useEffect(() => {
-      // unsub(setcoord);
+    cursorListner(setcoord);
       test();
     }, [])
 
   const handleWindowMouseMove = (event) => {
     var now = Date.now();
     if (now % 20 === 0) {
-      //updateCursor(event.clientX,event.clientY);
+      sendMessage(event.clientX,event.clientY);
     }
   };
   window.addEventListener("mousemove", handleWindowMouseMove);
@@ -107,8 +118,8 @@ export default function Game() {
           key={x}
           style={{
             position: "absolute",
-            top: coord[x]["Cursor"][1],
-            left: coord[x]["Cursor"][0],
+            top: coord[x]["y"],
+            left: coord[x]["x"],
             backgroundColor: "red",
             color: "red",
           }}
@@ -127,6 +138,7 @@ export default function Game() {
         </div>
         <div className="sku_container">
           {sku_list.map((value, key) => (
+
             <Sku key={key} id={value} parent={""} setSku={setSku} expiretime={expiretime}/>
           ))}
         </div>
@@ -216,9 +228,17 @@ export default function Game() {
             }}
           ></img>
           {skuSelected}
-          <button className="send-btn black">TASK</button>
-          <button className="send-btn white">SUBMIT</button>
-          <button className="submit-btn chat">Chat</button>
+          <button className="send-btn black" onClick={()=>{
+            test(false)
+            console.log("created room")
+          }}>Create Room</button>
+          <button className="send-btn white" onClick={()=>{
+            test(true)
+            console.log("joining")
+          }}>Join room</button>
+          <button className="submit-btn chat" onClick={()=>{
+            sendMessage();
+          }}>Chat</button>
         </div>
       </section>
     </div>
