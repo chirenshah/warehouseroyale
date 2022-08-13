@@ -113,20 +113,17 @@ export default function Game() {
   });
   return (
     <div>
-      {Object.keys(coord).map((x) => (
         <div
-          key={x}
           style={{
             position: "absolute",
-            top: coord[x]["y"],
-            left: coord[x]["x"],
+            top: coord["y"],
+            left: coord["x"],
             backgroundColor: "red",
             color: "red",
           }}
         >
-          box
+          {console.log(coord)}x
         </div>
-      ))}
       <section className="inventory">
         <div className="barcode">
           <img
