@@ -4,7 +4,7 @@ import "../style/employee_game.css";
 import Sku from "./sku";
 import { useState, createRef, useEffect } from "react";
 import unsub, { updateCursor } from "../Database/firestore";
-import {test,sendMessage,cursorListner} from './webRTC';
+import {room,sendMessage,cursorListner} from './webRTC';
 export default function Game() {
   var label = "";
   var from = createRef();
@@ -41,7 +41,7 @@ export default function Game() {
   const [coord, setcoord] = useState([]);
   useEffect(() => {
     cursorListner(setcoord);
-      test();
+    room();
     }, [])
 
   const handleWindowMouseMove = (event) => {

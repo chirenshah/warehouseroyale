@@ -65,7 +65,8 @@ export async function answerlistener(peerConnection) {
                 )
             );
         }
-        if(snapshot.data()["iceCandidates"] && !peerConnection.currentRemoteDescription){
+        if(snapshot.data()["iceCandidates"] && !!peerConnection.currentRemoteDescription){
+            console.log("hey")
             peerConnection.addIceCandidate(snapshot.data()["iceCandidates"])
         }
     });
