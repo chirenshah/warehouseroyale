@@ -1,7 +1,7 @@
 import React from 'react';
 import { DropDownListComponent } from '@syncfusion/ej2-react-dropdowns';
 
-import { Pbar } from '../';
+import { Pbar } from '..';
 import { dropdownData } from '../data/dummy';
 import { useStateContext } from '../contexts/ContextProvider';
 
@@ -11,8 +11,8 @@ const DropDown = ({ currentMode }) => (
   </div>
 );
 
-const Performancemetric = () => {
-  const { currentColor, currentMode } = useStateContext();
+const performancemetric = () => {
+  const { currentMode } = useStateContext();
 
   return (
     <div className="m-15">
@@ -23,11 +23,15 @@ const Performancemetric = () => {
             <p className="font-semibold text-4xl mr-2 ">Performance Metric</p>
             <DropDown currentMode={currentMode} />
           </div>
-          <Pbar></Pbar>
+          <div className="mt-10 flex gap-10 flex-wrap justify-center">
+            <div>
+              <Pbar currentMode={currentMode} width="700px" height="550px" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Performancemetric;
+export default performancemetric;
