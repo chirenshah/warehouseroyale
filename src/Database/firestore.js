@@ -6,6 +6,8 @@ import {
     setDoc,
     updateDoc,
     getDoc,
+    getDocs,
+    deleteDoc,
 } from "firebase/firestore";
 import app from "./config";
 
@@ -43,6 +45,46 @@ export async function writeConfig(roomWithOffer) {
     });
 }
 
+export async function makeOffer(offer) {
+    console.log(offer);
+    setDoc(
+        doc(db, "instance1", "Offers", window.localStorage.admin, offer.emp_id),
+        {
+            Percentage: offer.share,
+        }
+    ).catch((error) => {
+        console.log(error.message);
+    });
+}
+
+export async function readOffer() {
+    const colRef = collection(
+        db,
+        "instance1",
+        "Offers",
+        window.localStorage.admin
+    );
+    const querySnapshot = await getDocs(colRef);
+    let arr = {};
+    querySnapshot.forEach((doc) => {
+        arr[doc.id] = doc.data();
+        // doc.data() is never undefined for query doc snapshots
+    });
+    return arr;
+}
+
+export async function deleteOffer(item) {
+    await deleteDoc(
+        doc(db, "instance1", "Offers", window.localStorage.admin, item)
+    )
+        .then((val) => {
+            return true;
+        })
+        .catch((error) => {
+            return false;
+        });
+}
+
 export async function readConfig() {
     const docRef = doc(db, "instance1", "Room 1");
     const docSnap = await getDoc(docRef);
@@ -54,7 +96,7 @@ export async function readConfig() {
     }
 }
 export async function answerlistener(peerConnection) {
-    onSnapshot(doc(db, "instance1", "Room 1", ""), async (snapshot) => {
+    onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         if (
             snapshot.data()["roomWithOffer"]["answer"] &&
             !peerConnection.currentRemoteDescription
@@ -65,16 +107,19 @@ export async function answerlistener(peerConnection) {
                 )
             );
         }
-        if(snapshot.data()["iceCandidates"] && !!peerConnection.currentRemoteDescription){
-            console.log("hey")
-            peerConnection.addIceCandidate(snapshot.data()["iceCandidates"])
+        if (
+            snapshot.data()["iceCandidates"] &&
+            !!peerConnection.currentRemoteDescription
+        ) {
+            console.log("hey");
+            peerConnection.addIceCandidate(snapshot.data()["iceCandidates"]);
         }
     });
 }
 
 export async function addIceCandidate(json) {
     await updateDoc(doc(db, "instance1", "Room 1"), {
-        iceCandidates:json
+        iceCandidates: json,
     });
 }
 export async function icelistners(peerConnection) {

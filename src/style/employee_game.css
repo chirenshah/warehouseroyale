@@ -145,6 +145,7 @@ body{
   .record input[type="text"]{
     width: 100px;
     margin-right: 10px;
+    border: black 1px solid;
   }
 
   .record label{

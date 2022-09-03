@@ -1033,88 +1033,88 @@ export const dropdownData = [
 
 export const dropdownEmpData = [
   {
-    Id: '1%',
-    Time: 'Employee 1',
+    percentage: '1%',
+    emp_id: 'Employee 1',
   },
   {
-    Id: '2%',
-    Time: 'Employee 2',
+    percentage: '2%',
+    emp_id: 'Employee 2',
   }, 
   {
-    Id: '3%',
-    Time: 'Employee 3',
+    percentage: '3%',
+    emp_id: 'Employee 3',
   },
   {
-    Id: '3%',
-    Time: 'Employee 3',
+    percentage: '3%',
+    emp_id: 'Employee 3',
   },
   {
-    Id: '4%',
-    Time: 'Employee 4',
+    percentage: '4%',
+    emp_id: 'Employee 4',
   },
   {
-    Id: '5%',
-    Time: 'Employee 5',
+    percentage: '5%',
+    emp_id: 'Employee 5',
   },
   {
-    Id: '6%',
-    Time: 'Employee 6',
+    percentage: '6%',
+    emp_id: 'Employee 6',
   },
   {
-    Id: '7%',
-    Time: 'Employee 7',
+    percentage: '7%',
+    emp_id: 'Employee 7',
   },
   {
-    Id: '8%',
-    Time: 'Employee 8',
+    percentage: '8%',
+    emp_id: 'Employee 8',
   },
   {
-    Id: '9%',
-    Time: 'Employee 9',
+    percentage: '9%',
+    emp_id: 'Employee 9',
   },
   {
-    Id: '10%',
-    Time: 'Employee 10',
+    percentage: '10%',
+    emp_id: 'Employee 10',
   },
   {
-    Id: '11%',
-    Time: 'Employee 11',
+    percentage: '11%',
+    emp_id: 'Employee 11',
   },
   {
-    Id: '12%',
-    Time: 'Employee 12',
+    percentage: '12%',
+    emp_id: 'Employee 12',
   },
   {
-    Id: '13%',
-    Time: 'Employee 13',
+    percentage: '13%',
+    emp_id: 'Employee 13',
   },
   {
-    Id: '14%',
-    Time: 'Employee 14',
+    percentage: '14%',
+    emp_id: 'Employee 14',
   },
   {
-    Id: '15%',
-    Time: 'Employee 15',
+    percentage: '15%',
+    emp_id: 'Employee 15',
   },
   {
-    Id: '16%',
-    Time: 'Employee 16',
+    percentage: '16%',
+    emp_id: 'Employee 16',
   },
   {
-    Id: '17%',
-    Time: 'Employee 17',
+    percentage: '17%',
+    emp_id: 'Employee 17',
   },           
   {
-    Id: '18%',
-    Time: 'Employee 18',
+    percentage: '18%',
+    emp_id: 'Employee 18',
   },
   {
-    Id: '19%',
-    Time: 'Employee 19',
+    percentage: '19%',
+    emp_id: 'Employee 19',
   },
   {
-    Id: '20%',
-    Time: 'Employee 20',
+    percentage: '20%',
+    emp_id: 'Employee 20',
   },
 ];
 
