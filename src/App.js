@@ -6,6 +6,9 @@ import { DndProvider } from 'react-dnd';
 import { emailPasswordAuth } from './Database/Auth';
 import Dashboard from './components/views/Manager/dashboard/Dashboard';
 import { ContextProvider } from './components/views/Manager/dashboard/contexts/ContextProvider';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Myteam, Performancemetric, Recruitmentroom } from './components/views/Manager/dashboard/pages';
+import Messenger from './components/views/Manager/dashboard/pages/Messenger';
 
 function App() {
       const [user,setUser] = useState(null);
@@ -25,7 +28,19 @@ function App() {
           { user ? (
             <DndProvider backend={HTML5Backend}>
                   <ContextProvider>
-                    <Dashboard/>
+                  <BrowserRouter>
+                  <Routes>
+                  {/* dashboard  */}
+                  <Route path="/" element={(<Game />)} />
+                  <Route path="/performancemetric" element={(<Performancemetric />)} />
+
+                  {/* pages  */}
+                  <Route path="/recruitmentroom" element={<Recruitmentroom />} />
+                  <Route path="/messenger" element={<Messenger />} />
+                  <Route path="/Myteam" element={<Myteam/>} />
+
+                  </Routes>
+                  </BrowserRouter>
                   </ContextProvider>
             </DndProvider>
           ) : ( 

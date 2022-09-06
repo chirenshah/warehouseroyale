@@ -5,6 +5,7 @@ import { dropdownEmpData, dropdownData } from "../data/dummy";
 
 import { useStateContext } from "../contexts/ContextProvider";
 import { deleteOffer, makeOffer, readOffer } from "../../../../../Database/firestore";
+import Dashboard from "../Dashboard";
 
 const Recruitmentroom = () => {
     const [employeeOffer, setemployeeOffer] = useState({});
@@ -18,6 +19,7 @@ const Recruitmentroom = () => {
     
     // console.log(employeeOffer);
     return (
+        <Dashboard>
         <div className="m-15">
             <div className="flex gap-10 flex-wrap justify-center">
                 <div className="bg-white dark:text-gray-200 dark:bg-secondary-dark-bg rounded-2xl md:w-1000 p-8 m-1  shadow-xl">
@@ -188,6 +190,7 @@ const Recruitmentroom = () => {
                 </div>
             </div>
         </div>
+        </Dashboard>
     );
 };
 

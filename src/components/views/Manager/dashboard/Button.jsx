@@ -8,7 +8,12 @@ const Button = ({ icon, bgColor, color, bgHoverColor, size, text, borderRadius, 
   return (
     <button
       type="button"
-      onClick={() => {setIsClicked(initialState),onclick()}}
+      onClick={() => {
+        setIsClicked(initialState);
+        if(onclick){
+          onclick();
+        }
+}}
       style={{ backgroundColor: bgColor, color, borderRadius }}
       className={` text-${size} p-3 w-${width} hover:drop-shadow-xl hover:bg-${bgHoverColor}`}
     >
