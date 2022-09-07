@@ -232,6 +232,7 @@ export default function Game() {
           }}>Create Room</button>
           <button className="send-btn white" onClick={()=>{
             navigate("/performancemetric")
+            window.removeEventListener("mousemove",handleWindowMouseMove);
           }}>Finish Game</button>
           <button className="submit-btn chat" onClick={()=>{
             

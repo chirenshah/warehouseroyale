@@ -116,8 +116,11 @@ const Recruitmentroom = () => {
                         <div className="mt-10 ">
                             {Object.entries(activeoffers).map((item,key) => (
                                 <div key={item}>
+                                    {console.log(item)}
                                     <p className="text-gray-600 dark:text-gray-400 m-4 mt-4 uppercase">
-                                        {item[0]}
+                                        {item[0]}: <span style={{
+                                            padding:"5%"
+                                        }}>{item[1]['Percentage']}</span>
                                         <button onClick={() => {
                                             if(deleteOffer(item[0])){
                                                 console.log(activeoffers)

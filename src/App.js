@@ -13,6 +13,7 @@ import Messenger from './components/views/Manager/dashboard/pages/Messenger';
 function App() {
       const [user,setUser] = useState(null);
       const [error,setError] = useState(null);
+      const isManager = false;
       if(!user && window.localStorage.admin){
         setUser(window.localStorage.admin)
       }
@@ -31,11 +32,11 @@ function App() {
                   <BrowserRouter>
                   <Routes>
                   {/* dashboard  */}
-                  <Route path="/" element={(<Game />)} />
+                  <Route path="/" element={isManager ? null:<Game/>} />
                   <Route path="/performancemetric" element={(<Performancemetric />)} />
 
                   {/* pages  */}
-                  <Route path="/recruitmentroom" element={<Recruitmentroom />} />
+                  <Route path="/recruitmentroom" element={ isManager ? <Recruitmentroom />:null} />
                   <Route path="/messenger" element={<Messenger />} />
                   <Route path="/Myteam" element={<Myteam/>} />
 
