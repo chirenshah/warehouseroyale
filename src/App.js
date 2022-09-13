@@ -5,6 +5,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 import { emailPasswordAuth } from './Database/Auth';
 import Dashboard from './components/views/Manager/dashboard/Dashboard';
+import Adashboard from './components/views/Admin/Adashboard';
 import { ContextProvider } from './components/views/Manager/dashboard/contexts/ContextProvider';
 
 function App() {
@@ -24,9 +25,9 @@ function App() {
         <div className="App">
           { user ? (
             <DndProvider backend={HTML5Backend}>
-                  <ContextProvider>
-                    <Dashboard/>
-                  </ContextProvider>
+                  {/* <ContextProvider> */}
+                    <Adashboard/>
+                  {/* </ContextProvider> */}
             </DndProvider>
           ) : ( 
             <LoginForm Login={Login} error={error}/>
