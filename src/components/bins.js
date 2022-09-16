@@ -3,19 +3,17 @@ import { useDrop } from "react-dnd";
 import Sku from "./sku";
 import "../style/bin.css";
 import barcode from "../assets/barcode.svg";
-function Bins({ binId, delsku, delbinId, delid, updateSelected, setSku }) {
-    const [disp, setdisp] = useState([]);
-    const [parent, setparent] = useState("");
+import { binUpdate } from "../Database/firestore";
+function Bins({ binId, updateSelected, setSku ,data,set_data,setSkuList}) {
     const [expiretime, setexpiretime] = useState("");
     const [{ isOver }, drop] = useDrop(
         () => ({
             accept: "sku",
             drop: (item) => {
                 setexpiretime(item["timer"]);
-                setparent(item["parent"]);
-                delsku(item["parent"], item["id"]);
                 if (binId !== item["parent"])
-                    setdisp((prev) => [item["id"], ...prev]);
+                    binUpdate(item["parent"],binId,item['id'],set_data);
+                    setSkuList((prev) => prev.filter((val) => val !== item['id']));
             },
             collect: (monitor) => ({
                 isOver: !!monitor.isOver(),
@@ -24,14 +22,6 @@ function Bins({ binId, delsku, delbinId, delid, updateSelected, setSku }) {
         [binId]
     );
 
-    if (binId === delbinId && binId !== parent) {
-        if (disp.includes(delid)) {
-            setdisp((prev) => prev.filter((val) => val !== delid));
-        }
-        if (disp.length > 0 && delid === "all") {
-            setdisp([]);
-        }
-    }
 
     return (
         <div
@@ -42,8 +32,8 @@ function Bins({ binId, delsku, delbinId, delid, updateSelected, setSku }) {
             }}
         >
             <div className="bin_dropdown">
-                {disp !== []
-                    ? disp.map((val, key) => (
+                {data !== undefined 
+                    ? data.map((val, key) => (
                           <Sku
                               key={key}
                               id={val}

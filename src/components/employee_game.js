@@ -3,7 +3,7 @@ import barcode from "../assets/barcode.svg";
 import "../style/employee_game.css";
 import Sku from "./sku";
 import { useState, createRef, useEffect } from "react";
-import unsub, { updateCursor } from "../Database/firestore";
+import unsub, { flushbins, updateCursor } from "../Database/firestore";
 import {room,sendMessage,cursorListner} from './webRTC';
 import { useNavigate } from "react-router-dom";
 export default function Game() {
@@ -14,7 +14,6 @@ export default function Game() {
   var selected;
   let expiretime = "00:30"
   let navigate = useNavigate();
-
   // Low medium and high complexity for data
   // low is the numbering is ordered
   // medium is when you need to check more digits
@@ -36,27 +35,20 @@ export default function Game() {
       Math.floor(Math.random() * 100000).toString()
   );
   const [sku_list, setSkuList] = useState(data);
-  const [dellabel, setdelabel] = useState("");
-  const [delid, setdelid] = useState("");
   const [skuSelected, setskuSelected] = useState("");
   const [coord, setcoord] = useState([]);
+  const [sku_data,setSku_data] = useState({"O1":[],"O2":[]});
   useEffect(() => {
     cursorListner(setcoord);
-    room();
+    //room();
     }, [])
-
   const handleWindowMouseMove = (event) => {
     var now = Date.now();
     if (now % 20 === 0) {
       sendMessage(event.clientX,event.clientY);
     }
   };
-  window.addEventListener("mousemove", handleWindowMouseMove);
-  const delsku = (parent, id) => {
-    setdelabel(parent);
-    setdelid(id);
-    setSkuList((prev) => prev.filter((val) => val !== id));
-  };
+  //window.addEventListener("mousemove", handleWindowMouseMove);
   const duplidata = sku_list.slice(0, 12);
   const orders = Array.from({ length: 10 }, (_, index) => {
     return (
@@ -66,8 +58,9 @@ export default function Game() {
     );
   });
   function sendorder(label) {
-    setdelabel(label);
-    setdelid("all");
+    let tmp = sku_data
+    tmp[label] = [];
+    flushbins(tmp);
   }
   function chooseSelected(reference) {
     if (selected) {
@@ -95,20 +88,24 @@ export default function Game() {
       label = "A" + (index + 1).toString();
     } else if (index < 8) {
       label = "B" + (index - 3).toString();
+
     } else if (index < 12) {
       label = "C" + (index - 7).toString();
     } else {
       label = "D" + (index - 11).toString();
     }
+    if(!(label in sku_data)){
+      sku_data[label] = [];
+    }
     return (
       <Bins
         key={index}
         binId={label}
-        delsku={delsku}
-        delbinId={dellabel}
-        delid={delid}
         updateSelected={updateSelected}
         setSku={setskuSelected}
+        data = {sku_data[label]}
+        set_data = {setSku_data}
+        setSkuList = {setSkuList}
       ></Bins>
     );
   });
@@ -123,7 +120,7 @@ export default function Game() {
             color: "red",
           }}
         >
-          {console.log(coord)}x
+          x
         </div>
       <section className="inventory">
         <div className="barcode">
@@ -147,12 +144,12 @@ export default function Game() {
           <div>
             <Bins
               binId={"O1"}
-              delsku={delsku}
-              delbinId={dellabel}
-              delid={delid}
               selected={selected}
               updateSelected={updateSelected}
               setSku={setskuSelected}
+              data = {sku_data["O1"]}
+              set_data = {setSku_data}
+              setSkuList = {setSkuList}
             ></Bins>
             <button className="send-btn" onClick={() => sendorder("O1")}>
               Send Order 2
@@ -166,11 +163,10 @@ export default function Game() {
           <div>
             <Bins
               binId={"O2"}
-              delsku={delsku}
-              delbinId={dellabel}
-              delid={delid}
-              selected={selected}
               updateSelected={updateSelected}
+              data = {sku_data["O2"]}
+              set_data = {setSku_data}
+              setSkuList = {setSkuList}
             ></Bins>
             <button className="send-btn" onClick={() => sendorder("O2")}>
               Send Order 2
@@ -194,7 +190,7 @@ export default function Game() {
         <div className="scan_container">
           <h3>RECORD</h3>
           <hr></hr>
-          <form>
+          <div className="form">
             <label ref={from} onClick={() => chooseSelected(from)}>
               FROM LOCATION - <input type="text" name="from" />
             </label>
@@ -208,8 +204,8 @@ export default function Game() {
               Quantity - <input type="text" name="sku" />
             </label>
             <br></br>
-            <input type="submit" value="Submit" className="submit-btn" />
-          </form>
+            <button className="submit-btn">Submit</button>
+          </div>
         </div>
         <div className="record_call_to_action">
           <img

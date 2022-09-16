@@ -8,6 +8,8 @@ import {
     getDoc,
     getDocs,
     deleteDoc,
+    writeBatch,
+    runTransaction,
 } from "firebase/firestore";
 import app from "./config";
 
@@ -37,10 +39,11 @@ export async function updateCursor(x, y) {
     }
 }
 
-export async function writeConfig(roomWithOffer) {
-    updateDoc(doc(db, "instance1", "Room 1"), {
-        roomWithOffer: roomWithOffer,
-    }).catch((error) => {
+export async function writeConfig(roomWithOffer,connection) {
+    let something = {
+    }
+    something[connection] = roomWithOffer
+    updateDoc(doc(db, "instance1", "Room 1"), something).catch((error) => {
         console.log(error.code);
     });
 }
@@ -85,6 +88,39 @@ export async function deleteOffer(item) {
         });
 }
 
+export async function flushbins(tmp){
+    const sfDocRef = doc(db, "instance1", "Room 1")
+    updateDoc(sfDocRef,{"Bins":tmp})
+}
+
+export async function binUpdate(from,to,id,new_test){
+    const sfDocRef = doc(db, "instance1", "Room 1")
+    try {
+        await runTransaction(db, async (transaction) => {
+          const sfDoc = await transaction.get(sfDocRef);
+          if (!sfDoc.exists()) {
+            throw "Document does not exist!";
+          }
+          const data = sfDoc.data()['Bins']
+          if(from != ''){
+            data[from] = data[from].filter((ele)=> ele != id);
+            console.log(data[from]);
+          }
+          if(to in data){
+            data[to].push(id)
+          }
+          else{
+            data[to] = [id]
+          }
+          transaction.update(sfDocRef, {"Bins":data});
+          new_test(data);
+        });
+        console.log("Transaction successfully committed!");
+      } catch (e) {
+        console.log("Transaction failed: ", e);
+      }
+}
+
 export async function readConfig() {
     const docRef = doc(db, "instance1", "Room 1");
     const docSnap = await getDoc(docRef);
@@ -95,15 +131,15 @@ export async function readConfig() {
         console.log("No such document!");
     }
 }
-export async function answerlistener(peerConnection) {
+export async function answerlistener(peerConnection,connection) {
     onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         if (
-            snapshot.data()["roomWithOffer"]["answer"] &&
+            snapshot.data()[connection]["answer"] &&
             !peerConnection.currentRemoteDescription
         ) {
             await peerConnection.setRemoteDescription(
                 new RTCSessionDescription(
-                    snapshot.data()["roomWithOffer"]["answer"]
+                    snapshot.data()[connection]["answer"]
                 )
             );
         }
@@ -111,7 +147,6 @@ export async function answerlistener(peerConnection) {
             snapshot.data()["iceCandidates"] &&
             !!peerConnection.currentRemoteDescription
         ) {
-            console.log("hey");
             peerConnection.addIceCandidate(snapshot.data()["iceCandidates"]);
         }
     });

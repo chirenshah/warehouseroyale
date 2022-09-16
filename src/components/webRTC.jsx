@@ -16,6 +16,19 @@ import {
 //     iceCandidatePoolSize: 10,
 // };
 const peerConnection = new RTCPeerConnection();
+const players = ["email2@gmail.com","shah.chiren25@gmail.com","email3@gmail.com"]
+let playerIndex = players.indexOf(window.localStorage.admin);
+
+// create connections
+for (let index = playerIndex+1; index < players.length; index++) {
+    createRoom(playerIndex + "-" + index);
+}
+
+//accept connections
+for (let i = 0; i < playerIndex; i++) {
+    joinRoom(i + "-" + playerIndex);
+}
+
 const dataChannel = peerConnection.createDataChannel("my channel");
 dataChannel.addEventListener('open', event => {
     
@@ -49,34 +62,37 @@ peerConnection.addEventListener("icecandidate", (event) => {
       }
 });
 
-async function joinRoom(offer){
+async function joinRoom(connection){
+    let offer = await readConfig();
     if (!peerConnection.currentRemoteDescription) {
         await peerConnection.setRemoteDescription(
-            new RTCSessionDescription(offer["roomWithOffer"]["offer"])
+            new RTCSessionDescription(offer[connection]["offer"])
         );
     }
+
     const answer = await peerConnection.createAnswer();
     const roomWithAnswer = {
-        offer: offer["roomWithOffer"]["offer"],
+        offer: offer[connection]["offer"],
         answer: {
             type: answer.type,
             sdp: answer.sdp,
         },
     };
-    writeConfig(roomWithAnswer);
+    console.log("hello")
+    writeConfig(roomWithAnswer,connection);
     await peerConnection.setLocalDescription(answer);
 }
 
-export async function room(){
-    let offer = await readConfig();
-    if(offer['roomWithOffer']){
-        joinRoom(offer);
-    }else{
-        createRoom();
-    }
-}
+// export async function room(){
+//     let offer = await readConfig();
+//     if(offer['roomWithOffer']){
+//         joinRoom(offer);
+//     }else{
+//         //createRoom();
+//     }
+// }
 
-export async function createRoom(){
+export async function createRoom(label){
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
     const roomWithOffer = {
@@ -85,8 +101,8 @@ export async function createRoom(){
             sdp: offer.sdp,
         },
     };
-    writeConfig(roomWithOffer);
-    answerlistener(peerConnection);
+    writeConfig(roomWithOffer,label);
+    answerlistener(peerConnection,label);
     //console.log(peerConnection);
 }
 

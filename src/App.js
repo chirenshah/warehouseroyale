@@ -36,7 +36,7 @@ function App() {
                   <Route path="/performancemetric" element={(<Performancemetric />)} />
 
                   {/* pages  */}
-                  <Route path="/recruitmentroom" element={ isManager ? <Recruitmentroom />:null} />
+                  <Route path="/recruitmentroom" element={<Recruitmentroom />} />
                   <Route path="/messenger" element={<Messenger />} />
                   <Route path="/Myteam" element={<Myteam/>} />
 
