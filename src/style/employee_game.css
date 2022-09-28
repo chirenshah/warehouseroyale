@@ -145,6 +145,7 @@ body{
   .record input[type="text"]{
     width: 100px;
     margin-right: 10px;
+    text-align: center;
     border: black 1px solid;
   }
 
@@ -166,7 +167,6 @@ body{
   }
   
   .scan_container{
-    height: 40%;
     text-align: center;
     border-bottom: 1px solid black;
   }

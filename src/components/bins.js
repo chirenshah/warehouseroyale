@@ -1,19 +1,26 @@
-import { useState } from "react";
 import { useDrop } from "react-dnd";
 import Sku from "./sku";
 import "../style/bin.css";
 import barcode from "../assets/barcode.svg";
 import { binUpdate } from "../Database/firestore";
-function Bins({ binId, updateSelected, setSku ,data,set_data,setSkuList}) {
-    const [expiretime, setexpiretime] = useState("");
+function Bins({ binId, updateSelected, setSku, data, set_data, setSkuList }) {
     const [{ isOver }, drop] = useDrop(
         () => ({
             accept: "sku",
             drop: (item) => {
-                setexpiretime(item["timer"]);
                 if (binId !== item["parent"])
-                    binUpdate(item["parent"],binId,item['id'],set_data);
-                    setSkuList((prev) => prev.filter((val) => val !== item['id']));
+                    binUpdate(
+                        item["parent"],
+                        binId,
+                        item["id"],
+                        set_data,
+                        item["timer"]
+                    );
+                setSkuList((prev) => {
+                    let temp = prev;
+                    delete temp["id"];
+                    return temp;
+                });
             },
             collect: (monitor) => ({
                 isOver: !!monitor.isOver(),
@@ -21,7 +28,6 @@ function Bins({ binId, updateSelected, setSku ,data,set_data,setSkuList}) {
         }),
         [binId]
     );
-
 
     return (
         <div
@@ -32,14 +38,14 @@ function Bins({ binId, updateSelected, setSku ,data,set_data,setSkuList}) {
             }}
         >
             <div className="bin_dropdown">
-                {data !== undefined 
-                    ? data.map((val, key) => (
+                {data !== undefined
+                    ? Object.keys(data).map((val, key) => (
                           <Sku
                               key={key}
                               id={val}
                               parent={binId}
                               setSku={setSku}
-                              expiretime = {expiretime}
+                              expiretime={data[val]}
                           ></Sku>
                       ))
                     : null}

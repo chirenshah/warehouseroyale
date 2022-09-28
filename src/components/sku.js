@@ -14,7 +14,7 @@ export default function Sku({ id, parent, setSku , expiretime }) {
     );
     //settimer(() => timeObject.getSeconds().toString());
     useEffect(() => {
-        if(parent !== ""){
+        if(parent !== "Inventory"){
             const timeout = setTimeout(() => {
                 const timeObject = new Date("1970-01-01 00:" + timer);
                 if(timer !== "00:00" && timer !== "Expired"){
@@ -39,12 +39,12 @@ export default function Sku({ id, parent, setSku , expiretime }) {
             style={{
                 opacity: isDragging ? 0.5 : 1,
                 color : timer === "Expired" ? "red":"black",
-                justifyContent: parent === ""? "center":"space-around" 
+                justifyContent: parent === "Inventory"? "center":"space-around" 
             }}
             onClick={() => setSku(id)}
         >
             <p>{id}</p>
-            <div>{parent !== ""?(<p>{timer}</p>):null}</div>
+            <div>{parent !== "Inventory"?(<p>{timer}</p>):null}</div>
         </div>
     );
 }
