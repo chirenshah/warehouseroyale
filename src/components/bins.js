@@ -1,6 +1,7 @@
 import { useDrop } from "react-dnd";
 import Sku from "./sku";
 import "../style/bin.css";
+import React from "react";
 import barcode from "../assets/barcode.svg";
 import { binUpdate } from "../Database/firestore";
 function Bins({ binId, updateSelected, setSku, data, set_data, setSkuList }) {
@@ -14,13 +15,8 @@ function Bins({ binId, updateSelected, setSku, data, set_data, setSkuList }) {
                         binId,
                         item["id"],
                         set_data,
-                        item["timer"]
+                        item["timer"] ? item["timer"] : "10:00"
                     );
-                setSkuList((prev) => {
-                    let temp = prev;
-                    delete temp["id"];
-                    return temp;
-                });
             },
             collect: (monitor) => ({
                 isOver: !!monitor.isOver(),
@@ -38,14 +34,14 @@ function Bins({ binId, updateSelected, setSku, data, set_data, setSkuList }) {
             }}
         >
             <div className="bin_dropdown">
-                {data !== undefined
-                    ? Object.keys(data).map((val, key) => (
+                {data
+                    ? data.map((val, key) => (
                           <Sku
                               key={key}
-                              id={val}
+                              id={Object.keys(val)[0]}
                               parent={binId}
                               setSku={setSku}
-                              expiretime={data[val]}
+                              expiretime={val[Object.keys(val)[0]]}
                           ></Sku>
                       ))
                     : null}

@@ -2,23 +2,25 @@ import Bins from "./bins";
 import barcode from "../assets/barcode.svg";
 import "../style/employee_game.css";
 import Sku from "./sku";
-import { useState, createRef, useEffect } from "react";
-import unsub, {
+import React, { useState, createRef, useEffect } from "react";
+import {
     binListener,
     calculateLogs,
     createOrders,
-    flushbins,
-    updateCursor,
+    skuFinder,
+    // flushbins,
+    // updateCursor,
     updateLogs,
     writeInventory,
 } from "../Database/firestore";
-import { room, sendMessage, cursorListner } from "./webRTC";
+// import { room, sendMessage, cursorListner } from "./webRTC";
 import { useNavigate } from "react-router-dom";
 export default function Game() {
     var label = "";
     var from = createRef();
     var to = createRef();
     var sku = createRef();
+    var quant = createRef();
     var selected;
     let navigate = useNavigate();
     // Low medium and high complexity for data
@@ -34,41 +36,31 @@ export default function Game() {
     //None :
     //Some :
     //many :
-    const [sku_list, setSkuList] = useState([]);
-    const [skuSelected, setskuSelected] = useState("");
-    const [coord, setcoord] = useState([]);
-    const [sku_data, setSku_data] = useState({ O1: {}, O2: {} });
+    const [skuSelected, setskuSelected] = useState();
+    //const [coord, setcoord] = useState([]);
+    const [sku_data, setSku_data] = useState({ Inventory: [] });
+    const [orderList, setorderList] = useState({ O1: [], O2: [] });
+
     useEffect(() => {
-        binListener(setSku_data, setSkuList);
+        binListener(setSku_data);
         //writeInventory();
+        createOrders(setorderList, sku_data);
         //cursorListner(setcoord);
         //room();
     }, []);
-    const handleWindowMouseMove = (event) => {
-        var now = Date.now();
-        if (now % 20 === 0) {
-            sendMessage(event.clientX, event.clientY);
-        }
-    };
+    // const handleWindowMouseMove = (event) => {
+    //     var now = Date.now();
+    //     if (now % 20 === 0) {
+    //         sendMessage(event.clientX, event.clientY);
+    //     }
+    // };
     window.addEventListener("keydown", (event) => {
-        if (event.metaKey && event.key == "f") {
+        if (event.metaKey && event.key === "f") {
             event.preventDefault();
         }
     });
     //window.addEventListener("mousemove", handleWindowMouseMove);
-    const duplidata = Object.keys(sku_list).slice(0, 12);
-    const orders = Array.from({ length: 10 }, (_, index) => {
-        return (
-            <div className="cards" key={index}>
-                {duplidata[index]}
-            </div>
-        );
-    });
-    function sendorder(label) {
-        let tmp = sku_data;
-        tmp[label] = [];
-        flushbins(tmp);
-    }
+
     function chooseSelected(reference) {
         if (selected) {
             selected.current.classList = "";
@@ -87,9 +79,6 @@ export default function Game() {
             selected.current.classList = "";
         }
     }
-    function setSku(id) {
-        setskuSelected(id);
-    }
     const bins = Array.from({ length: 16 }, (_, index) => {
         if (index < 4) {
             label = "A" + (index + 1).toString();
@@ -101,7 +90,7 @@ export default function Game() {
             label = "D" + (index - 11).toString();
         }
         if (!(label in sku_data)) {
-            sku_data[label] = {};
+            sku_data[label] = [];
         }
         return (
             <Bins
@@ -111,7 +100,6 @@ export default function Game() {
                 setSku={setskuSelected}
                 data={sku_data[label]}
                 set_data={setSku_data}
-                setSkuList={setSkuList}
             ></Bins>
         );
     });
@@ -138,13 +126,15 @@ export default function Game() {
                     <h3>RECEIVING</h3>
                 </div>
                 <div className="sku_container">
-                    {Object.keys(sku_list).map((value, key) => (
+                    {sku_data["Inventory"].map((value, key) => (
                         <Sku
                             key={key}
-                            id={value}
+                            id={Object.keys(value)[0]}
                             parent={"Inventory"}
-                            setSku={setSku}
-                            expiretime={sku_list[value]}
+                            setSku={setskuSelected}
+                            expiretime={
+                                sku_data["Inventory"][Object.keys(value)[0]]
+                            }
                         />
                     ))}
                 </div>
@@ -160,13 +150,12 @@ export default function Game() {
                             setSku={setskuSelected}
                             data={sku_data["O1"]}
                             set_data={setSku_data}
-                            setSkuList={setSkuList}
                         ></Bins>
                         <button
                             className="send-btn"
                             onClick={() => {
-                                sendorder("O1");
-                                //createOrders();
+                                //sendorder("O1");
+                                createOrders(setorderList, sku_data, "O1");
                             }}
                         >
                             Send Order 1
@@ -175,36 +164,42 @@ export default function Game() {
 
                     <div className="order">
                         <p>Order 1 </p>
-                        <div className="order-content">{orders}</div>
+                        <div className="order-content">
+                            {orderList["O1"].map((value, key) => (
+                                <div className="cards" key={key}>
+                                    {Object.keys(value)[0]}:
+                                    {value[Object.keys(value)[0]]}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div>
                         <Bins
                             binId={"O2"}
+                            selected={selected}
                             updateSelected={updateSelected}
+                            setSku={setskuSelected}
                             data={sku_data["O2"]}
                             set_data={setSku_data}
-                            setSkuList={setSkuList}
                         ></Bins>
                         <button
                             className="send-btn"
                             onClick={() => {
-                                sendorder("O2");
-                                //createOrders();
+                                createOrders(setorderList, sku_data, "O2");
                             }}
                         >
                             Send Order 2
                         </button>
                     </div>
                     <div className="order">
-                        <p>Order 1</p>
-                        <div className="cards">
-                            123144 : <b>5</b>
-                        </div>
-                        <div className="cards">
-                            123131 : <b>3</b>
-                        </div>
-                        <div className="cards">
-                            123131 : <b>4</b>
+                        <p>Order 2 </p>
+                        <div className="order-content">
+                            {orderList["O2"].map((value, key) => (
+                                <div className="cards" key={key}>
+                                    {Object.keys(value)[0]}:
+                                    {value[Object.keys(value)[0]]}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
@@ -223,9 +218,12 @@ export default function Game() {
                         <label ref={sku} onClick={() => chooseSelected(sku)}>
                             SKU - <input type="text" name="sku" />
                         </label>
-                        {/* <label >
-              Quantity - <input type="text" name="sku" />
-            </label> */}
+                        <label
+                            ref={quant}
+                            onClick={() => chooseSelected(quant)}
+                        >
+                            Quantity - <input type="text" name="quant" />
+                        </label>
                         <br></br>
                         <button
                             className="submit-btn"
@@ -234,10 +232,13 @@ export default function Game() {
                                     from.current.childNodes[1].value;
                                 let toValue = to.current.childNodes[1].value;
                                 let skuId = sku.current.childNodes[1].value;
-                                updateLogs(fromValue, toValue, skuId);
+                                let quantVal =
+                                    quant.current.childNodes[1].value;
+                                updateLogs(fromValue, toValue, skuId, quantVal);
                                 from.current.childNodes[1].value = "";
                                 to.current.childNodes[1].value = "";
                                 sku.current.childNodes[1].value = "";
+                                quant.current.childNodes[1].value = "";
                             }}
                         >
                             Submit
@@ -260,13 +261,21 @@ export default function Game() {
                     ></img>
                     {skuSelected}
                     <button
+                        className="send-btn black"
+                        onClick={() => {
+                            skuFinder("J12329763");
+                        }}
+                    >
+                        FIND SKU
+                    </button>
+                    <button
                         className="send-btn white"
                         onClick={() => {
                             //navigate("/performancemetric");
-                            window.removeEventListener(
-                                "mousemove",
-                                handleWindowMouseMove
-                            );
+                            // window.removeEventListener(
+                            //     "mousemove",
+                            //     handleWindowMouseMove
+                            // );
                             calculateLogs();
                         }}
                     >

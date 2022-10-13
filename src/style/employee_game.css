@@ -119,8 +119,8 @@ body{
   }
 
   .order-content{
-    height: 75%;
     overflow: scroll;
+    height: 100%;
   }
   
 
