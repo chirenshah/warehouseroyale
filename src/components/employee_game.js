@@ -17,13 +17,14 @@ import {
 // import { room, sendMessage, cursorListner } from "./webRTC";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineSend } from "react-icons/ai";
-import { messages } from "./views/Manager/dashboard/data/dummy";
+import { ChatBox } from "./chatBox";
 export default function Game() {
     var label = "";
     var from = createRef();
     var to = createRef();
     var sku = createRef();
     var quant = createRef();
+
     var selected;
     let navigate = useNavigate();
     // Low medium and high complexity for data
@@ -46,9 +47,9 @@ export default function Game() {
     const [chat, setChat] = useState(true);
     const [message, setMessage] = useState("");
     useEffect(() => {
-        binListener(setSku_data);
+        binListener(setSku_data, setorderList);
         //writeInventory();
-        createOrders(setorderList, sku_data);
+        //createOrders(setorderList, sku_data);
         //cursorListner(setcoord);
         //room();
     }, []);
@@ -120,6 +121,7 @@ export default function Game() {
         >
           x
         </div> */}
+
             <section className="inventory">
                 <div className="barcode">
                     <img
@@ -264,14 +266,14 @@ export default function Game() {
                         }}
                     ></img>
                     {skuSelected}
-                    <button
+                    {/* <button
                         className="send-btn black"
                         onClick={() => {
                             skuFinder("J12329763");
                         }}
                     >
                         FIND SKU
-                    </button>
+                    </button> */}
                     <button
                         className="send-btn white"
                         onClick={() => {
@@ -294,12 +296,7 @@ export default function Game() {
                         >
                             {chat ? "Chat" : "x"}
                         </button>
-                        {console.log(chat)}
-                        <div
-                            style={{
-                                height: chat ? "0" : "80vh",
-                            }}
-                        ></div>
+                        <ChatBox expand={chat} />
                         {!chat ? (
                             <div
                                 style={{
@@ -310,12 +307,16 @@ export default function Game() {
                                     onChange={(e) => {
                                         setMessage(e.target.value);
                                     }}
+                                    value={message}
                                     placeholder="say something nice"
                                 />
                                 <AiOutlineSend
                                     width={10}
+                                    fontSize={30}
+                                    color="#6649b8"
                                     onClick={() => {
                                         chat_sendMessage(message);
+                                        setMessage("");
                                     }}
                                 ></AiOutlineSend>
                             </div>

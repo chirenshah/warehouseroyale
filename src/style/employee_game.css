@@ -14,15 +14,16 @@ body{
     text-align: center;
     border-bottom: 1px black solid;
     margin: 0;
-    height: max(20%,150px);
+    height: 15%;
   }
   .barcode img{
     width: max(100px,80%);
+    margin: auto;
     margin-top: 5%;
   }
   .sku_container{
     overflow: scroll;
-    height: 80%;
+    height: 86%;
   }
   
   .center{
@@ -54,7 +55,7 @@ body{
   }
   
   .carts{
-    height: 30%;
+    height: 32%;
     border-top: 1px solid black;
     overflow: scroll;
     display: flex;
@@ -185,6 +186,7 @@ body{
     right: 0px;
     margin: 0px;
     width: 100%;
+    text-align: end;
   }
 
   .chat:hover{
@@ -204,8 +206,12 @@ body{
   }
 
   .chat-container input{
-    background-color: #5D5FEF;
-    width: 100%;
-    height: 2rem;
-    bottom: 0;
+    line-height: 1.5;
+      width: 100%;
+      font-size: 1.5rem;
+      background: #5D5FEF;
+      color: white;
+      outline: none;
+      border: none;
+      padding: 0 10px;
   }

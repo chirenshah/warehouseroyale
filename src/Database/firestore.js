@@ -11,8 +11,12 @@ import {
     writeBatch,
     runTransaction,
     addDoc,
-    FieldValue,
+    serverTimestamp,
+    query,
+    orderBy,
+    limit,
 } from "firebase/firestore";
+
 import app from "./config";
 
 const db = getFirestore(app);
@@ -142,7 +146,7 @@ export async function writeInventory() {
         temp[data[Math.round(Math.random() * (data.length - 1))]] = "10:00";
         fin_data.push(temp);
     }
-    console.log(fin_data);
+
     updateDoc(doc(db, "instance1", "Room 1"), {
         Bins: { Inventory: fin_data },
     }).catch((err) => console.log(err));
@@ -153,37 +157,42 @@ export async function calculateLogs() {
     physicalLogs =
         physicalLogs.data()[window.localStorage.admin.replace(".", ",")];
     let actualLogs = await getDoc(doc(db, "instance1", "Room 1"));
+
     let actualLogsMap = {};
     actualLogs = actualLogs.data()["Logs"];
     actualLogs.forEach((val) => {
         val = val.split(":");
         if (val[0] in actualLogsMap) {
+            //console.log(val);
             actualLogsMap[val[0]].push([val[1], val[2], val[3]]);
         } else {
             actualLogsMap[val[0]] = [[val[1], val[2], val[3]]];
         }
     });
+    //console.log(actualLogsMap[""]);
     let right = 0;
     let wrong = 0;
+    console.log(actualLogsMap);
     for (let i = 0; i < physicalLogs.length; i++) {
-        let val = physicalLogs[i].split(":");
-        if (val[0] in actualLogsMap) {
-            let flag = false;
-            for (let j = 0; j < actualLogsMap[val[0]].length; j++) {
-                console.log(actualLogsMap[val[0]][j]);
+        let phy = physicalLogs[i].split(":");
+        //console.log(actualLogsMap[phy[0]], i, phy[0]);
+        if (phy[0] in actualLogsMap) {
+            let flag = true;
+            for (let j = 0; j < actualLogsMap[phy[0]].length; j++) {
                 if (
-                    (actualLogsMap[val[0]][j][0] === val[1]) &
-                    (actualLogsMap[val[0]][j][1] === val[2]) &
-                    (actualLogsMap[val[0]][j][2] === window.localStorage.admin)
+                    (actualLogsMap[phy[0]][j][0] === phy[1]) &
+                    (actualLogsMap[phy[0]][j][1] === phy[2]) &
+                    (actualLogsMap[phy[0]][j][2] === window.localStorage.admin)
                 ) {
                     right += 1;
-                    actualLogsMap[val[0]][j] = [-1, -1, -1];
-                    flag = true;
+                    actualLogsMap[phy[0]][j] = [-1, -1, -1];
+                    flag = false;
                     break;
                 }
             }
             if (flag) {
                 wrong += 1;
+                console.log(phy[0]);
             }
         } else {
             wrong += 1;
@@ -226,48 +235,42 @@ export async function createOrders(setOrder, bins_val, bin_label) {
         let points = 0;
         setOrder((prev) => {
             //console.log(bins_val[bin_label]);
-            if (bin_label) {
-                for (let i = 0; i < prev[bin_label].length; i++) {
-                    for (let j = 0; j < bins_val[bin_label].length; j++) {
-                        if (
-                            Object.keys(bins_val[bin_label][j])[0] ===
-                            Object.keys(prev[bin_label][i])[0]
-                        ) {
-                            points += 1;
 
+            for (let i = 0; i < prev[bin_label].length; i++) {
+                for (let j = 0; j < bins_val[bin_label].length; j++) {
+                    if (
+                        Object.keys(bins_val[bin_label][j])[0] ===
+                        Object.keys(prev[bin_label][i])[0]
+                    ) {
+                        points += 1;
+
+                        prev[bin_label][j][
+                            Object.keys(prev[bin_label][j])[0]
+                        ] -= 1;
+
+                        if (
                             prev[bin_label][j][
                                 Object.keys(prev[bin_label][j])[0]
-                            ] -= 1;
-
-                            if (
-                                prev[bin_label][j][
-                                    Object.keys(prev[bin_label][j])[0]
-                                ] <= 0
-                            ) {
-                                delete prev[bin_label][j][
-                                    Object.keys(prev[bin_label][j])[0]
-                                ];
-                            }
+                            ] <= 0
+                        ) {
+                            delete prev[bin_label][j];
                         }
                     }
                 }
-                dict = prev;
-                dict[bin_label] = orders1;
-                getDoc(doc(db, "instance1", "Room 1")).then((val) => {
-                    if (val.data()["Points"]) {
-                        points += val.data()["Points"];
-                    }
-                    updateDoc(doc(db, "instance1", "Room 1"), {
-                        Points: points,
-                    });
-                });
             }
-
+            dict = prev;
+            dict[bin_label] = orders1;
+            getDoc(doc(db, "instance1", "Room 1")).then((val) => {
+                if (val.data()["Points"]) {
+                    points += val.data()["Points"];
+                }
+                updateDoc(doc(db, "instance1", "Room 1"), {
+                    Points: points,
+                });
+            });
             return dict;
         });
-        if (bin_label) {
-            bins_val[bin_label] = [];
-        }
+        bins_val[bin_label] = [];
         // console.log(bin_label, bins_val);
         if ("O1" in bins_val) {
             updateDoc(doc(db, "instance1", "Room 1"), { Bins: bins_val });
@@ -333,20 +336,26 @@ export async function binUpdate(from, to, id, set_data, timer) {
     }
 }
 
-export async function binListener(set_data) {
+export async function binListener(set_data, setorderList) {
     onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         set_data(snapshot.data()["Bins"]);
+        let temp = {
+            O1: snapshot.data()["O1"],
+            O2: snapshot.data()["O2"],
+        };
+        setorderList(temp);
     });
 }
 
 export async function chat_sendMessage(message) {
-    const messagesRef = collection(db, "instance1", "Room 1", "Chats");
-    let now = Date.now().toString();
-    addDoc(messagesRef, {
-        text: message,
-        createdAt: now,
-        user: window.localStorage.admin,
-    });
+    if (message !== "") {
+        const messagesRef = collection(db, "instance1", "Room 1", "Chats");
+        addDoc(messagesRef, {
+            text: message,
+            createdAt: serverTimestamp(),
+            user: window.localStorage.admin,
+        });
+    }
 }
 
 export async function readConfig() {

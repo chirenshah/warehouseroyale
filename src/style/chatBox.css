@@ -1,0 +1,55 @@
+main {
+    padding: 10px;
+    height: 80vh;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+main::-webkit-scrollbar {
+    width: 0.25rem;
+}
+
+
+
+main::-webkit-scrollbar-thumb {
+    background: #6649b8;
+}
+
+ul,
+li {
+    text-align: left;
+    list-style: none;
+}
+
+.message p {
+    max-width: 400px;
+    margin-bottom: 12px;
+    line-height: 24px;
+    padding: 10px 10px;
+    border-radius: 25px;
+    position: relative;
+    color: white;
+    text-align: end;
+}
+
+.message {
+    display: flex;
+    align-items: center;
+}
+
+
+.sent {
+    flex-direction: row-reverse;
+}
+
+.sent p {
+    color: white;
+    background: #6649b8;
+    align-self: flex-end;
+}
+
+.received p {
+    background: #e5e5ea;
+    color: black;
+}
