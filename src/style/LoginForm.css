@@ -1,184 +1,119 @@
-body {
-    background: rgb(57,49,69);
-    background: linear-gradient(90deg, #393145 41%, #fb2d00 75%, rgba(255,192,0,1) 98%);
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    font-family: "Open Sans", sans-serif;
-    color: #333333;
-  }
-  
-  .box-form {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    margin: 0 auto;
-    width: 80%;
-    height: 80%;
-    background: #FFFFFF;
-    border-radius: 10px;
-    overflow: hidden;
-    display: flex;
-    align-items: stretch;
-    justify-content: space-between;
-    box-shadow: 0 0 20px 6px #08081885;
-  }
-  @media (max-width: 980px) {
-    .box-form {
-      flex-flow: wrap;
-      text-align: center;
-      align-content: center;
-      align-items: center;
-    }
-  }
-  .box-form div {
-    height: auto;
-  }
-  .box-form .left {
-    color: #FFFFFF;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: url("../assets/warehouse-wallpapers.jpg");
-    overflow: hidden;
-    flex:2.5;
-  }
-  .box-form .left .overlay {
-    padding: 30px;
-    width: 100%;
-    height: 100%;
-    background: #737597ad;
-    overflow: hidden;
-    box-sizing: border-box;
-  }
-  .box-form .left .overlay h1 {
-    font-family: "Montserrat", helvetica, arial, sans-serif;
-    font-size: 4em;
-    line-height: 1;
-    font-weight: 900;
-    margin-top: 30%;
-    margin-bottom: 20px;
-  }
-  .box-form .left .overlay p {
-    font-size: 1.5em;
-    line-height: 1;
-    font-weight: 600;
-    margin-top: 3%;
-    margin-bottom: 20px;
-  }
-  .box-form .right {
-    flex:1;
-    padding: 1em;
-    padding-top: 2em;
-    overflow: hidden;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-  }
-  
-  @media (max-width: 980px) {
-    .box-form .right {
-      width: 100%;
-      
-    }
-  }
-  
-  .box-form .right .content{
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    font-weight: 900;
-    font-size: 5em;
-  }
-  
-  .box-form .right .inputs {
-  
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    margin-top: 5em;
-    margin-bottom: 5em;
-  }
-  
-  .box-form .right input {
-  
-    font-size: 16px;
-    border: none;
-    outline: none;
-    margin-left: 3em;
-    margin-right: 3em;
-    border-bottom: 2px solid #B0B3B9;
-  }
-  
-  .user_name {
-    margin-top: 1em;
-    margin-bottom: 1em;
-  }
-  
-  .password {
-    margin-top: 1em;
-    margin-bottom: 1em;
-  }
-  
-  .button_div {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .ibutton {
-    color: #fff;
-    font-size: 16px;
-    padding: 12px 35px;
-    border-radius: 50px;
-    display: inline-block;
-    border: 0;
-    outline: 0;
-    box-shadow: 0px 4px 20px 0px #49c628a6;
-    background-image: linear-gradient(135deg, #70F570 10%, #49C628 100%);
-  }
-  
-  /* label {
-    display: block;
-    position: relative;
-    margin-left: 30px;
-  }
-  
-  label::before {
-    content: ' \f00c';
-    position: absolute;
-    font-family: FontAwesome;
-    background: transparent;
-    border: 3px solid #70F570;
-    border-radius: 4px;
-    color: transparent;
-    left: -30px;
-    transition: all 0.2s linear;
-  }
-  
-  label:hover::before {
-    font-family: FontAwesome;
-    content: ' \f00c';
-    color: #fff;
-    cursor: pointer;
-    background: #70F570;
-  }
-  
-  label:hover::before .text-checkbox {
-    background: #70F570;
-  } */
-  
-  .error {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    color: #fb2d00;
-    margin-bottom: 2em;
-  }
-  
-  
+.loginForm {
+  background: linear-gradient(
+    90deg,
+    #393145 41%,
+    #fb2d00 75%,
+    rgba(255, 192, 0, 1) 98%
+  );
+  height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+.loginForm__box {
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  border-radius: 10px !important;
+  box-shadow: 0 0 20px 6px #08081885;
+}
+
+.loginForm__left {
+  height: 35rem;
+  max-height: 35rem;
+  background-image: url('../assets/warehouse-wallpapers.jpg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  flex: 1;
+  color: #ffffff;
+  position: relative;
+}
+
+.loginForm__overlay {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background: #737597ad;
+}
+
+.loginForm__title {
+  position: relative;
+  margin-left: 2rem;
+  z-index: 99999;
+}
+
+.loginForm__title h1 {
+  font-family: 'Montserrat', helvetica, arial, sans-serif;
+  font-size: 4rem;
+  line-height: 1;
+  font-weight: 900;
+  margin-top: 30%;
+  margin-bottom: 20px;
+}
+
+.loginForm__title h4 {
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 600;
+  margin-top: 3%;
+  margin-bottom: 20px;
+}
+
+.loginForm__right {
+  background-color: white;
+  padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  text-align: center;
+}
+
+.loginForm__right h1 {
+  font-size: 5rem;
+  font-weight: 600;
+  margin-bottom: 5rem;
+}
+
+.loginForm__inputs {
+  display: flex;
+  flex-direction: column;
+}
+
+.loginForm__inputs input {
+  font-size: 16px;
+  border: none;
+  outline: none;
+  margin-left: 3em;
+  margin-right: 3em;
+  border-bottom: 2px solid #b0b3b9;
+  margin: 1rem 0;
+}
+
+.loginForm__button {
+  color: #ffffff;
+  font-size: 16px;
+  padding: 12px 35px;
+  border-radius: 50px;
+  border: 0;
+  outline: 0;
+  width: 120px;
+  box-shadow: 0px 4px 20px 0px #49c628a6;
+  background-image: linear-gradient(135deg, #70f570 10%, #49c628 100%);
+  margin-top: 3rem;
+  cursor: pointer;
+  text-align: center;
+}
+
+.loginForm__button:hover  {
+    opacity: 0.7;
+}
+
+.loginForm__error {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #fb2d00;
+  margin-bottom: 2em;
+}
