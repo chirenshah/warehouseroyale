@@ -6,6 +6,7 @@ import {
     signOut,
 } from "firebase/auth";
 import app from "./config";
+import { answerlistener, binUpdate } from "./firestore";
 
 const auth = getAuth(app);
 export function emailAuth({ email }) {
