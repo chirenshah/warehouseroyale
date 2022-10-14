@@ -181,16 +181,31 @@ body{
   }
 
   .chat{
-    position: absolute;
     bottom: 0px;
     right: 0px;
     margin: 0px;
-    width: 20%;
-    height: 7%;
+    width: 100%;
   }
 
   .chat:hover{
     margin: 0px;
-    width: 20%;
-    height: 7%;
+    width: 100%;
+  }
+
+  .chat-container{
+    width: 23%;
+    border: #5D5FEF solid 1px;
+    position: absolute;
+    bottom: 0;
+    background: white;
+    display: flex;
+    align-items: flex-end;
+    flex-direction: column;
+  }
+
+  .chat-container input{
+    background-color: #5D5FEF;
+    width: 100%;
+    height: 2rem;
+    bottom: 0;
   }
