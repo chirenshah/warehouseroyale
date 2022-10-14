@@ -207,6 +207,13 @@ export async function calculateLogs() {
     });
 }
 
+export async function getPerformanceData() {
+    let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
+    physicalLogs = physicalLogs.data();
+
+    return physicalLogs;
+}
+
 export async function createOrders(setOrder, bins_val, bin_label) {
     getDoc(doc(db, "instance1", "Room 1")).then((val) => {
         let data = val.data()["Bins"]["Inventory"];
@@ -278,6 +285,7 @@ export async function createOrders(setOrder, bins_val, bin_label) {
         updateDoc(doc(db, "instance1", "Room 1"), dict);
     });
 }
+
 export async function binUpdate(from, to, id, set_data, timer) {
     const sfDocRef = doc(db, "instance1", "Room 1");
     try {
