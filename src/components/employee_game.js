@@ -6,6 +6,7 @@ import React, { useState, createRef, useEffect } from "react";
 import {
     binListener,
     calculateLogs,
+    chat_sendMessage,
     createOrders,
     skuFinder,
     // flushbins,
@@ -15,6 +16,8 @@ import {
 } from "../Database/firestore";
 // import { room, sendMessage, cursorListner } from "./webRTC";
 import { useNavigate } from "react-router-dom";
+import { AiOutlineSend } from "react-icons/ai";
+import { messages } from "./views/Manager/dashboard/data/dummy";
 export default function Game() {
     var label = "";
     var from = createRef();
@@ -40,7 +43,8 @@ export default function Game() {
     //const [coord, setcoord] = useState([]);
     const [sku_data, setSku_data] = useState({ Inventory: [] });
     const [orderList, setorderList] = useState({ O1: [], O2: [] });
-
+    const [chat, setChat] = useState(true);
+    const [message, setMessage] = useState("");
     useEffect(() => {
         binListener(setSku_data);
         //writeInventory();
@@ -281,6 +285,42 @@ export default function Game() {
                     >
                         Finish Game
                     </button>
+                    <div className="chat-container">
+                        <button
+                            className={"submit-btn chat"}
+                            onClick={() => {
+                                setChat((prev) => !prev);
+                            }}
+                        >
+                            {chat ? "Chat" : "x"}
+                        </button>
+                        {console.log(chat)}
+                        <div
+                            style={{
+                                height: chat ? "0" : "80vh",
+                            }}
+                        ></div>
+                        {!chat ? (
+                            <div
+                                style={{
+                                    display: "flex",
+                                }}
+                            >
+                                <input
+                                    onChange={(e) => {
+                                        setMessage(e.target.value);
+                                    }}
+                                    placeholder="say something nice"
+                                />
+                                <AiOutlineSend
+                                    width={10}
+                                    onClick={() => {
+                                        chat_sendMessage(message);
+                                    }}
+                                ></AiOutlineSend>
+                            </div>
+                        ) : null}
+                    </div>
                 </div>
             </section>
         </div>
