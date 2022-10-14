@@ -5,6 +5,7 @@ import Sku from "./sku";
 import { useState, createRef, useEffect } from "react";
 import unsub, { updateCursor } from "../Database/firestore";
 import {room,sendMessage,cursorListner} from './webRTC';
+import { useNavigate } from "react-router-dom";
 export default function Game() {
   var label = "";
   var from = createRef();
@@ -12,7 +13,7 @@ export default function Game() {
   var sku = createRef();
   var selected;
   let expiretime = "00:30"
-
+  let navigate = useNavigate();
 
   // Low medium and high complexity for data
   // low is the numbering is ordered
@@ -230,11 +231,11 @@ export default function Game() {
             console.log("created room")
           }}>Create Room</button>
           <button className="send-btn white" onClick={()=>{
-            test(true)
-            console.log("joining")
-          }}>Join room</button>
+            navigate("/performancemetric")
+            window.removeEventListener("mousemove",handleWindowMouseMove);
+          }}>Finish Game</button>
           <button className="submit-btn chat" onClick={()=>{
-            sendMessage();
+            
           }}>Chat</button>
         </div>
       </section>

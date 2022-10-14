@@ -4,6 +4,7 @@ import { Stacked, Pstack, Pie } from '../';
 import { ecomPieChartData, dropdownData } from '../data/dummy';
 
 import { useStateContext } from '../contexts/ContextProvider';
+import Dashboard from '../Dashboard';
 
 const DropDown = ({ currentMode }) => (
   <div className="w-28 border-1 border-color px-2 py-1 rounded-md">
@@ -15,6 +16,7 @@ const Myteam = () => {
   const { currentMode } = useStateContext();
 
   return (
+    <Dashboard>
     <div className="m-15">
       <div className="flex gap-10 flex-wrap justify-center">
 
@@ -46,6 +48,7 @@ const Myteam = () => {
         </div>
       </div>
     </div>
+    </Dashboard>
   );
 };
 
