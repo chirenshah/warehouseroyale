@@ -10,6 +10,8 @@ import {
     deleteDoc,
     writeBatch,
     runTransaction,
+    addDoc,
+    FieldValue,
 } from "firebase/firestore";
 import app from "./config";
 
@@ -196,6 +198,13 @@ export async function calculateLogs() {
     });
 }
 
+export async function getPerformanceData() {
+    let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
+    physicalLogs = physicalLogs.data();
+
+    return physicalLogs;
+}
+
 export async function createOrders(setOrder, bins_val, bin_label) {
     getDoc(doc(db, "instance1", "Room 1")).then((val) => {
         let data = val.data()["Bins"]["Inventory"];
@@ -273,6 +282,7 @@ export async function createOrders(setOrder, bins_val, bin_label) {
         updateDoc(doc(db, "instance1", "Room 1"), dict);
     });
 }
+
 export async function binUpdate(from, to, id, set_data, timer) {
     const sfDocRef = doc(db, "instance1", "Room 1");
     try {
@@ -334,6 +344,16 @@ export async function binUpdate(from, to, id, set_data, timer) {
 export async function binListener(set_data) {
     onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         set_data(snapshot.data()["Bins"]);
+    });
+}
+
+export async function chat_sendMessage(message) {
+    const messagesRef = collection(db, "instance1", "Room 1", "Chats");
+    let now = Date.now().toString();
+    addDoc(messagesRef, {
+        text: message,
+        createdAt: now,
+        user: window.localStorage.admin,
     });
 }
 
