@@ -2,6 +2,7 @@ body{
   background: none;
   overflow: hidden;
 }
+
 .inventory{
     border-right: 1px black solid;
     height:100vh;
@@ -52,6 +53,10 @@ body{
     align-items: center;
     justify-content: space-around;
     font-size: calc(10px + 0.4vw);
+  }
+
+  .sku p::before{
+    content: attr(id);
   }
   
   .carts{
@@ -178,7 +183,16 @@ body{
   }
 
   .record_call_to_action img{
-    margin: 5%;
+    margin: auto;
+    margin-top: 20px;
+  }
+
+  .trashCan{
+    margin: auto;
+    margin-top: 15px;
+  }
+  .trashCan:hover{
+    color: red;
   }
 
   .chat{
@@ -192,6 +206,7 @@ body{
   .chat:hover{
     margin: 0px;
     width: 100%;
+    cursor: ns-resize;
   }
 
   .chat-container{
@@ -203,6 +218,7 @@ body{
     display: flex;
     align-items: flex-end;
     flex-direction: column;
+    resize: both;
   }
 
   .chat-container input{

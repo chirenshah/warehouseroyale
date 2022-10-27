@@ -17,6 +17,7 @@ import {
 // import { room, sendMessage, cursorListner } from "./webRTC";
 import { useNavigate } from "react-router-dom";
 import { AiOutlineSend } from "react-icons/ai";
+import { BsTrash } from "react-icons/bs";
 import { ChatBox } from "./chatBox";
 export default function Game() {
     var label = "";
@@ -24,8 +25,7 @@ export default function Game() {
     var to = createRef();
     var sku = createRef();
     var quant = createRef();
-
-    var selected;
+    var chatRef = createRef();
     let navigate = useNavigate();
     // Low medium and high complexity for data
     // low is the numbering is ordered
@@ -40,38 +40,71 @@ export default function Game() {
     //None :
     //Some :
     //many :
+
+    //TODO
+    //2. Identifier for different user's in chat
+    //3. Ability to reference sku's
+    //4. Search for sku based on physical records
+    //5. Chat box should resizable and should send on enter
+    //6. the expiry timer should be some percent of the total game time.
+    //7. Make a trash bin for expired sku's.
+    //8. Clean up the code.
+    //9.
+    //10. Make perishable and non perishable items.
+
     const [skuSelected, setskuSelected] = useState();
     //const [coord, setcoord] = useState([]);
     const [sku_data, setSku_data] = useState({ Inventory: [] });
     const [orderList, setorderList] = useState({ O1: [], O2: [] });
     const [chat, setChat] = useState(true);
     const [message, setMessage] = useState("");
+    const [timer, settimer] = useState("20:00");
+    const [selected, setSelected] = useState({});
+    const [DragData, setDragData] = useState();
     useEffect(() => {
         binListener(setSku_data, setorderList);
         //writeInventory();
-        //createOrders(setorderList, sku_data);
+
+        // createOrders(setorderList, sku_data);
         //cursorListner(setcoord);
         //room();
     }, []);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            const timeObject = new Date("1970-01-01 00:" + timer);
+            if (timer !== "00:00") {
+                timeObject.setSeconds(timeObject.getSeconds() - 1);
+                var minute = timeObject.getMinutes();
+                var seconds = timeObject.getSeconds();
+                if (minute < 10) minute = "0" + minute;
+                if (seconds < 10) seconds = "0" + seconds;
+                settimer(minute + ":" + seconds);
+            } else {
+                let score = calculateLogs();
+                score.then((val) => {
+                    navigate(
+                        "/performancemetric/" + val.right + "/" + val.wrong
+                    );
+                });
+            }
+        }, 1000);
+        return () => clearTimeout(timeout);
+    }, [timer, navigate]);
     // const handleWindowMouseMove = (event) => {
     //     var now = Date.now();
     //     if (now % 20 === 0) {
     //         sendMessage(event.clientX, event.clientY);
     //     }
     // };
-    window.addEventListener("keydown", (event) => {
-        if (event.metaKey && event.key === "f") {
-            event.preventDefault();
-        }
-    });
     //window.addEventListener("mousemove", handleWindowMouseMove);
 
     function chooseSelected(reference) {
         if (selected) {
-            selected.current.classList = "";
+            selected.classList = "";
         }
-        selected = reference;
-        selected.current.classList = "selected";
+        setSelected(reference.current);
+        reference.current.classList = "selected";
     }
     function updateSelected(label) {
         if (selected) {
@@ -80,8 +113,9 @@ export default function Game() {
             } else if (label === "O2") {
                 label = "Order 2";
             }
-            selected.current.childNodes[1].value = label;
-            selected.current.classList = "";
+            selected.childNodes[1].value = label;
+            selected.classList = "";
+            console.log(sku_data["Inventory"][0]["J12326358"].seconds);
         }
     }
     const bins = Array.from({ length: 16 }, (_, index) => {
@@ -121,13 +155,14 @@ export default function Game() {
         >
           x
         </div> */}
-
             <section className="inventory">
                 <div className="barcode">
                     <img
                         alt="barcode"
                         src={barcode}
-                        onClick={() => updateSelected("Inventory")}
+                        onClick={() => {
+                            updateSelected("Inventory");
+                        }}
                     ></img>
                     <h3>RECEIVING</h3>
                 </div>
@@ -138,9 +173,7 @@ export default function Game() {
                             id={Object.keys(value)[0]}
                             parent={"Inventory"}
                             setSku={setskuSelected}
-                            expiretime={
-                                sku_data["Inventory"][Object.keys(value)[0]]
-                            }
+                            expiretime={value[Object.keys(value)]}
                         />
                     ))}
                 </div>
@@ -215,7 +248,12 @@ export default function Game() {
                     <h3>RECORD</h3>
                     <hr></hr>
                     <div className="form">
-                        <label ref={from} onClick={() => chooseSelected(from)}>
+                        <label
+                            ref={from}
+                            onClick={() => {
+                                chooseSelected(from);
+                            }}
+                        >
                             FROM LOCATION - <input type="text" name="from" />
                         </label>
                         <label ref={to} onClick={() => chooseSelected(to)}>
@@ -277,17 +315,29 @@ export default function Game() {
                     <button
                         className="send-btn white"
                         onClick={() => {
-                            //navigate("/performancemetric");
+                            let score = calculateLogs();
+                            score.then((val) => {
+                                navigate(
+                                    "/performancemetric/" +
+                                        val.right +
+                                        "/" +
+                                        val.wrong
+                                );
+                            });
+
                             // window.removeEventListener(
                             //     "mousemove",
                             //     handleWindowMouseMove
                             // );
-                            calculateLogs();
                         }}
                     >
                         Finish Game
                     </button>
-                    <div className="chat-container">
+                    <br></br>
+                    {timer}
+                    <BsTrash fontSize={100} className="trashCan"></BsTrash>
+                    {/* {console.log(DragData)} */}
+                    <div className="chat-container" draggable ref={chatRef}>
                         <button
                             className={"submit-btn chat"}
                             onClick={() => {

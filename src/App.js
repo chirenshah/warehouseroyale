@@ -8,9 +8,10 @@ import { ContextProvider } from "./components/views/Manager/dashboard/contexts/C
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import {
     Myteam,
-    Performancemetric,
     Recruitmentroom,
 } from "./components/views/Manager/dashboard/pages";
+
+import { PerformanceMetric } from "./components/Employee View/Temp/PerformanceMetrics";
 import Messenger from "./components/views/Manager/dashboard/pages/Messenger";
 
 function App() {
@@ -40,8 +41,8 @@ function App() {
                                     element={isManager ? null : <Game />}
                                 />
                                 <Route
-                                    path="/performancemetric"
-                                    element={<Performancemetric />}
+                                    path="/performancemetric/:right/:wrong"
+                                    element={<PerformanceMetric />}
                                 />
 
                                 {/* pages  */}

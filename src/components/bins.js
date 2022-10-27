@@ -15,7 +15,7 @@ function Bins({ binId, updateSelected, setSku, data, set_data, setSkuList }) {
                         binId,
                         item["id"],
                         set_data,
-                        item["timer"] ? item["timer"] : "10:00"
+                        item["expiretime"]
                     );
             },
             collect: (monitor) => ({
