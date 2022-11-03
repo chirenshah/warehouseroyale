@@ -1,0 +1,24 @@
+.layout__topbar {
+  position: fixed;
+  margin-left: var(--sidebarWidth);
+  /* vw - sidebar width - topbar left padding - topbar right padding */
+  width: calc(100vw - var(--sidebarWidth) - 1.25rem - 1.25rem);
+  z-index: 999;
+}
+
+.layout__bottom {
+  display: flex;
+}
+
+.layout__sidebar {
+  flex-shrink: 0;
+  width: var(--sidebarWidth);
+}
+
+.layout__outlet {
+  flex-grow: 1;
+  margin-top: var(--topbarHeight);
+  padding: 2rem 0;
+  background-color: hsl(var(--secondaryBg));
+  min-height: 100vh;
+}

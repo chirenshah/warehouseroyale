@@ -1,0 +1,27 @@
+.messagesCard {
+  padding: 1px 1px 1px 10px;
+  border-radius: 1rem;
+}
+
+.messagesCard__wrapper {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 2rem 1rem;
+  position: relative;
+}
+
+.messagesCard__desc h4 {
+  text-decoration: underline;
+  margin-bottom: 1rem;
+}
+
+.messagesCard__desc p {
+  margin: 0;
+}
+
+.messagesCard__percentage {
+  margin-top: 1rem;
+  position: absolute;
+  bottom: 2rem;
+  right: 1rem;
+}

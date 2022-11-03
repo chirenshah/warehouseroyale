@@ -1,0 +1,29 @@
+.topbar {
+  width: 100%;
+  height: var(--topbarHeight);
+  background-color: hsla(var(--primaryBg), 0.7);
+  backdrop-filter: blur(5px);
+  border-bottom: 1px solid hsl(var(--borderColor));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.25rem;
+}
+
+.topbar__title {
+  font-size: 1rem;
+  font-weight: bold;
+  color: hsl(var(--accentColor));
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+}
+
+.topbar__userImage {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  margin-right: 5px;
+}

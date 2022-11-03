@@ -1,0 +1,13 @@
+.offers__activeOffer {
+  display: flex;
+  gap: 1rem;
+}
+
+.offers__activeOffer h3 {
+  margin-bottom: 1rem;
+}
+
+.offers__acceptDecline {
+  display: flex;
+  gap: 1rem;
+}

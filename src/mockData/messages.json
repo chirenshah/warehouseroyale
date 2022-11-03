@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "team": "Team 1",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 75
+  },
+  {
+    "id": 2,
+    "team": "Team 2",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 35
+  },
+  {
+    "id": 3,
+    "team": "Team 3",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 10
+  },
+  {
+    "id": 4,
+    "team": "Team 4",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 95
+  },
+  {
+    "id": 5,
+    "team": "Team 5",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 60
+  },
+  {
+    "id": 6,
+    "team": "Team 6",
+    "sent": 13,
+    "received": 13,
+    "profit": 27,
+    "percentage": 25
+  }
+]

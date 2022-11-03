@@ -1,20 +1,27 @@
 import { useState } from 'react';
+import useLogin from '../hooks/useLogin';
 import Container from '@mui/system/Container';
 // Css
 import './../style/LoginForm.css';
 
-function LoginForm({ Login, error }) {
-  const [details, setDetails] = useState({ name: '', email: '', password: '' });
+function LoginForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  const submitHandler = (e) => {
+  const { login } = useLogin();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    Login(details);
+
+    // TODO: Put validation checks
+
+    await login(email, password);
   };
 
   return (
     <div className="loginForm">
       <Container>
-        <form onSubmit={submitHandler}>
+        <form onSubmit={handleSubmit}>
           <div className="loginForm__box">
             <div className="loginForm__left">
               <div className="loginForm__overlay"></div>
@@ -28,15 +35,12 @@ function LoginForm({ Login, error }) {
               <h1>Login</h1>
               <div className="loginForm__inputs">
                 <input
-                  placeholder="username"
-                  className="user_name"
+                  placeholder="Email address"
                   type="email"
                   name="email"
                   id="email"
-                  onChange={(e) =>
-                    setDetails({ ...details, email: e.target.value })
-                  }
-                  value={details.email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  value={email}
                 />
                 <input
                   placeholder="password"
@@ -44,24 +48,20 @@ function LoginForm({ Login, error }) {
                   type="password"
                   name="password"
                   id="password"
-                  onChange={(e) =>
-                    setDetails({ ...details, password: e.target.value })
-                  }
-                  value={details.password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  value={password}
                 />
               </div>
-              {error != null ? (
+              {/* {error != null ? (
                 <div className="loginForm__error">{error}</div>
               ) : (
                 ''
-              )}
-              <div className='submitButton'>
+              )} */}
               <input
                 className="loginForm__button"
                 type="submit"
                 value="LOGIN"
               />
-              </div>
             </div>
           </div>
         </form>

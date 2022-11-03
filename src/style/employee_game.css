@@ -1,7 +1,7 @@
-body{
+/* body{
   background: none;
   overflow: hidden;
-}
+} */
 .inventory{
     border-right: 1px black solid;
     height:100vh;
