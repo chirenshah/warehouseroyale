@@ -143,7 +143,7 @@ export async function writeInventory() {
     let fin_data = [];
     for (let index = 0; index < inventorySize; index++) {
         let temp = {};
-        temp[data[Math.round(Math.random() * (data.length - 1))]] = "10:00";
+        temp[data[Math.round(Math.random() * (data.length - 1))]] = new Date();
         fin_data.push(temp);
     }
 
@@ -154,6 +154,7 @@ export async function writeInventory() {
 
 export async function calculateLogs() {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
+    let scores = physicalLogs.data()["Score"];
     physicalLogs =
         physicalLogs.data()[window.localStorage.admin.replace(".", ",")];
     let actualLogs = await getDoc(doc(db, "instance1", "Room 1"));
@@ -198,19 +199,19 @@ export async function calculateLogs() {
             wrong += 1;
         }
     }
-
+    scores[window.localStorage.admin.replace(".", ",")] = {
+        right: right,
+        wrong: wrong,
+    };
     updateDoc(doc(db, "instance1", "Logs"), {
-        Score: {
-            right: right,
-            wrong: wrong,
-        },
+        Score: scores,
     });
+    return scores[window.localStorage.admin.replace(".", ",")];
 }
 
 export async function getPerformanceData() {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
     physicalLogs = physicalLogs.data();
-
     return physicalLogs;
 }
 
@@ -242,7 +243,6 @@ export async function createOrders(setOrder, bins_val, bin_label) {
         let points = 0;
         setOrder((prev) => {
             //console.log(bins_val[bin_label]);
-
             for (let i = 0; i < prev[bin_label].length; i++) {
                 for (let j = 0; j < bins_val[bin_label].length; j++) {
                     if (
@@ -267,6 +267,7 @@ export async function createOrders(setOrder, bins_val, bin_label) {
             }
             dict = prev;
             dict[bin_label] = orders1;
+            console.log(dict);
             getDoc(doc(db, "instance1", "Room 1")).then((val) => {
                 if (val.data()["Points"]) {
                     points += val.data()["Points"];
@@ -275,6 +276,7 @@ export async function createOrders(setOrder, bins_val, bin_label) {
                     Points: points,
                 });
             });
+            updateDoc(doc(db, "instance1", "Room 1"), dict);
             return dict;
         });
         bins_val[bin_label] = [];
@@ -282,7 +284,7 @@ export async function createOrders(setOrder, bins_val, bin_label) {
         if ("O1" in bins_val) {
             updateDoc(doc(db, "instance1", "Room 1"), { Bins: bins_val });
         }
-        updateDoc(doc(db, "instance1", "Room 1"), dict);
+        console.log(dict);
     });
 }
 
@@ -313,14 +315,13 @@ export async function binUpdate(from, to, id, set_data, timer) {
                         from_var.push(data[from][j]);
                     }
                 }
-
                 // if (data[from].includes(id)) {
                 //     data[from] = data[from].filter((val) => val !== id);
                 // } else {
                 //     throw "Exception";
                 // }
             }
-            if (data[from].length === from_var.length) {
+            if (count === 0) {
                 throw "Exception";
             }
             data[from] = from_var;

@@ -25,7 +25,7 @@ export function ChatBox({ expand }) {
                 style={{
                     height: expand ? "0" : "80vh",
                     padding: expand ? "0" : "10px",
-                    overflow: "scroll",
+                    overflowX: "Hidden",
                 }}
             >
                 {messages &&
@@ -46,7 +46,19 @@ function ChatMessage({ message }) {
     return (
         <>
             <div className={`message ${messageClass}`}>
-                <p>{text}</p>
+                <p>
+                    {!(user === window.localStorage.admin) ? (
+                        <span
+                            style={{
+                                fontWeight: "bolder",
+                                margin: 5,
+                            }}
+                        >
+                            {user.split("@")[0]}:
+                        </span>
+                    ) : null}
+                    {text}
+                </p>
             </div>
         </>
     );
