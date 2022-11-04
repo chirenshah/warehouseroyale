@@ -27,3 +27,9 @@
   border-radius: 50%;
   margin-right: 5px;
 }
+
+.topbar__logout {
+  margin-left: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+}
