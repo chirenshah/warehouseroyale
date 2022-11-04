@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import useLogout from '../../hooks/useLogout';
 // Components
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
+import WarehouseLoader from '../ui/WarehouseLoader';
 // Css
 import './Topbar.css';
 
@@ -28,8 +29,9 @@ export default function Topbar() {
         <span onClick={handleLogout} className="topbar__logout">
           Logout
         </span>
+        {isPending && <WarehouseLoader />}
+        {error && <WarehouseSnackbar text={error} />}
       </div>
-      {error && <WarehouseSnackbar text={error} />}
     </div>
   );
 }
