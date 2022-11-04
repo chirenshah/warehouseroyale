@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
 import { db } from '../Database/firestore';
 
-export const useFirestore = () => {
+export function useFirestore() {
   const [document, setDocument] = useState(null);
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
@@ -24,4 +24,4 @@ export const useFirestore = () => {
   };
 
   return { document, isPending, error, addDocument };
-};
+}

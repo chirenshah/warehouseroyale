@@ -1,6 +1,6 @@
 import { useState } from 'react';
 // Hooks
-import useCreateUser from '../../../../hooks/useCreateUser';
+import { useCreateUser } from '../../../../hooks/useCreateUser';
 // Components
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';

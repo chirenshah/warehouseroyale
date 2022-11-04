@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 // Hooks
-import useLogout from '../../hooks/useLogout';
+import { useLogout } from '../../hooks/useLogout';
 // Components
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 import WarehouseLoader from '../ui/WarehouseLoader';

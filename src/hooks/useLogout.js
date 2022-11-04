@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuthContext } from './useAuthContext';
 import { Auth } from '../Database/Auth';
 
-export default function useLogout() {
+export function useLogout() {
   const { dispatch } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);

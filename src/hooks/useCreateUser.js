@@ -3,7 +3,7 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useFirestore } from './useFirestore';
 import { Auth } from '../Database/Auth';
 
-export default function useCreateUser() {
+export function useCreateUser() {
   const { addDocument } = useFirestore();
 
   const [isPending, setIsPending] = useState(false);
