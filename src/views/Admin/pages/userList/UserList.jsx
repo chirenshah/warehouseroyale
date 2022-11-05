@@ -1,7 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import { Link } from 'react-router-dom';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
 import { DataGrid } from '@mui/x-data-grid';
@@ -29,6 +30,8 @@ export default function UserList() {
     ['role', 'desc']
   );
 
+  const { response, deleteDocument } = useFirestore();
+
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
 
@@ -38,8 +41,8 @@ export default function UserList() {
     'text/csv',
   ];
 
-  const handleDelete = (id) => {
-    // setData(data.filter((item) => item.id !== id));
+  const handleDelete = async (id) => {
+    await deleteDocument(COLLECTION_USERS, id);
   };
 
   const handleOnFileChange = (e) => {
@@ -117,7 +120,7 @@ export default function UserList() {
       <WarehouseCard>
         <Box sx={{ height: 450, width: '100%' }}>
           {isPending && <WarehouseLoader />}
-          {error && <WarehouseSnackbar text={error} />}
+          {error && <WarehouseSnackbar text={error || response.error} />}
           {users && (
             <DataGrid
               rows={users}

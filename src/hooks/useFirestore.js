@@ -1,10 +1,17 @@
 import { useReducer } from 'react';
-import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  doc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+} from 'firebase/firestore';
 import { db } from '../Database/firestore';
 
 const IS_PENDING = 'IS_PENDING';
 const ADD_DOCUMENT = 'ADD_DOCUMENT';
 const UPDATE_DOCUMENT = 'UPDATE_DOCUMENT';
+const DELETE_DOCUMENT = 'DELETE_DOCUMENT';
 const ERROR = 'ERROR';
 
 const firestoreReducer = (state, action) => {
@@ -19,6 +26,13 @@ const firestoreReducer = (state, action) => {
         error: null,
       };
     case UPDATE_DOCUMENT:
+      return {
+        document: null,
+        isPending: false,
+        success: true,
+        error: null,
+      };
+    case DELETE_DOCUMENT:
       return {
         document: action.payload,
         isPending: false,
@@ -80,5 +94,18 @@ export function useFirestore() {
     }
   };
 
-  return { response, dispatch, addDocument, updateDocument };
+  const deleteDocument = async (collectionName, documentId) => {
+    dispatch({ type: IS_PENDING });
+
+    try {
+      await deleteDoc(doc(db, collectionName, documentId));
+
+      dispatch({ type: DELETE_DOCUMENT });
+    } catch (error) {
+      dispatch({ type: ERROR, payload: error.message });
+      console.error('Error: ', error);
+    }
+  };
+
+  return { response, dispatch, addDocument, updateDocument, deleteDocument };
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Hooks
 import { useCreateUser } from '../../../../hooks/useCreateUser';
 // Components
@@ -12,6 +13,8 @@ import { COLLECTION_USERS } from '../../../../utils/constants';
 import './NewUser.css';
 
 export default function NewUser() {
+  const navigate = useNavigate();
+
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -26,7 +29,7 @@ export default function NewUser() {
 
     // TODO: Put validation checks
 
-    createUser(COLLECTION_USERS, {
+    await createUser(COLLECTION_USERS, {
       fullName,
       username,
       email,
@@ -34,6 +37,8 @@ export default function NewUser() {
       phone,
       role,
     });
+
+    navigate('/users');
   };
 
   return (

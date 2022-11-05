@@ -1,5 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
-import { collection, getDocs, query, orderBy, where } from 'firebase/firestore';
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  where,
+} from 'firebase/firestore';
 import { db } from '../Database/firestore';
 
 export function useCollection(
@@ -21,24 +27,23 @@ export function useCollection(
       try {
         setError(null);
 
-        const collectionRef = collection(db, collectionName);
-
-        const result = [];
-
         const q = query(
-          collectionRef,
+          collection(db, collectionName),
           orderBy(...orderQuery),
           where(...whereQuery)
         );
 
-        const querySnapshot = await getDocs(q);
-
-        querySnapshot.forEach((doc) => {
-          result.push({ ...doc.data(), id: doc.id });
+        const unsub = onSnapshot(q, (querySnapshot) => {
+          const docs = [];
+          querySnapshot.forEach((doc) => {
+            docs.push({ ...doc.data(), id: doc.id });
+          });
+          setDocuments(docs);
+          setIsPending(false);
         });
 
-        setDocuments(result);
-        setIsPending(false);
+        // Unsubscribe on unmount
+        return () => unsub();
       } catch (error) {
         setIsPending(false);
         setError(error.message);
