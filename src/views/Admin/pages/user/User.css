@@ -50,18 +50,8 @@
   margin-left: 20px;
 }
 
-.userShowUserTitle {
-  font-weight: 300;
-}
-
 .userShowBottom {
   margin-top: 1rem;
-}
-
-.userShowTitle {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: hsla(var(--secondaryTextColor), 0.4);
 }
 
 .userShowInfo {
