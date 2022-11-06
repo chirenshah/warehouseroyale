@@ -19,6 +19,7 @@ export default function NewUser() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState(null);
+  const [teamId, setTeamId] = useState('');
   const [phone, setPhone] = useState('');
   const [role, setRole] = useState('employee');
 
@@ -34,6 +35,7 @@ export default function NewUser() {
       username,
       email,
       password,
+      teamId,
       phone,
       role,
     });
@@ -81,6 +83,15 @@ export default function NewUser() {
                 value={password}
                 type="text" // Keep it text type
                 placeholder="Enter password"
+              />
+            </div>
+            <div className="newUser__item">
+              <label>Team ID</label>
+              <input
+                onChange={(e) => setTeamId(e.target.value)}
+                value={teamId}
+                type="number"
+                placeholder="Enter team id"
               />
             </div>
             <div className="newUser__item">
