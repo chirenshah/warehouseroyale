@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 // Hooks
-import useDocment from '../../../../hooks/useDocment';
+import { useDocment } from '../../../../hooks/useDocment';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Material Icons
 import { FiUser, FiUpload } from 'react-icons/fi';
@@ -13,10 +13,14 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import UploadProgress from '../../components/user/UploadProgress/UploadProgress';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
 import './User.css';
+
+const getFileName = (file, userId) =>
+  `${userId}.${file.name.substr(file.name.lastIndexOf('.') + 1)}`;
 
 export default function User() {
   const { id: userId } = useParams();
@@ -33,20 +37,20 @@ export default function User() {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [file, setFile] = useState(null);
 
   useEffect(() => {
-    console.log('useEffect called');
     setFullName(user?.fullName);
     setUsername(user?.username);
     setEmail(user?.email);
     setPhone(user?.phone);
   }, [user]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // TODO: Put validation checks
 
-    updateDocument(COLLECTION_USERS, userId, {
+    await updateDocument(COLLECTION_USERS, userId, {
       fullName,
       username,
       email,
@@ -139,7 +143,20 @@ export default function User() {
                   <label htmlFor="file">
                     <FiUpload className="userUpdateIcon" />
                   </label>
-                  <input type="file" id="file" style={{ display: 'none' }} />
+                  <input
+                    onChange={(e) => setFile(e.target.files[0])}
+                    type="file"
+                    id="file"
+                    style={{ display: 'none' }}
+                  />
+                  {file && (
+                    <UploadProgress
+                      file={file}
+                      setFile={setFile}
+                      uploadPath={`avatars/${getFileName(file, userId)}`}
+                      userId={userId}
+                    />
+                  )}
                 </div>
                 <WarehouseButton
                   text="Update"
