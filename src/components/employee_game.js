@@ -5,6 +5,7 @@ import Sku from "./sku";
 import React, { useState, createRef, useEffect } from "react";
 import {
     binListener,
+    binUpdate,
     calculateLogs,
     chat_sendMessage,
     createOrders,
@@ -19,6 +20,9 @@ import { useNavigate } from "react-router-dom";
 import { AiOutlineSend } from "react-icons/ai";
 import { BsTrash } from "react-icons/bs";
 import { ChatBox } from "./chatBox";
+import { useDrop } from "react-dnd";
+import { Trash } from "./trash";
+import { SkuFinderScreen } from "./skuFinderScreen";
 export default function Game() {
     var label = "";
     var from = createRef();
@@ -60,9 +64,10 @@ export default function Game() {
     const [message, setMessage] = useState("");
     const [timer, settimer] = useState("20:00");
     const [selected, setSelected] = useState({});
-    const [DragData, setDragData] = useState();
+    const [showScreen, SetshowScreen] = useState(false);
+    const [StartTime, setStartTime] = useState(new Date());
     useEffect(() => {
-        binListener(setSku_data, setorderList);
+        binListener(setSku_data, setorderList, setStartTime);
         //writeInventory();
 
         // createOrders(setorderList, sku_data);
@@ -72,14 +77,29 @@ export default function Game() {
 
     useEffect(() => {
         const timeout = setTimeout(() => {
-            const timeObject = new Date("1970-01-01 00:" + timer);
-            if (timer !== "00:00") {
-                timeObject.setSeconds(timeObject.getSeconds() - 1);
-                var minute = timeObject.getMinutes();
-                var seconds = timeObject.getSeconds();
-                if (minute < 10) minute = "0" + minute;
-                if (seconds < 10) seconds = "0" + seconds;
-                settimer(minute + ":" + seconds);
+            const timeObject = new Date();
+            let minute;
+            if (timer !== "00:00" && timer !== "Expired") {
+                let diff = timeObject - StartTime;
+                if (diff <= 0) {
+                    alert("Game hasn't started yet");
+                    settimer(() => "Expired");
+                } else {
+                    let minuteInt =
+                        20 - (parseInt(diff / (1000 * 60), 10) % 60);
+                    if (minuteInt < 0) {
+                        settimer(() => "Expired");
+                    } else {
+                        var seconds = 59 - (parseInt(diff / 1000, 10) % 60);
+                        if (minuteInt < 10) {
+                            minute = "0" + minuteInt;
+                        } else {
+                            minute = minuteInt + "";
+                        }
+                        if (seconds < 10) seconds = "0" + seconds;
+                        settimer(minute + ":" + seconds);
+                    }
+                }
             } else {
                 let score = calculateLogs();
                 score.then((val) => {
@@ -115,9 +135,9 @@ export default function Game() {
             }
             selected.childNodes[1].value = label;
             selected.classList = "";
-            console.log(sku_data["Inventory"][0]["J12326358"].seconds);
         }
     }
+
     const bins = Array.from({ length: 16 }, (_, index) => {
         if (index < 4) {
             label = "A" + (index + 1).toString();
@@ -282,7 +302,7 @@ export default function Game() {
                                 from.current.childNodes[1].value = "";
                                 to.current.childNodes[1].value = "";
                                 sku.current.childNodes[1].value = "";
-                                quant.current.childNodes[1].value = "";
+                                quant.current.childNodes[1].value = 1;
                             }}
                         >
                             Submit
@@ -304,14 +324,17 @@ export default function Game() {
                         }}
                     ></img>
                     {skuSelected}
-                    {/* <button
+                    {showScreen ? (
+                        <SkuFinderScreen SetshowScreen={SetshowScreen} />
+                    ) : null}
+                    <button
                         className="send-btn black"
                         onClick={() => {
-                            skuFinder("J12329763");
+                            SetshowScreen(true);
                         }}
                     >
                         FIND SKU
-                    </button> */}
+                    </button>
                     <button
                         className="send-btn white"
                         onClick={() => {
@@ -335,7 +358,10 @@ export default function Game() {
                     </button>
                     <br></br>
                     {timer}
-                    <BsTrash fontSize={100} className="trashCan"></BsTrash>
+                    <Trash
+                        updateSelected={updateSelected}
+                        setSku_data={setSku_data}
+                    />
                     {/* {console.log(DragData)} */}
                     <div className="chat-container" draggable ref={chatRef}>
                         <button

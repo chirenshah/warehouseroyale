@@ -91,7 +91,11 @@ export async function deleteOffer(item) {
             return false;
         });
 }
-
+export async function returnSku(setskuList) {
+    getDoc(doc(db, "instance1", "Logs")).then((val) => {
+        setskuList(Object.keys(val.data()["Bins"]));
+    });
+}
 export async function updateLogs(from, to, id, quant) {
     let sfDocRef = doc(db, "instance1", "Logs");
     if (to === "Order 1") {
@@ -100,29 +104,63 @@ export async function updateLogs(from, to, id, quant) {
     if (to === "Order 2") {
         to = "O2";
     }
-    try {
-        await runTransaction(db, async (transaction) => {
-            const sfDoc = await transaction.get(sfDocRef);
-            if (!sfDoc.exists()) {
-                throw Error("Document does not exist!");
-            }
-            let data = sfDoc.data();
-            let email = window.localStorage.admin.replace(".", ",");
-            if (!(email in data)) {
-                data[email] = [];
-            }
-            data = data[email];
-            for (let i = 0; i < quant; i++) {
-                data.push(id + ":" + from + ":" + to);
-            }
-            let file = {};
-            file[email] = data;
-
-            transaction.update(sfDocRef, file);
-        });
-        console.log("Transaction successfully committed!");
-    } catch (e) {
-        console.log("Transaction failed: ", e);
+    if (from && to && id && quant) {
+        try {
+            await runTransaction(db, async (transaction) => {
+                const sfDoc = await transaction.get(sfDocRef);
+                if (!sfDoc.exists()) {
+                    throw Error("Document does not exist!");
+                }
+                let data = sfDoc.data();
+                let bins = data["Bins"];
+                let times = quant;
+                //console.log(bins[id].length);
+                if (to == "Trash") {
+                    let temp = [];
+                    for (let i = 0; i < bins[id].length; i++) {
+                        if (bins[id][i] === from && times > 0) {
+                            times -= 1;
+                        } else {
+                            temp.push(bins[id][i]);
+                        }
+                    }
+                    if (temp) {
+                        bins[id] = temp;
+                    } else {
+                        delete bins[id];
+                    }
+                } else {
+                    for (let i = 0; i < bins[id].length; i++) {
+                        if (times <= 0) {
+                            break;
+                        }
+                        if (bins[id][i] === from) {
+                            bins[id][i] = to;
+                            times -= 1;
+                        }
+                    }
+                    while (times > 0) {
+                        bins[id].push(to);
+                    }
+                }
+                //console.log(bins[id]);
+                let email = window.localStorage.admin.replace(".", ",");
+                if (!(email in data)) {
+                    data[email] = [];
+                }
+                let personal = data[email];
+                for (let i = 0; i < quant; i++) {
+                    personal.push(id + ":" + from + ":" + to);
+                }
+                let file = {};
+                file[email] = personal;
+                file["Bins"] = bins;
+                transaction.update(sfDocRef, file);
+            });
+            console.log("Transaction successfully committed!");
+        } catch (e) {
+            console.log("Transaction failed: ", e);
+        }
     }
 }
 
@@ -141,12 +179,20 @@ export async function writeInventory() {
     );
     let inventorySize = 200;
     let fin_data = [];
+    let logs = {};
     for (let index = 0; index < inventorySize; index++) {
         let temp = {};
-        temp[data[Math.round(Math.random() * (data.length - 1))]] = new Date();
+        var randomVar = Math.round(Math.random() * (data.length - 1));
+        temp[data[randomVar]] = new Date();
+        if (data[randomVar] in logs) {
+            logs[data[randomVar]].push("Inventory");
+        } else logs[data[randomVar]] = ["Inventory"];
         fin_data.push(temp);
     }
 
+    updateDoc(doc(db, "instance1", "Logs"), {
+        Bins: logs,
+    });
     updateDoc(doc(db, "instance1", "Room 1"), {
         Bins: { Inventory: fin_data },
     }).catch((err) => console.log(err));
@@ -325,7 +371,7 @@ export async function binUpdate(from, to, id, set_data, timer) {
                 throw "Exception";
             }
             data[from] = from_var;
-            if (timer !== "Expired") {
+            if (to !== "Trash") {
                 let temp = {};
                 temp[id] = timer;
                 if (to in data) {
@@ -345,7 +391,7 @@ export async function binUpdate(from, to, id, set_data, timer) {
     }
 }
 
-export async function binListener(set_data, setorderList) {
+export async function binListener(set_data, setorderList, setStartTime) {
     onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         set_data(snapshot.data()["Bins"]);
         let temp = {
@@ -353,6 +399,7 @@ export async function binListener(set_data, setorderList) {
             O2: snapshot.data()["O2"],
         };
         setorderList(temp);
+        setStartTime(snapshot.data()["start_time"].toDate());
     });
 }
 
@@ -403,7 +450,7 @@ export async function addIceCandidate(json) {
 }
 export async function skuFinder(skuId) {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
-    Object.keys(physicalLogs.data()).forEach((val) => {});
+    return physicalLogs.data()["Bins"][skuId][0];
 }
 export async function icelistners(peerConnection) {
     onSnapshot(

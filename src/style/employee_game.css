@@ -191,9 +191,43 @@ body{
     margin: auto;
     margin-top: 15px;
   }
-  .trashCan:hover{
-    color: red;
+
+  .skuFinderScreen{
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color:rgba(0, 0, 0, 0.5);
+    width: 100vw;
+    display: flex;
+    height: 100vh;
   }
+
+  .skuFinder{
+    margin: auto;
+    width: 50vw;
+    height: 40vh;
+    background-color: white;
+  }
+
+  .skuFinder input[type="text"]{
+    border: none;
+  }
+  
+  .findSkuButton {
+    margin: 10px;
+    background-color: #5D5FEF;
+    color: white;
+    padding: 10px;
+  }
+
+  .skuFinder div button{
+    float: right;
+    padding: 10px;
+    font-size: larger;
+  }
+
+  
 
   .chat{
     bottom: 0px;
