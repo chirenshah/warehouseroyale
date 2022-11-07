@@ -1,0 +1,10 @@
+.gameSetup__inputs {
+  display: flex;
+  gap: 1rem;
+}
+
+.gameSetup__questions {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}

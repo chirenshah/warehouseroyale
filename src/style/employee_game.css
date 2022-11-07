@@ -1,8 +1,12 @@
-body{
+/* body{
   background: none;
   overflow: hidden;
+<<<<<<< HEAD
+} */
+=======
 }
 
+>>>>>>> 0af638d968316959517a48dfbdbd8598fecf7533
 .inventory{
     border-right: 1px black solid;
     height:100vh;

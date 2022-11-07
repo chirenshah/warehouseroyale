@@ -19,7 +19,7 @@ import {
 
 import app from "./config";
 
-const db = getFirestore(app);
+export const db = getFirestore(app);
 export default function unsub(setcoord) {
     onSnapshot(collection(db, "instance1", "Teams", "Members"), (doc) => {
         var ans = {};

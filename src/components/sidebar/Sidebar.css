@@ -1,0 +1,66 @@
+.sidebar {
+  width: var(--sidebarWidth);
+  height: 100%;
+  background-color: hsl(var(--primaryBg));
+  box-shadow: var(--boxShadow);
+  position: fixed;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: hsla(var(--accentColor), 0.2);
+}
+
+.sidebar__logo {
+  display: flex;
+  justify-content: center;
+  height: var(--topbarHeight);
+  border-bottom: 1px solid hsla(var(--borderColor), 1);
+}
+
+.sidebar__menu {
+  padding: 1.25rem;
+  color: hsl(var(--secondaryTextColor));
+  position: relative;
+}
+
+.sidebar__item {
+  font-size: 1.1rem;
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border-radius: 10px;
+  margin: 0.5rem 0;
+}
+
+.sidebar__item.active {
+  color: hsl(var(--primaryTextColor));
+  background-color: hsl(var(--accentColor));
+}
+
+.sidebar__item:hover {
+  color: hsl(var(--primaryTextColor));
+  background-color: hsla(var(--accentColor), 0.5);
+}
+
+.sidebar__item:hover {
+  transition: var(--transition);
+}
+
+.sidebar__icon {
+  margin-right: 1rem;
+  font-size: 2rem !important;
+}
+
+.sidebar__switchUser {
+  position: absolute;
+  bottom: -10rem;
+  border: 3px solid red;
+  padding: 0.25rem;
+}

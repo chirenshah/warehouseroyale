@@ -1,69 +1,38 @@
-import React, { useState } from "react";
+import React from "react";
+import { useAuthContext } from './hooks/useAuthContext';
 import LoginForm from "./components/LoginForm";
 import Game from "./components/employee_game";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { DndProvider } from "react-dnd";
+// import { HTML5Backend } from "react-dnd-html5-backend";
+// import { DndProvider } from "react-dnd";
 import { emailPasswordAuth } from "./Database/Auth";
-import { ContextProvider } from "./components/views/Manager/dashboard/contexts/ContextProvider";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import {
-    Myteam,
-    Recruitmentroom,
-} from "./components/views/Manager/dashboard/pages";
-
-import { PerformanceMetric } from "./components/Employee View/Temp/PerformanceMetrics";
-import Messenger from "./components/views/Manager/dashboard/pages/Messenger";
+// import { ContextProvider } from "./components/views/Manager/dashboard/contexts/ContextProvider";
+// import { BrowserRouter, Route, Routes } from "react-router-dom";
+// import {
+//     Myteam,
+//     Performancemetric,
+//     Recruitmentroom,
+// } from "./components/views/Manager/dashboard/pages";
+// import Messenger from "./components/views/Manager/dashboard/pages/Messenger";
+// Views
+import ADashboard from "./views/Admin/ADashboard";
+import MDashboard from "./views/Manager/MDashboard";
+import EDashboard from "./views/Employee/EDashboard";
 
 function App() {
-    const [user, setUser] = useState(null);
-    const [error, setError] = useState(null);
-    const isManager = false;
-    if (!user && window.localStorage.admin) {
-        setUser(window.localStorage.admin);
-    }
-    const Login = (details) => {
-        emailPasswordAuth(details.email, details.password, setUser, setError);
-    };
-    // eslint-disable-next-line
-    const Logout = () => {
-        setUser("");
-    };
-    return (
-        <div className="App">
-            {user ? (
-                <DndProvider backend={HTML5Backend}>
-                    <ContextProvider>
-                        <BrowserRouter>
-                            <Routes>
-                                {/* dashboard  */}
-                                <Route
-                                    path="/"
-                                    element={isManager ? null : <Game />}
-                                />
-                                <Route
-                                    path="/performancemetric/:right/:wrong"
-                                    element={<PerformanceMetric />}
-                                />
+    const { user, isAuthReady } = useAuthContext();
+  
+    const role = localStorage.getItem('warehouse_user_role');
+  
+    return isAuthReady && user && role === 'admin' ? (
+      <ADashboard />
+    ) : role === 'manager' ? (
+      <MDashboard />
+    ) : role === 'employee' ? (
+      <EDashboard />
+    ) : (
+      <LoginForm />
 
-                                {/* pages  */}
-                                <Route
-                                    path="/recruitmentroom"
-                                    element={<Recruitmentroom />}
-                                />
-                                <Route
-                                    path="/messenger"
-                                    element={<Messenger />}
-                                />
-                                <Route path="/Myteam" element={<Myteam />} />
-                            </Routes>
-                        </BrowserRouter>
-                    </ContextProvider>
-                </DndProvider>
-            ) : (
-                <LoginForm Login={Login} error={error} />
-            )}
-        </div>
     );
-}
-
-export default App;
+  }
+  
+  export default App;

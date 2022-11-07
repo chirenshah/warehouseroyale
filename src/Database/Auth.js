@@ -8,7 +8,9 @@ import {
 import app from "./config";
 import { answerlistener, binUpdate } from "./firestore";
 
-const auth = getAuth(app);
+export const Auth = getAuth(app);
+
+// const auth = getAuth(app);
 export function emailAuth({ email }) {
     const actionCodeSettings = {
         // URL you want to redirect back to. The domain (www.example.com) for this
@@ -16,7 +18,7 @@ export function emailAuth({ email }) {
         url: "https://warehouseville.web.app/",
         handleCodeInApp: true,
     };
-    sendSignInLinkToEmail(auth, email, actionCodeSettings)
+    sendSignInLinkToEmail(Auth, email, actionCodeSettings)
         .then(() => {
             console.log("Success");
             window.localStorage.setItem("emailForSignIn", email);
@@ -27,7 +29,7 @@ export function emailAuth({ email }) {
 }
 
 export function emailPasswordAuth(email, password, setUser, setError) {
-    signInWithEmailAndPassword(auth, email, password)
+    signInWithEmailAndPassword(Auth, email, password)
         .then((userCredential) => {
             window.localStorage.setItem("admin", email);
             setUser(userCredential.user);
@@ -38,11 +40,11 @@ export function emailPasswordAuth(email, password, setUser, setError) {
 }
 
 export function isLogged() {
-    isSignInWithEmailLink(auth, window.location.href);
+    isSignInWithEmailLink(Auth, window.location.href);
 }
 
 export function signout() {
-    signOut(auth)
+    signOut(Auth)
         .then(() => {
             // Sign-out successful.
         })
