@@ -8,10 +8,12 @@ import { useLogout } from '../../hooks/useLogout';
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseCard from '../ui/WarehouseCard';
+import WarehouseButton from '../ui/WarehouseButton';
 // Constants
 import { COLLECTION_USERS, PROFESSOR_AVATAR } from '../../utils/constants';
 // Css
 import './Topbar.css';
+import { useEffect } from 'react';
 
 export default function Topbar() {
   const navigate = useNavigate();
@@ -50,20 +52,54 @@ export default function Topbar() {
           onClick={() => setShowUserProfile(!showUserProfile)}
           className="topbar__user"
         >
-          <img src={avatar} alt="" className="topbar__userImage" />{' '}
+          <img
+            src={avatar}
+            alt={user?.fullName}
+            className="topbar__userImage"
+          />{' '}
           <span className="topbar__username">Hi, {name}</span>
-          <span onClick={handleLogout} className="topbar__logout">
-            Logout
-          </span>
           {(isPending || isPendingUser) && <WarehouseLoader />}
           {error && <WarehouseSnackbar text={error} />}
-          {/* {showUserProfile && <UserProfile className="topbar__userProfile" />} */}
+          {showUserProfile && (
+            <UserProfile
+              className="topbar__userProfile"
+              user={user}
+              avatar={avatar}
+              logout={handleLogout}
+              showUserProfile={showUserProfile}
+              setShowUserProfile={setShowUserProfile}
+            />
+          )}
         </div>
       </div>
     </>
   );
 }
 
-function UserProfile() {
-  return <WarehouseCard className="userProfile">user profile</WarehouseCard>;
+function UserProfile({ user, avatar, logout }) {
+  return (
+    <WarehouseCard className="userProfile">
+      <div className="userProfile__top">
+        <h4>User Profile</h4>
+        {/* <div className="userProfile__close">X</div> */}
+      </div>
+      <div className="userProfile__user">
+        <img
+          src={avatar}
+          alt={user?.fullName || 'Professor'}
+          className="userProfile__userImage"
+        />
+        <div className="userProfile__desc">
+          <h3>{user?.fullName || 'Professor'}</h3>
+          <span>{user?.email}</span>
+        </div>
+      </div>
+      <hr />
+      <WarehouseButton
+        onClick={logout}
+        className="userProfile__logout"
+        text="Logout"
+      />
+    </WarehouseCard>
+  );
 }
