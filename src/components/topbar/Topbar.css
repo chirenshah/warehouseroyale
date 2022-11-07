@@ -19,6 +19,7 @@
 .topbar__user {
   display: flex;
   align-items: center;
+  position: relative;
 }
 
 .topbar__userImage {
@@ -28,8 +29,20 @@
   margin-right: 5px;
 }
 
+.topbar__userProfile {
+}
+
 .topbar__logout {
   margin-left: 1rem;
   font-weight: bold;
   cursor: pointer;
+}
+
+/* User Profile */
+.userProfile {
+  position: absolute;
+  border: 1px solid red;
+  width: 15rem;
+  top: 4rem;
+  right: 1rem;
 }
