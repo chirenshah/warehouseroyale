@@ -1,17 +1,22 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 // Hooks
 import { useLogout } from '../../hooks/useLogout';
 // Components
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 import WarehouseLoader from '../ui/WarehouseLoader';
+import WarehouseCard from '../ui/WarehouseCard';
 // Css
 import './Topbar.css';
 
 export default function Topbar() {
+  const navigate = useNavigate();
+
   const { logout, isPending, error } = useLogout();
 
   const handleLogout = async () => {
     await logout();
+    navigate('/');
   };
 
   return (
