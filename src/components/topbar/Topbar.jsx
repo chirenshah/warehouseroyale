@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // Hooks
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { useDocment } from '../../hooks/useDocment';
 import { useLogout } from '../../hooks/useLogout';
+import { useOutsideClick } from '../../hooks/useOutsideClick';
 // Components
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseCard from '../ui/WarehouseCard';
 import WarehouseButton from '../ui/WarehouseButton';
+import UploadProgress from '../../views/Admin/components/user/UploadProgress/UploadProgress';
 // Constants
-import { COLLECTION_USERS, PROFESSOR_AVATAR } from '../../utils/constants';
+import { COLLECTION_USERS } from '../../utils/constants';
 // Css
 import './Topbar.css';
-import { useEffect } from 'react';
 
 export default function Topbar() {
   const navigate = useNavigate();
@@ -28,19 +29,22 @@ export default function Topbar() {
 
   const { logout, isPending, error } = useLogout();
 
+  const [file, setFile] = useState(null);
   const [showUserProfile, setShowUserProfile] = useState(false);
+
+  const userProfileRef = useRef();
+
+  useOutsideClick(userProfileRef, () => {
+    setShowUserProfile(false);
+  });
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  const avatar =
-    currentUser?.role === 'admin'
-      ? PROFESSOR_AVATAR
-      : user?.avatar || '/assets/anonymous.png';
-
-  const name = currentUser?.role === 'admin' ? 'Professor' : user?.fullName;
+  const getFileName = (file, userId) =>
+    `${userId}.${file.name.substr(file.name.lastIndexOf('.') + 1)}`;
 
   return (
     <>
@@ -48,58 +52,75 @@ export default function Topbar() {
         <Link to="/">
           <span className="topbar__title">Dashboard</span>
         </Link>
-        <div
-          onClick={() => setShowUserProfile(!showUserProfile)}
-          className="topbar__user"
-        >
+        <div onClick={() => setShowUserProfile(true)} className="topbar__user">
           <img
-            src={avatar}
+            src={user?.avatar || '/assets/anonymous.png'}
             alt={user?.fullName}
             className="topbar__userImage"
           />{' '}
-          <span className="topbar__username">Hi, {name}</span>
-          {(isPending || isPendingUser) && <WarehouseLoader />}
-          {error && <WarehouseSnackbar text={error} />}
+          <span className="topbar__username">
+            Hi, {currentUser?.role === 'admin' ? 'Professor' : user?.fullName}
+          </span>
           {showUserProfile && (
             <UserProfile
-              className="topbar__userProfile"
+              ref={userProfileRef}
               user={user}
-              avatar={avatar}
-              logout={handleLogout}
-              showUserProfile={showUserProfile}
-              setShowUserProfile={setShowUserProfile}
+              avatar={user?.avatar || '/assets/anonymous.png'}
+              handleLogout={handleLogout}
+              setFile={setFile}
             />
           )}
+          {file && (
+            <UploadProgress
+              file={file}
+              setFile={setFile}
+              uploadPath={`avatars/${getFileName(file, currentUser?.uid)}`}
+              userId={currentUser?.uid}
+            />
+          )}
+          {(isPending || isPendingUser) && <WarehouseLoader />}
+          {error && <WarehouseSnackbar text={error} />}
         </div>
       </div>
     </>
   );
 }
 
-function UserProfile({ user, avatar, logout }) {
-  return (
-    <WarehouseCard className="userProfile">
-      <div className="userProfile__top">
-        <h4>User Profile</h4>
-        {/* <div className="userProfile__close">X</div> */}
+const UserProfile = React.forwardRef(
+  ({ user, avatar, handleLogout, setFile }, ref) => {
+    return (
+      <div ref={ref}>
+        <WarehouseCard className="userProfile">
+          <div className="userProfile__top">
+            <h4>User Profile</h4>
+            {/* <div className="userProfile__close">X</div> */}
+          </div>
+          <div className="userProfile__user">
+            <label className="userProfile__input">
+              <img
+                src={avatar}
+                alt={user?.fullName || 'Professor'}
+                className="userProfile__userImage"
+              />
+              <input
+                style={{ display: 'none' }}
+                onChange={(e) => setFile(e.target.files[0])}
+                type="file"
+              />
+            </label>
+            <div>
+              <h3>{user?.fullName || 'Professor'}</h3>
+              <span>{user?.email}</span>
+            </div>
+          </div>
+          <hr />
+          <WarehouseButton
+            onClick={handleLogout}
+            className="userProfile__logout"
+            text="Logout"
+          />
+        </WarehouseCard>
       </div>
-      <div className="userProfile__user">
-        <img
-          src={avatar}
-          alt={user?.fullName || 'Professor'}
-          className="userProfile__userImage"
-        />
-        <div className="userProfile__desc">
-          <h3>{user?.fullName || 'Professor'}</h3>
-          <span>{user?.email}</span>
-        </div>
-      </div>
-      <hr />
-      <WarehouseButton
-        onClick={logout}
-        className="userProfile__logout"
-        text="Logout"
-      />
-    </WarehouseCard>
-  );
-}
+    );
+  }
+);
