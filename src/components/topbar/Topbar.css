@@ -37,6 +37,7 @@
   right: 1rem;
   background-color: hsl(var(--primaryBg));
   transition: var(--transition);
+  cursor: initial !important;
 }
 
 .userProfile__top {
@@ -60,11 +61,48 @@
   opacity: 0;
 }
 
+.userProfile__input {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.userProfile__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: hsla(var(--secondaryBg), 0.5);
+  display: none;
+}
+
+.userProfile__input:hover > .userProfile__overlay {
+  display: grid;
+}
+
+.userProfile__uploadProgress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  background-color: hsla(var(--secondaryBg), 0.5);
+}
+
 .userProfile__userImage {
   width: 4rem;
   height: 4rem;
   border-radius: 50%;
-  margin-right: 1rem;
+}
+
+.userProfile__desc {
+  margin-left: 1rem;
 }
 
 hr {

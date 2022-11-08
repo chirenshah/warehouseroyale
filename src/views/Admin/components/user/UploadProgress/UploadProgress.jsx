@@ -27,7 +27,7 @@ export default function UploadProgress({ file, setFile, uploadPath, userId }) {
 
   return (
     <>
-      <WarehouseCircularPercentage value={progress} text={`${progress}%`} />;
+      <WarehouseCircularPercentage value={progress} text={`${progress}%`} />
       {(error || response.error) && (
         <WarehouseSnackbar text={error || response.error} />
       )}
