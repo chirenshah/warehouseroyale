@@ -59,7 +59,7 @@ export const mDashboardSidebarConfig = [
   {
     item: 'Operation Room',
     icon: <MdSettingsSuggest className="sidebar__icon" />,
-    path: '/operation-room',
+    path: '/operationroom',
   },
   {
     item: 'About',

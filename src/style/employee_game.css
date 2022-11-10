@@ -1,3 +1,7 @@
+/* body{
+  background: none;
+  overflow: hidden;
+} */
 .inventory {
   border-right: 1px black solid;
   height: 100vh;
@@ -17,9 +21,38 @@
   margin: auto;
   margin-top: 5%;
 }
+
 .sku_container {
   overflow: scroll;
-  height: 86%;
+  height: 50%;
+}
+
+.orderList {
+  height: 35%;
+  border-top: 1px black solid;
+  border-bottom: 1px black solid;
+  overflow: scroll;
+}
+
+.orderList-content {
+  border: 1px solid black;
+  margin: 3px;
+  text-align: center;
+}
+
+.shrink {
+  height: 0px;
+  overflow: clip;
+  transition: height 0.5s ease-in;
+  margin-top: 5px;
+}
+.grow {
+  margin-top: 5px;
+  border-top: 1px solid black;
+  height: 100px;
+  overflow-y: scroll;
+  width: 100%;
+  transition: height 0.5s ease-out;
 }
 
 .center {
@@ -69,7 +102,8 @@
   background-color: white;
   height: 35px;
   width: 250px;
-  margin: 0px 10px;
+  align-self: center;
+  margin: 10px 10px;
 }
 
 .send-btn:hover,
@@ -78,7 +112,8 @@
   color: white;
   height: 35px;
   width: 250px;
-  margin: 0px 10px;
+  margin: 10px 10px;
+  align-self: center;
   background-color: #5d5fef;
 }
 
@@ -90,21 +125,6 @@
   color: black;
 }
 
-.white {
-  margin: 10px;
-  height: 10%;
-  border: 1px solid white;
-  color: white;
-  background-color: black;
-}
-.black:hover {
-  opacity: 0.4;
-  height: 10%;
-  margin: 10px;
-  background-color: white;
-  color: black;
-  border: 1px solid black;
-}
 .white:hover {
   opacity: 0.7;
   margin: 10px;
@@ -115,19 +135,30 @@
   margin: 10px;
   border: 1px solid black;
   height: 215px;
-  width: 120px;
+  width: 160px;
   text-align: center;
 }
 
 .order-content {
   overflow: scroll;
   height: 100%;
+  border-top: 1px solid gray;
 }
 
 .cards {
-  border-top: 1px solid gray;
-  border-bottom: 1px solid gray;
+  border: 1px solid gray;
   padding: 4px;
+  text-align: center;
+  margin: 5px;
+  overflow: scroll;
+}
+
+.record {
+  border-left: 1px black solid;
+  height: 100vh;
+  float: right;
+  width: 23%;
+  box-sizing: border-box;
 }
 
 .record {

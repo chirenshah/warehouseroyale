@@ -16,14 +16,18 @@ export default function Sku({ id, parent, setSku, expiretime }) {
     useEffect(() => {
         const timeout = setTimeout(() => {
             const timeObject = new Date();
-            if (timer !== "00:00" && timer !== "Expired") {
-                let diff = timeObject - expiretime.toDate();
-                let minuteInt = 4 - (parseInt(diff / (1000 * 60), 10) % 60);
-                console.log("min");
+            if (
+                timer !== "00:00" &&
+                timer !== "Expired" &&
+                expiretime !== "Expired"
+            ) {
+                let diff = (timeObject.getTime() - expiretime.toDate()) / 1000;
+                let minuteInt = 4 - parseInt(diff / 60, 10);
+                let seconds = diff % 60;
                 if (minuteInt < 0) {
                     settimer(() => "Expired");
                 } else {
-                    var seconds = 59 - (parseInt(diff / 1000, 10) % 60);
+                    seconds = 59 - parseInt(seconds, 10);
                     if (minuteInt < 10) var minute = "0" + minuteInt;
                     if (seconds < 10) seconds = "0" + seconds;
                     settimer(minute + ":" + seconds);
