@@ -166,14 +166,52 @@
   overflow: scroll;
 }
 
-.scan_container {
-  text-align: center;
-  border-bottom: 1px solid black;
+.trashCan {
+  margin: auto;
+  margin-top: 15px;
 }
 
-.record_call_to_action {
-  text-align: center;
-  height: 55%;
+.skuFinderScreen {
+  z-index: 100;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 100vw;
+  display: flex;
+  height: 100vh;
+}
+
+.skuFinder {
+  margin: auto;
+  width: 50vw;
+  height: 40vh;
+  background-color: white;
+}
+
+.skuFinder input[type='text'] {
+  border: none;
+}
+
+.findSkuButton {
+  margin: 10px;
+  background-color: #5d5fef;
+  color: white;
+  padding: 10px;
+}
+
+.skuFinder div button {
+  float: right;
+  padding: 10px;
+  font-size: larger;
+}
+
+.chat {
+  bottom: 0px;
+  right: 0px;
+  margin: 0px;
+  width: 100%;
+  text-align: end;
 }
 
 .record_call_to_action img {
