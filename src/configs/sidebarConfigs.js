@@ -90,6 +90,11 @@ export const eDashboardSidebarConfig = [
     path: '/chat',
   },
   {
+    item: 'Operation Room',
+    icon: <MdSettingsSuggest className="sidebar__icon" />,
+    path: '/operation-room',
+  },
+  {
     item: 'About',
     icon: <FcApproval className="sidebar__icon" />,
     path: '/about',
