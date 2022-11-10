@@ -7,7 +7,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { COLLECTION_USERS } from '../utils/constants';
 import { db } from '../Database/firestore';
 
-export default function useLogin() {
+export function useLogin() {
   const { dispatch } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);
