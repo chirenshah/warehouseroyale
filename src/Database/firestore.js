@@ -15,6 +15,7 @@ import {
     query,
     orderBy,
     limit,
+    increment,
 } from "firebase/firestore";
 
 import app from "./config";
@@ -96,6 +97,7 @@ export async function returnSku(setskuList) {
         setskuList(Object.keys(val.data()["Bins"]));
     });
 }
+
 export async function updateLogs(from, to, id, quant) {
     let sfDocRef = doc(db, "instance1", "Logs");
     if (to === "Order 1") {
@@ -114,7 +116,7 @@ export async function updateLogs(from, to, id, quant) {
                 let data = sfDoc.data();
                 let bins = data["Bins"];
                 let times = quant;
-                //console.log(bins[id].length);
+
                 if (to == "Trash") {
                     let temp = [];
                     for (let i = 0; i < bins[id].length; i++) {
@@ -143,7 +145,7 @@ export async function updateLogs(from, to, id, quant) {
                         bins[id].push(to);
                     }
                 }
-                //console.log(bins[id]);
+
                 let email = window.localStorage.admin.replace(".", ",");
                 if (!(email in data)) {
                     data[email] = [];
@@ -185,8 +187,8 @@ export async function writeInventory() {
         var randomVar = Math.round(Math.random() * (data.length - 1));
         temp[data[randomVar]] = new Date();
         if (data[randomVar] in logs) {
-            logs[data[randomVar]].push("Inventory");
-        } else logs[data[randomVar]] = ["Inventory"];
+            logs[data[randomVar]].push("Receiving");
+        } else logs[data[randomVar]] = ["Receiving"];
         fin_data.push(temp);
     }
 
@@ -194,35 +196,44 @@ export async function writeInventory() {
         Bins: logs,
     });
     updateDoc(doc(db, "instance1", "Room 1"), {
-        Bins: { Inventory: fin_data },
+        Bins: { Receiving: fin_data },
     }).catch((err) => console.log(err));
 }
 
+export async function updateOrderList(data, selectData, label) {
+    data = data.filter((ele) => ele !== selectData);
+    let temp = {
+        orders: data,
+    };
+    temp[label] = selectData;
+    updateDoc(doc(db, "instance1", "Room 1"), temp).catch((err) =>
+        console.log(err)
+    );
+}
 export async function calculateLogs() {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
     let scores = physicalLogs.data()["Score"];
     physicalLogs =
         physicalLogs.data()[window.localStorage.admin.replace(".", ",")];
     let actualLogs = await getDoc(doc(db, "instance1", "Room 1"));
-
+    console.log(actualLogs.data()["Logs"], physicalLogs);
     let actualLogsMap = {};
     actualLogs = actualLogs.data()["Logs"];
     actualLogs.forEach((val) => {
         val = val.split(":");
         if (val[0] in actualLogsMap) {
-            //console.log(val);
             actualLogsMap[val[0]].push([val[1], val[2], val[3]]);
         } else {
             actualLogsMap[val[0]] = [[val[1], val[2], val[3]]];
         }
     });
-    //console.log(actualLogsMap[""]);
+
     let right = 0;
     let wrong = 0;
-    console.log(actualLogsMap);
+
     for (let i = 0; i < physicalLogs.length; i++) {
         let phy = physicalLogs[i].split(":");
-        //console.log(actualLogsMap[phy[0]], i, phy[0]);
+
         if (phy[0] in actualLogsMap) {
             let flag = true;
             for (let j = 0; j < actualLogsMap[phy[0]].length; j++) {
@@ -239,7 +250,6 @@ export async function calculateLogs() {
             }
             if (flag) {
                 wrong += 1;
-                console.log(phy[0]);
             }
         } else {
             wrong += 1;
@@ -261,78 +271,113 @@ export async function getPerformanceData() {
     return physicalLogs;
 }
 
-export async function createOrders(setOrder, bins_val, bin_label) {
-    getDoc(doc(db, "instance1", "Room 1")).then((val) => {
-        let data = val.data()["Bins"]["Inventory"];
-        let freq = {};
-        for (let z = 0; z < data.length; z++) {
-            if (Object.keys(data[z])[0] in freq) {
-                freq[Object.keys(data[z])[0]] += 1;
+export async function calculateScore(data, bins_val, bin_label) {
+    // check how many bin_vals are present in data
+    const timeObject = new Date();
+
+    for (let i = 0; i < bins_val.length; i++) {
+        const id = Object.keys(bins_val[i])[0];
+
+        if (
+            100 -
+                (timeObject.getTime() - bins_val[i][id].toDate()) /
+                    (1000 * 60) >
+            0
+        ) {
+            if (id in data && data[id] > 0) {
+                data[id] -= 1;
             } else {
-                freq[Object.keys(data[z])[0]] = 1;
+                data["amount"] = parseInt(data["amount"] / 2);
             }
         }
-        let orders1 = [];
-        let orders2 = [];
-        //let orderSize;
-        for (var keys in freq) {
-            let temp = {};
-            temp[keys] = Math.ceil(freq[keys] * Math.random());
-            let ran_val = Math.random();
-            if ((ran_val > 0.3) & (ran_val < 0.5)) {
-                orders1.push(temp);
-            } else if ((ran_val > 0.9) & (ran_val < 1)) {
-                orders2.push(temp);
-            }
-        }
-        let dict = { O1: orders1, O2: orders2 };
-        let points = 0;
-        setOrder((prev) => {
-            //console.log(bins_val[bin_label]);
-            for (let i = 0; i < prev[bin_label].length; i++) {
-                for (let j = 0; j < bins_val[bin_label].length; j++) {
-                    if (
-                        Object.keys(bins_val[bin_label][j])[0] ===
-                        Object.keys(prev[bin_label][i])[0]
-                    ) {
-                        points += 1;
-
-                        prev[bin_label][j][
-                            Object.keys(prev[bin_label][j])[0]
-                        ] -= 1;
-
-                        if (
-                            prev[bin_label][j][
-                                Object.keys(prev[bin_label][j])[0]
-                            ] <= 0
-                        ) {
-                            delete prev[bin_label][j];
-                        }
-                    }
-                }
-            }
-            dict = prev;
-            dict[bin_label] = orders1;
-            console.log(dict);
-            getDoc(doc(db, "instance1", "Room 1")).then((val) => {
-                if (val.data()["Points"]) {
-                    points += val.data()["Points"];
-                }
-                updateDoc(doc(db, "instance1", "Room 1"), {
-                    Points: points,
-                });
-            });
-            updateDoc(doc(db, "instance1", "Room 1"), dict);
-            return dict;
-        });
-        bins_val[bin_label] = [];
-        // console.log(bin_label, bins_val);
-        if ("O1" in bins_val) {
-            updateDoc(doc(db, "instance1", "Room 1"), { Bins: bins_val });
-        }
-        console.log(dict);
+    }
+    let extra = 0;
+    let amount = data["amount"];
+    delete data["amount"];
+    Object.keys(data).forEach((val, key) => {
+        extra += data[val];
     });
+    amount = parseInt(amount / Math.pow(2, extra));
+
+    let temp = {
+        Points: increment(amount),
+    };
+    temp[bin_label] = {};
+    updateDoc(doc(db, "instance1", "Room 1"), temp);
 }
+
+// export async function createOrders(setOrder, bins_val, bin_label) {
+//     getDoc(doc(db, "instance1", "Room 1")).then((val) => {
+//         let data = val.data()["Bins"]["Receiving"];
+//         let freq = {};
+//         for (let z = 0; z < data.length; z++) {
+//             if (Object.keys(data[z])[0] in freq) {
+//                 freq[Object.keys(data[z])[0]] += 1;
+//             } else {
+//                 freq[Object.keys(data[z])[0]] = 1;
+//             }
+//         }
+//         let orders1 = [];
+//         let orders2 = [];
+//         //let orderSize;
+//         for (var keys in freq) {
+//             let temp = {};
+//             temp[keys] = Math.ceil(freq[keys] * Math.random());
+//             let ran_val = Math.random();
+//             if ((ran_val > 0.3) & (ran_val < 0.5)) {
+//                 orders1.push(temp);
+//             } else if ((ran_val > 0.9) & (ran_val < 1)) {
+//                 orders2.push(temp);
+//             }
+//         }
+//         let dict = { O1: orders1, O2: orders2 };
+//         let points = 0;
+//         setOrder((prev) => {
+
+//             for (let i = 0; i < prev[bin_label].length; i++) {
+//                 for (let j = 0; j < bins_val[bin_label].length; j++) {
+//                     if (
+//                         Object.keys(bins_val[bin_label][j])[0] ===
+//                         Object.keys(prev[bin_label][i])[0]
+//                     ) {
+//                         points += 1;
+
+//                         prev[bin_label][j][
+//                             Object.keys(prev[bin_label][j])[0]
+//                         ] -= 1;
+
+//                         if (
+//                             prev[bin_label][j][
+//                                 Object.keys(prev[bin_label][j])[0]
+//                             ] <= 0
+//                         ) {
+//                             delete prev[bin_label][j];
+//                         }
+//                     }
+//                 }
+//             }
+//             dict = prev;
+//             dict[bin_label] = orders1;
+//             console.log(dict);
+//             getDoc(doc(db, "instance1", "Room 1")).then((val) => {
+//                 if (val.data()["Points"]) {
+//                     points += val.data()["Points"];
+//                 }
+//                 updateDoc(doc(db, "instance1", "Room 1"), {
+//                     Points: points,
+//                 });
+//             });
+//             updateDoc(doc(db, "instance1", "Room 1"), dict);
+//             return dict;
+//         });
+//         bins_val[bin_label] = [];
+//         // console.log(bin_label, bins_val);
+//         if ("O1" in bins_val) {
+//             updateDoc(doc(db, "instance1", "Room 1"), { Bins: bins_val });
+//         }
+//         console.log(dict);
+//     });
+// }
 
 export async function binUpdate(from, to, id, set_data, timer) {
     const sfDocRef = doc(db, "instance1", "Room 1");
@@ -391,15 +436,20 @@ export async function binUpdate(from, to, id, set_data, timer) {
     }
 }
 
-export async function binListener(set_data, setorderList, setStartTime) {
+export async function binListener(
+    set_data,
+    setorderList,
+    setStartTime,
+    setselectedOrders
+) {
     onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
         set_data(snapshot.data()["Bins"]);
-        let temp = {
+        setorderList(snapshot.data()["orders"]);
+        setStartTime(snapshot.data()["start_time"].toDate());
+        setselectedOrders({
             O1: snapshot.data()["O1"],
             O2: snapshot.data()["O2"],
-        };
-        setorderList(temp);
-        setStartTime(snapshot.data()["start_time"].toDate());
+        });
     });
 }
 

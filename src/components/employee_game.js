@@ -5,22 +5,23 @@ import Sku from "./sku";
 import React, { useState, createRef, useEffect } from "react";
 import {
     binListener,
-    binUpdate,
     calculateLogs,
+    calculateScore,
     chat_sendMessage,
     createOrders,
-    skuFinder,
+
     // flushbins,
     // updateCursor,
     updateLogs,
+    updateOrderList,
     writeInventory,
 } from "../Database/firestore";
 // import { room, sendMessage, cursorListner } from "./webRTC";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 import { AiOutlineSend } from "react-icons/ai";
-import { BsTrash } from "react-icons/bs";
 import { ChatBox } from "./chatBox";
-import { useDrop } from "react-dnd";
+import { BiRightArrow, BiDownArrow } from "react-icons/bi";
+
 import { Trash } from "./trash";
 import { SkuFinderScreen } from "./skuFinderScreen";
 export default function Game() {
@@ -30,7 +31,7 @@ export default function Game() {
     var sku = createRef();
     var quant = createRef();
     var chatRef = createRef();
-    let navigate = useNavigate();
+    //let navigate = useNavigate();
     // Low medium and high complexity for data
     // low is the numbering is ordered
     // medium is when you need to check more digits
@@ -58,19 +59,21 @@ export default function Game() {
 
     const [skuSelected, setskuSelected] = useState();
     //const [coord, setcoord] = useState([]);
-    const [sku_data, setSku_data] = useState({ Inventory: [] });
-    const [orderList, setorderList] = useState({ O1: [], O2: [] });
+    const [sku_data, setSku_data] = useState({ Receiving: [] });
+    const [orderList, setorderList] = useState([[]]);
+    const [selectedOrders, setselectedOrders] = useState({ O1: {}, O2: {} });
     const [chat, setChat] = useState(true);
     const [message, setMessage] = useState("");
-    const [timer, settimer] = useState("20:00");
+    const [timer, settimer] = useState("19:00");
     const [selected, setSelected] = useState({});
     const [showScreen, SetshowScreen] = useState(false);
     const [StartTime, setStartTime] = useState(new Date());
-    useEffect(() => {
-        binListener(setSku_data, setorderList, setStartTime);
-        //writeInventory();
+    const [animate_id, setanimate_id] = useState();
 
-        // createOrders(setorderList, sku_data);
+    useEffect(() => {
+        binListener(setSku_data, setorderList, setStartTime, setselectedOrders);
+        //writeInventory();
+        //createOrders(setorderList, sku_data);
         //cursorListner(setcoord);
         //room();
     }, []);
@@ -80,17 +83,17 @@ export default function Game() {
             const timeObject = new Date();
             let minute;
             if (timer !== "00:00" && timer !== "Expired") {
-                let diff = timeObject - StartTime;
+                let diff = (timeObject.getTime() - StartTime) / 1000;
                 if (diff <= 0) {
                     alert("Game hasn't started yet");
                     settimer(() => "Expired");
                 } else {
-                    let minuteInt =
-                        20 - (parseInt(diff / (1000 * 60), 10) % 60);
+                    let minuteInt = 20 - parseInt(diff / 60, 10);
                     if (minuteInt < 0) {
                         settimer(() => "Expired");
                     } else {
-                        var seconds = 59 - (parseInt(diff / 1000, 10) % 60);
+                        let seconds = parseInt(diff % 60, 10);
+                        seconds = 59 - seconds;
                         if (minuteInt < 10) {
                             minute = "0" + minuteInt;
                         } else {
@@ -101,16 +104,16 @@ export default function Game() {
                     }
                 }
             } else {
-                let score = calculateLogs();
-                score.then((val) => {
-                    navigate(
-                        "/performancemetric/" + val.right + "/" + val.wrong
-                    );
-                });
+                // let score = calculateLogs();
+                // score.then((val) => {
+                //     // navigate(
+                //     //     "/performancemetric/" + val.right + "/" + val.wrong
+                //     // );
+                // });
             }
         }, 1000);
         return () => clearTimeout(timeout);
-    }, [timer, navigate]);
+    }, [timer]);
     // const handleWindowMouseMove = (event) => {
     //     var now = Date.now();
     //     if (now % 20 === 0) {
@@ -181,20 +184,109 @@ export default function Game() {
                         alt="barcode"
                         src={barcode}
                         onClick={() => {
-                            updateSelected("Inventory");
+                            updateSelected("Receiving");
                         }}
                     ></img>
                     <h3>RECEIVING</h3>
                 </div>
                 <div className="sku_container">
-                    {sku_data["Inventory"].map((value, key) => (
+                    {sku_data["Receiving"].map((value, key) => (
                         <Sku
                             key={key}
                             id={Object.keys(value)[0]}
-                            parent={"Inventory"}
+                            parent={"Receiving"}
                             setSku={setskuSelected}
                             expiretime={value[Object.keys(value)]}
                         />
+                    ))}
+                </div>
+                <div className="orderList">
+                    {orderList.map((element, idx) => (
+                        <div key={idx} className="orderList-content">
+                            <BiRightArrow
+                                style={{
+                                    transform:
+                                        idx !== animate_id
+                                            ? "rotate(0deg)"
+                                            : "rotate(90deg)",
+                                    transition: "ease-in 0.5s transform",
+                                    float: "left",
+                                    margin: "10px 10px",
+                                }}
+                                onClick={() => {
+                                    setanimate_id((prev) =>
+                                        prev === idx ? -1 : idx
+                                    );
+                                }}
+                            ></BiRightArrow>
+                            <p style={{ margin: 0 }}>
+                                Points : <span>{element["amount"]}</span>
+                            </p>
+                            <button
+                                className="submit-btn"
+                                style={{ width: "70%", margin: 0 }}
+                                onClick={() => {
+                                    console.log(selectedOrders["O1"]);
+                                    if (
+                                        Object.keys(selectedOrders["O1"])
+                                            .length === 0
+                                    ) {
+                                        let temp = selectedOrders;
+                                        temp["O1"] = element;
+                                        //delete temp["O1"]["amount"];
+                                        setselectedOrders(temp);
+                                        updateOrderList(
+                                            orderList,
+                                            element,
+                                            "O1"
+                                        );
+                                        //setorderList(temp);
+                                    } else if (
+                                        Object.keys(selectedOrders["O2"])
+                                            .length === 0
+                                    ) {
+                                        let temp = selectedOrders;
+                                        temp["O2"] = element;
+                                        //delete temp["O2"]["amount"];
+                                        updateOrderList(
+                                            orderList,
+                                            element,
+                                            "O2"
+                                        );
+                                    } else {
+                                        alert(
+                                            "Previous order's need to be completed"
+                                        );
+                                    }
+                                }}
+                            >
+                                select
+                            </button>
+                            <div
+                                className={
+                                    animate_id === idx ? "grow" : "shrink"
+                                }
+                            >
+                                {Object.keys(element).map((key, id) => {
+                                    if (key === "amount") {
+                                        return "";
+                                    } else {
+                                        return (
+                                            <div className="cards" key={id}>
+                                                <p
+                                                    style={{
+                                                        margin: 0,
+                                                    }}
+                                                >
+                                                    {key}:
+                                                    <span>{element[key]}</span>
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+                                })}
+                            </div>
+                        </div>
                     ))}
                 </div>
             </section>
@@ -213,8 +305,12 @@ export default function Game() {
                         <button
                             className="send-btn"
                             onClick={() => {
-                                //sendorder("O1");
-                                createOrders(setorderList, sku_data, "O1");
+                                calculateScore(
+                                    setselectedOrders,
+                                    selectedOrders["O1"],
+                                    sku_data["O1"],
+                                    "O1"
+                                );
                             }}
                         >
                             Send Order 1
@@ -224,12 +320,18 @@ export default function Game() {
                     <div className="order">
                         <p>Order 1 </p>
                         <div className="order-content">
-                            {orderList["O1"].map((value, key) => (
-                                <div className="cards" key={key}>
-                                    {Object.keys(value)[0]}:
-                                    {value[Object.keys(value)[0]]}
-                                </div>
-                            ))}
+                            {Object.keys(selectedOrders["O1"]).map(
+                                (value, key) => {
+                                    if (value !== "amount") {
+                                        return (
+                                            <div className="cards" key={key}>
+                                                {value} :
+                                                {selectedOrders["O1"][value]}
+                                            </div>
+                                        );
+                                    }
+                                }
+                            )}
                         </div>
                     </div>
                     <div>
@@ -244,7 +346,12 @@ export default function Game() {
                         <button
                             className="send-btn"
                             onClick={() => {
-                                createOrders(setorderList, sku_data, "O2");
+                                calculateScore(
+                                    setselectedOrders,
+                                    selectedOrders["O2"],
+                                    sku_data["O2"],
+                                    "O2"
+                                );
                             }}
                         >
                             Send Order 2
@@ -253,12 +360,18 @@ export default function Game() {
                     <div className="order">
                         <p>Order 2 </p>
                         <div className="order-content">
-                            {orderList["O2"].map((value, key) => (
-                                <div className="cards" key={key}>
-                                    {Object.keys(value)[0]}:
-                                    {value[Object.keys(value)[0]]}
-                                </div>
-                            ))}
+                            {Object.keys(selectedOrders["O2"]).map(
+                                (value, key) => {
+                                    if (value !== "amount") {
+                                        return (
+                                            <div className="cards" key={key}>
+                                                {value} :
+                                                {selectedOrders["O2"][value]}
+                                            </div>
+                                        );
+                                    }
+                                }
+                            )}
                         </div>
                     </div>
                 </div>
@@ -323,6 +436,7 @@ export default function Game() {
                             }
                         }}
                     ></img>
+                    <br></br>
                     {skuSelected}
                     {showScreen ? (
                         <SkuFinderScreen SetshowScreen={SetshowScreen} />
@@ -340,12 +454,12 @@ export default function Game() {
                         onClick={() => {
                             let score = calculateLogs();
                             score.then((val) => {
-                                navigate(
-                                    "/performancemetric/" +
-                                        val.right +
-                                        "/" +
-                                        val.wrong
-                                );
+                                // navigate(
+                                //     "/performancemetric/" +
+                                //         val.right +
+                                //         "/" +
+                                //         val.wrong
+                                // );
                             });
 
                             // window.removeEventListener(

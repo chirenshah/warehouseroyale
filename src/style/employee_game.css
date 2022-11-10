@@ -1,13 +1,8 @@
 /* body{
   background: none;
   overflow: hidden;
-<<<<<<< HEAD
 } */
-=======
-}
-
->>>>>>> 0af638d968316959517a48dfbdbd8598fecf7533
-.inventory{
+  .inventory{
     border-right: 1px black solid;
     height:100vh;
     float: left;
@@ -26,11 +21,40 @@
     margin: auto;
     margin-top: 5%;
   }
+
   .sku_container{
     overflow: scroll;
-    height: 86%;
+    height: 50%;
   }
-  
+
+  .orderList {
+    height: 35%;
+    border-top: 1px black solid;
+    border-bottom: 1px black solid;
+    overflow: scroll;
+  }
+
+  .orderList-content{
+    border: 1px solid black;
+    margin: 3px;
+    text-align: center;
+  }
+
+  .shrink{
+    height: 0px;
+    overflow: clip;
+    transition: height 0.5s ease-in;
+    margin-top: 5px;
+  }
+  .grow{
+    margin-top: 5px;
+    border-top: 1px solid black;
+    height: 100px;
+    overflow-y: scroll;
+    width: 100%;
+    transition: height 0.5s ease-out;
+  }
+
   .center{
     height:100vh;
     float: left;
@@ -78,7 +102,8 @@
     background-color: white;
     height: 35px;
     width: 250px;
-    margin: 0px 10px;
+    align-self: center;
+    margin: 10px 10px;
   }
 
   .send-btn:hover,.submit-btn{
@@ -86,7 +111,8 @@
     color: white;
     height: 35px;
     width: 250px;
-    margin: 0px 10px;
+    margin: 10px 10px;
+    align-self: center;
     background-color: #5D5FEF;
   }
 
@@ -124,20 +150,23 @@
     margin: 10px;
     border: 1px solid black;
     height: 215px;
-    width: 120px;
+    width: 160px;
     text-align: center;
   }
 
   .order-content{
     overflow: scroll;
     height: 100%;
+    border-top: 1px solid gray;
   }
   
 
   .cards{
-    border-top: 1px solid gray;
-    border-bottom: 1px solid gray;
+    border: 1px solid gray;
     padding: 4px;
+    text-align: center;
+    margin: 5px;
+    overflow: scroll;
   }
   
   .record{

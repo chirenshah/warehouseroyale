@@ -1,6 +1,8 @@
 // Css
-import './OperationRoom.css';
+import { Link, useNavigate } from "react-router-dom";
+import "./OperationRoom.css";
 
 export default function OperationRoom() {
-  return <div>OperationRoom</div>;
+    let nav = useNavigate();
+    return <Link to="/game">click</Link>;
 }
