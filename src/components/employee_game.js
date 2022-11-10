@@ -235,11 +235,7 @@ export default function Game() {
                                         temp["O1"] = element;
                                         //delete temp["O1"]["amount"];
                                         setselectedOrders(temp);
-                                        updateOrderList(
-                                            orderList,
-                                            element,
-                                            "O1"
-                                        );
+                                        updateOrderList(element, "O1");
                                         //setorderList(temp);
                                     } else if (
                                         Object.keys(selectedOrders["O2"])
@@ -306,7 +302,6 @@ export default function Game() {
                             className="send-btn"
                             onClick={() => {
                                 calculateScore(
-                                    setselectedOrders,
                                     selectedOrders["O1"],
                                     sku_data["O1"],
                                     "O1"
@@ -411,7 +406,13 @@ export default function Game() {
                                 let skuId = sku.current.childNodes[1].value;
                                 let quantVal =
                                     quant.current.childNodes[1].value;
-                                updateLogs(fromValue, toValue, skuId, quantVal);
+
+                                updateLogs(
+                                    fromValue,
+                                    toValue,
+                                    skuId,
+                                    parseInt(quantVal)
+                                );
                                 from.current.childNodes[1].value = "";
                                 to.current.childNodes[1].value = "";
                                 sku.current.childNodes[1].value = "";

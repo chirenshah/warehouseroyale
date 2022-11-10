@@ -8,7 +8,7 @@
 .bin_dropdown{
     border-bottom: 1px black solid;
     height: 70%;
-    overflow: scroll;
+    overflow-y: scroll;
 }
 
 .bin_identifier{

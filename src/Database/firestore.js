@@ -16,6 +16,8 @@ import {
     orderBy,
     limit,
     increment,
+    arrayRemove,
+    arrayUnion,
 } from "firebase/firestore";
 
 import app from "./config";
@@ -115,47 +117,25 @@ export async function updateLogs(from, to, id, quant) {
                 }
                 let data = sfDoc.data();
                 let bins = data["Bins"];
-                let times = quant;
+                let bin_id = data["Bins"][id];
+                if (!(from in bin_id)) bin_id[from] = 0;
+                if (!(to in bin_id)) bin_id[to] = 0;
 
-                if (to == "Trash") {
-                    let temp = [];
-                    for (let i = 0; i < bins[id].length; i++) {
-                        if (bins[id][i] === from && times > 0) {
-                            times -= 1;
-                        } else {
-                            temp.push(bins[id][i]);
-                        }
-                    }
-                    if (temp) {
-                        bins[id] = temp;
-                    } else {
-                        delete bins[id];
-                    }
-                } else {
-                    for (let i = 0; i < bins[id].length; i++) {
-                        if (times <= 0) {
-                            break;
-                        }
-                        if (bins[id][i] === from) {
-                            bins[id][i] = to;
-                            times -= 1;
-                        }
-                    }
-                    while (times > 0) {
-                        bins[id].push(to);
-                    }
+                bin_id[from] -= quant;
+                if (to !== "Trash") {
+                    bin_id[to] += quant;
                 }
+                if (bin_id[from] === 0) delete bin_id[from];
+                if (bin_id[to] === 0) delete bin_id[to];
 
                 let email = window.localStorage.admin.replace(".", ",");
-                if (!(email in data)) {
-                    data[email] = [];
-                }
-                let personal = data[email];
+                let personal = [];
                 for (let i = 0; i < quant; i++) {
                     personal.push(id + ":" + from + ":" + to);
                 }
                 let file = {};
-                file[email] = personal;
+                file[email] = arrayUnion(personal);
+                console.log(file);
                 file["Bins"] = bins;
                 transaction.update(sfDocRef, file);
             });
@@ -187,8 +167,11 @@ export async function writeInventory() {
         var randomVar = Math.round(Math.random() * (data.length - 1));
         temp[data[randomVar]] = new Date();
         if (data[randomVar] in logs) {
-            logs[data[randomVar]].push("Receiving");
-        } else logs[data[randomVar]] = ["Receiving"];
+            logs[data[randomVar]]["Receiving"] += 1;
+        } else
+            logs[data[randomVar]] = {
+                Receiving: 1,
+            };
         fin_data.push(temp);
     }
 
@@ -197,13 +180,17 @@ export async function writeInventory() {
     });
     updateDoc(doc(db, "instance1", "Room 1"), {
         Bins: { Receiving: fin_data },
+        Points: 0,
+        O1: {},
+        O2: {},
+        Logs: [],
+        start_time: new Date(),
     }).catch((err) => console.log(err));
 }
 
-export async function updateOrderList(data, selectData, label) {
-    data = data.filter((ele) => ele !== selectData);
+export async function updateOrderList(selectData, label) {
     let temp = {
-        orders: data,
+        orders: arrayRemove(selectData),
     };
     temp[label] = selectData;
     updateDoc(doc(db, "instance1", "Room 1"), temp).catch((err) =>
@@ -212,35 +199,31 @@ export async function updateOrderList(data, selectData, label) {
 }
 export async function calculateLogs() {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
-    let scores = physicalLogs.data()["Score"];
+
     physicalLogs =
         physicalLogs.data()[window.localStorage.admin.replace(".", ",")];
     let actualLogs = await getDoc(doc(db, "instance1", "Room 1"));
-    console.log(actualLogs.data()["Logs"], physicalLogs);
+
     let actualLogsMap = {};
     actualLogs = actualLogs.data()["Logs"];
     actualLogs.forEach((val) => {
         val = val.split(":");
         if (val[0] in actualLogsMap) {
-            actualLogsMap[val[0]].push([val[1], val[2], val[3]]);
+            actualLogsMap[val[0]].push([val[1], val[2]]);
         } else {
-            actualLogsMap[val[0]] = [[val[1], val[2], val[3]]];
+            actualLogsMap[val[0]] = [[val[1], val[2]]];
         }
     });
-
     let right = 0;
     let wrong = 0;
-
     for (let i = 0; i < physicalLogs.length; i++) {
         let phy = physicalLogs[i].split(":");
-
         if (phy[0] in actualLogsMap) {
             let flag = true;
             for (let j = 0; j < actualLogsMap[phy[0]].length; j++) {
                 if (
                     (actualLogsMap[phy[0]][j][0] === phy[1]) &
-                    (actualLogsMap[phy[0]][j][1] === phy[2]) &
-                    (actualLogsMap[phy[0]][j][2] === window.localStorage.admin)
+                    (actualLogsMap[phy[0]][j][1] === phy[2])
                 ) {
                     right += 1;
                     actualLogsMap[phy[0]][j] = [-1, -1, -1];
@@ -255,14 +238,17 @@ export async function calculateLogs() {
             wrong += 1;
         }
     }
-    scores[window.localStorage.admin.replace(".", ",")] = {
+    // scores[window.localStorage.admin.replace(".", ",")] = {
+    //     right: right,
+    //     wrong: wrong,
+    // };
+    let temp = {};
+    temp["Score." + window.localStorage.admin.replace(".", ",")] = {
         right: right,
         wrong: wrong,
     };
-    updateDoc(doc(db, "instance1", "Logs"), {
-        Score: scores,
-    });
-    return scores[window.localStorage.admin.replace(".", ",")];
+    updateDoc(doc(db, "instance1", "Logs"), temp);
+    return temp;
 }
 
 export async function getPerformanceData() {
@@ -273,13 +259,13 @@ export async function getPerformanceData() {
 
 export async function calculateScore(data, bins_val, bin_label) {
     // check how many bin_vals are present in data
+    if (!bins_val || bins_val.length < 1) return;
     const timeObject = new Date();
-
     for (let i = 0; i < bins_val.length; i++) {
         const id = Object.keys(bins_val[i])[0];
-
+        console.log(id);
         if (
-            100 -
+            4 -
                 (timeObject.getTime() - bins_val[i][id].toDate()) /
                     (1000 * 60) >
             0
@@ -500,7 +486,10 @@ export async function addIceCandidate(json) {
 }
 export async function skuFinder(skuId) {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
-    return physicalLogs.data()["Bins"][skuId][0];
+    let records = Object.keys(physicalLogs.data()["Bins"][skuId]);
+    for (let i = 0; i < records.length; i++) {
+        if (physicalLogs.data()["Bins"][skuId][records[i]]) return records[i];
+    }
 }
 export async function icelistners(peerConnection) {
     onSnapshot(

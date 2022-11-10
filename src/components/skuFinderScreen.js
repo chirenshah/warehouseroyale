@@ -5,7 +5,7 @@ import { returnSku, skuFinder } from "../Database/firestore";
 export function SkuFinderScreen({ SetshowScreen }) {
     const [skuList, setskuList] = useState([]);
     const [autoValue, setautoValue] = useState("");
-    const [ans, setAns] = useState();
+    const [ans, setAns] = useState("");
     useEffect(() => {
         returnSku(setskuList);
     }, []);
@@ -17,6 +17,7 @@ export function SkuFinderScreen({ SetshowScreen }) {
                         onClick={() => {
                             SetshowScreen(false);
                         }}
+                        style={{ background: "none" }}
                     >
                         x
                     </button>
@@ -32,7 +33,7 @@ export function SkuFinderScreen({ SetshowScreen }) {
                         )}
                     ></Autocomplete>
                 </div>
-                <br />
+                {ans !== "" ? <div>{autoValue + " is at " + ans}</div> : null}
                 <button
                     className="findSkuButton"
                     onClick={() => {
@@ -43,7 +44,6 @@ export function SkuFinderScreen({ SetshowScreen }) {
                 >
                     Find the Sku
                 </button>
-                {ans ? <div>{autoValue + " is at " + ans}</div> : null}
             </div>
         </div>
     );

@@ -39,6 +39,7 @@ body {
   padding: 0;
   font-family: var(--primaryFont);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Reset styles */
