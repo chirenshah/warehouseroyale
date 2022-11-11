@@ -5,6 +5,7 @@ import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
+import Popover from '@mui/material/Popover';
 import { DataGrid } from '@mui/x-data-grid';
 // React Icons
 import { MdDelete, MdOutlineFileUpload } from 'react-icons/md';
@@ -14,6 +15,7 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -43,6 +45,13 @@ export default function UserList() {
 
   const handleDelete = async (id) => {
     await deleteDocument(COLLECTION_USERS, id);
+    handleClose();
+
+    //! TODO: PROBLEM: We are deleting user from collection only and not the actual auth-user.
+    //! And we cannot delete it from client-side, we must do it into safe environment(admin-sdk), that's what firebase says due to security reasons.
+    //! So we must create and deploy function which listens to firestore event when "delete user" happens.
+    // https://stackoverflow.com/questions/38800414/delete-a-specific-user-from-firebase
+    // https://stackoverflow.com/questions/44721897/delete-firebase-authenticated-user-from-web-application/44723666#44723666
   };
 
   const handleOnFileChange = (e) => {
@@ -59,6 +68,21 @@ export default function UserList() {
   const handleFileUpload = () => {
     console.log(file);
   };
+
+  // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
+  // Popover-----------------------------------------------------------
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -101,9 +125,51 @@ export default function UserList() {
               <WarehouseButton text="Edit" sm success />
             </Link>
             <MdDelete
+              aria-describedby={id}
               className="userList__delete"
-              onClick={() => handleDelete(params.row.id)}
+              onClick={handleClick}
             />
+            {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
+            <Popover
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'center',
+                horizontal: 'right',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '0.5rem',
+                }}
+              >
+                <span>Are you sure?</span>
+                <div style={{ display: 'flex' }}>
+                  <WarehouseButton
+                    onClick={() => handleDelete(params.row.id)}
+                    text="Yes"
+                    warning
+                    sm
+                  />
+                  <WarehouseButton
+                    onClick={handleClose}
+                    text="Cancel"
+                    success
+                    sm
+                  />
+                </div>
+              </div>
+            </Popover>
+            {/* Popover----------------------------------------------------------- */}
           </>
         );
       },
