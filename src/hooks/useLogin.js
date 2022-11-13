@@ -46,12 +46,18 @@ export function useLogin() {
         throw new Error('user from collection not fetched');
       }
 
-      //   Save user role to local storage
+      //   Save user role and teamId to local storage
       localStorage.setItem('warehouse_user_role', userFromCollection.role);
+      localStorage.setItem('warehouse_team_id', userFromCollection.teamId);
 
-      result.user.role = userFromCollection.role;
-
-      dispatch({ type: LOGIN, payload: result.user });
+      dispatch({
+        type: LOGIN,
+        payload: {
+          ...result.user,
+          role: userFromCollection.role,
+          teamId: userFromCollection.teamId,
+        },
+      });
       setIsPending(false);
     } catch (error) {
       setError(error.message);

@@ -39,6 +39,7 @@ export const AuthContextProvider = ({ children }) => {
           payload: {
             ...user,
             role: localStorage.getItem('warehouse_user_role'),
+            teamId: localStorage.getItem('warehouse_team_id'),
           },
         });
       } else {

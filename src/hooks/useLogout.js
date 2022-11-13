@@ -16,6 +16,7 @@ export function useLogout() {
       await Auth.signOut();
 
       localStorage.removeItem('warehouse_user_role');
+      localStorage.removeItem('warehouse_team_id');
 
       dispatch({ type: 'LOGOUT' });
 
