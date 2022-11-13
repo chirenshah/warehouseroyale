@@ -45,6 +45,7 @@ export const mDashboardSidebarConfig = [
     item: 'My Team',
     icon: <FcConferenceCall className="sidebar__icon" />,
     path: '/my-team',
+    showBadge: true,
   },
   {
     item: 'Recruitment Room',
