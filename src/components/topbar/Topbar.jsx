@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 // Hooks
 import { useAuthContext } from '../../hooks/useAuthContext';
-import { useDocment } from '../../hooks/useDocment';
+import { useDocument } from '../../hooks/useDocument';
 import { useLogout } from '../../hooks/useLogout';
 import { useOutsideClick } from '../../hooks/useOutsideClick';
 // Material icons
@@ -27,7 +27,7 @@ export default function Topbar() {
     document: user,
     isPending: isPendingUser,
     error: userError,
-  } = useDocment(COLLECTION_USERS, currentUser?.uid);
+  } = useDocument(COLLECTION_USERS, currentUser?.uid);
 
   const { logout, isPending, error } = useLogout();
 

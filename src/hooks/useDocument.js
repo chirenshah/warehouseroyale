@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../Database/firestore';
 
-export function useDocment(collectionName, documentId) {
+export function useDocument(collectionName, documentId) {
   const [document, setDocument] = useState(null);
   const [isPending, setIsPending] = useState(true);
   const [error, setError] = useState(null);

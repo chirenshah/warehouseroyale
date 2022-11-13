@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 // Hooks
-import { useDocment } from '../../../../hooks/useDocment';
+import { useDocument } from '../../../../hooks/useDocument';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Material Icons
 import { FiUser, FiUpload } from 'react-icons/fi';
@@ -29,7 +29,7 @@ export default function User() {
     document: user,
     isPending,
     error,
-  } = useDocment(COLLECTION_USERS, userId);
+  } = useDocument(COLLECTION_USERS, userId);
 
   const { response, updateDocument } = useFirestore();
 
