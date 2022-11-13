@@ -45,6 +45,9 @@ export default function UserList() {
 
   const handleDelete = async (id) => {
     await deleteDocument(COLLECTION_USERS, id);
+
+    // TODO: Update delete functionality to delete user from authentication and teams collection
+
     handleClose();
 
     //! TODO: PROBLEM: We are deleting user from collection only and not the actual auth-user.

@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { arrayUnion, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore } from './useFirestore';
+import { db } from '../Database/firestore';
 import { Auth } from '../Database/Auth';
+import { COLLECTION_TEAMS, COLLECTION_USERS } from '../utils/constants';
 
 export function useCreateUser() {
   const { addDocument } = useFirestore();
@@ -9,7 +12,7 @@ export function useCreateUser() {
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
 
-  async function createUser(collectionName, user) {
+  async function createUser(user) {
     setError(null);
     setIsPending(true);
 
@@ -20,11 +23,32 @@ export function useCreateUser() {
         user.password
       );
 
+      const uid = authUser.user.uid;
+      // Do not add password to collection
+      const { password, ...rest } = user;
+
       if (authUser.user) {
-        await addDocument(collectionName, authUser.user.uid, {
-          ...user,
-          uid: authUser.user.uid,
+        await addDocument(COLLECTION_USERS, uid, {
+          ...rest,
+          uid,
         });
+
+        if (user.role === 'manager') {
+          await addDocument(COLLECTION_TEAMS, user.teamId, {
+            manager: {
+              share: 100,
+              uid,
+            },
+            employees: [],
+          });
+        } else {
+          await updateDoc(doc(db, COLLECTION_TEAMS, user.teamId), {
+            employees: arrayUnion({
+              share: 0,
+              uid,
+            }),
+          });
+        }
       }
 
       setIsPending(false);

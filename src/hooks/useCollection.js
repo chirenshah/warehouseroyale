@@ -27,12 +27,17 @@ export function useCollection(
       try {
         setError(null);
 
-        const q = query(
-          collection(db, collectionName),
-          orderBy(...orderQuery),
-          where(...whereQuery)
-        );
-
+        let q;
+        if (whereQuery) {
+          q = query(
+            collection(db, collectionName),
+            orderBy(...orderQuery),
+            where(...whereQuery)
+          );
+        }
+        if (!whereQuery) {
+          q = query(collection(db, collectionName));
+        }
         const unsub = onSnapshot(q, (querySnapshot) => {
           const docs = [];
           querySnapshot.forEach((doc) => {

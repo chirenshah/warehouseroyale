@@ -68,7 +68,8 @@ export function useFirestore() {
 
       const addedDocument = await setDoc(
         doc(db, collectionName, documentId),
-        document
+        document,
+        { merge: true }
       );
 
       dispatch({ type: ADD_DOCUMENT, payload: addedDocument });
