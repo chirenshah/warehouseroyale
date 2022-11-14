@@ -22,7 +22,7 @@ export const getTeamMembers = async (teamId) => {
   return res;
 };
 
-export const getNewlyAddedEmployees = (employees) => {
+export const getNewlyAddedEmployeesUids = (employees) => {
   if (!employees || employees.length === 0) return null;
 
   const employeesWith0Share = employees.filter(
@@ -42,4 +42,10 @@ export const getNewlyAddedEmployeesDetails = (uids, teamMembers) => {
   });
 
   return res;
+};
+
+export const getMemberShare = (uid, teamMembers) => {
+  const member = teamMembers.find((member) => member.uid === uid);
+
+  return member.share;
 };

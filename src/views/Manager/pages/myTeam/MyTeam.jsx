@@ -9,8 +9,9 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import Divider from '@mui/material/Divider';
 import ListItemText from '@mui/material/ListItemText';
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
 // Components
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
@@ -20,8 +21,12 @@ import Chart from '../../../../components/chart/Chart';
 // Constants
 import { COLLECTION_TEAMS } from '../../../../utils/constants';
 // Helpers
-import { getNewlyAddedEmployees, getTeamMembers } from './helpers';
-import { getNewlyAddedEmployeesDetails } from './helpers';
+import {
+  getMemberShare,
+  getNewlyAddedEmployeesUids,
+  getTeamMembers,
+  getNewlyAddedEmployeesDetails,
+} from './helpers';
 // Css
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
@@ -55,7 +60,9 @@ export default function MyTeam() {
 
       setTeamMembers(teamMembers);
 
-      const newlyAddedEmployeesUids = getNewlyAddedEmployees(team?.employees);
+      const newlyAddedEmployeesUids = getNewlyAddedEmployeesUids(
+        team?.employees
+      );
 
       const newlyAddedEmployees = getNewlyAddedEmployeesDetails(
         newlyAddedEmployeesUids,
@@ -67,23 +74,22 @@ export default function MyTeam() {
     })();
   }, [team]);
 
+  const handleShareUpdate = async () => {};
+
   return (
     <div className="myTeam">
       <WarehouseHeader title={`Team ${user?.teamId || ''}`} />
       {loading && <WarehouseLoader />}
       {!isProceededToShare && newlyAddedEmployees && (
         <WarehouseCard>
-          <List>
+          <List sx={{ width: '100%' }}>
             {newlyAddedEmployees.map((employee) => (
-              <div key={employee.uid}>
-                <ListItem alignItems="flex-start">
-                  <ListItemText
-                    primary={employee.fullName}
-                    secondary="has been added to your organization."
-                  />
-                </ListItem>
-                <Divider />
-              </div>
+              <ListItem key={employee.uid}>
+                <ListItemText
+                  primary={employee.fullName}
+                  secondary="has been added to your organization."
+                />
+              </ListItem>
             ))}
           </List>
           <WarehouseButton
@@ -99,25 +105,28 @@ export default function MyTeam() {
         <>
           <WarehouseHeader title="Share structure of the team" />
           <WarehouseCard>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              Remaining percentage % : {10}
+            </Box>
             <List>
-              {teamMembers.map((member) => (
-                <div key={member.uid}>
-                  <ListItem alignItems="flex-start">
-                    <ListItemText
-                      primary={
-                        member.role === 'manager' ? 'You' : member.fullName
-                      }
-                      secondary="has been added to your organization."
-                    />
-                  </ListItem>
-                  <Divider />
-                </div>
+              {newlyAddedEmployees.map((member) => (
+                <ListItem key={member.uid} alignItems="center">
+                  <TextField
+                    value={getMemberShare(member.uid, team.employees)}
+                    inputProps={{ inputMode: 'numeric', pattern: '[0-100]*' }}
+                    sx={{ marginRight: '1rem', width: '5rem' }}
+                    size="small"
+                  />
+                  <ListItemText
+                    primary={
+                      member.role === 'manager' ? 'You' : member.fullName
+                    }
+                  />
+                </ListItem>
               ))}
             </List>
             <WarehouseButton
-              onClick={() => {
-                // setIsProceededToShare(true);
-              }}
+              onClick={() => handleShareUpdate()}
               text="Update"
             />
           </WarehouseCard>
