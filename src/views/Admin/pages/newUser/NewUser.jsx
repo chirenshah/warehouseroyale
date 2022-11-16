@@ -66,6 +66,7 @@ export default function NewUser() {
       teamId,
       phone,
       role,
+      share: role === 'manager' ? 100 : 0,
     });
 
     navigate('/users');

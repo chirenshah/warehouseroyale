@@ -21,12 +21,7 @@ import Chart from '../../../../components/chart/Chart';
 // Constants
 import { COLLECTION_TEAMS } from '../../../../utils/constants';
 // Helpers
-import {
-  getMemberShare,
-  getNewlyAddedEmployeesUids,
-  getTeamMembers,
-  getNewlyAddedEmployeesDetails,
-} from './helpers';
+import { getTeamMembers, updateShares } from './helpers';
 // Css
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
@@ -38,9 +33,14 @@ export default function MyTeam() {
   const { user } = useAuthContext();
 
   const [newlyAddedEmployees, setNewlyAddedEmployees] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [teamMembers, setTeamMembers] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const [isProceededToShare, setIsProceededToShare] = useState(false);
+
+  const [managerShare, setManagerShare] = useState(null);
+  const [newEmployeesShare, setNewEmployeesShare] = useState({});
+
   const [round, setRound] = useState(1);
 
   const {
@@ -56,31 +56,61 @@ export default function MyTeam() {
       if (!team?.employees?.length) {
         return;
       }
-      const teamMembers = await getTeamMembers(team.id);
 
+      // Get member details from users collection
+      const teamMembers = await getTeamMembers(team.id);
       setTeamMembers(teamMembers);
 
-      const newlyAddedEmployeesUids = getNewlyAddedEmployeesUids(
-        team?.employees
-      );
+      setManagerShare({
+        [team.manager.uid]: teamMembers.find(
+          (member) => member.role === 'manager'
+        ).share,
+      });
 
-      const newlyAddedEmployees = getNewlyAddedEmployeesDetails(
-        newlyAddedEmployeesUids,
-        teamMembers
+      const newlyAddedEmployees = teamMembers?.filter(
+        (member) => member.share === 0
       );
-
       setNewlyAddedEmployees(newlyAddedEmployees);
+
+      let employeeShares = {};
+      for (const employee of newlyAddedEmployees) {
+        employeeShares[`${employee.uid}`] = employee.share;
+      }
+      setNewEmployeesShare(employeeShares);
+
       setLoading(false);
     })();
   }, [team]);
 
-  const handleShareUpdate = async () => {};
+  useEffect(() => {
+    if (!Object.values(newEmployeesShare).length) {
+      return;
+    }
+    const totalSharesOfNewEmployees = Object.values(newEmployeesShare).reduce(
+      (prev, curr) => {
+        return Number(curr) + Number(prev);
+      }
+    );
+
+    setManagerShare({ [team.manager.uid]: 100 - totalSharesOfNewEmployees });
+  }, [newEmployeesShare]);
+
+  const handleOnchangeShare = (e) => {
+    setNewEmployeesShare((prev) => {
+      return { ...prev, [e.target.name]: Number(e.target.value) };
+    });
+  };
+
+  const handleShareUpdate = async () => {
+    // TODO: Put validations
+    updateShares({ ...managerShare, ...newEmployeesShare });
+  };
 
   return (
     <div className="myTeam">
       <WarehouseHeader title={`Team ${user?.teamId || ''}`} />
       {loading && <WarehouseLoader />}
-      {!isProceededToShare && newlyAddedEmployees && (
+      {!isProceededToShare && newlyAddedEmployees?.length ? (
         <WarehouseCard>
           <List sx={{ width: '100%' }}>
             {newlyAddedEmployees.map((employee) => (
@@ -99,29 +129,34 @@ export default function MyTeam() {
             text="Proceed to share"
           />
         </WarehouseCard>
-      )}
+      ) : null}
 
       {isProceededToShare && (
         <>
           <WarehouseHeader title="Share structure of the team" />
           <WarehouseCard>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-              Remaining percentage % : {10}
-            </Box>
             <List>
+              <ListItem alignItems="center">
+                <TextField
+                  value={Object.values(managerShare)[0]}
+                  type="number"
+                  sx={{ marginRight: '1rem', width: '5rem' }}
+                  size="small"
+                  disabled
+                />
+                <ListItemText primary="You" />
+              </ListItem>
               {newlyAddedEmployees.map((member) => (
                 <ListItem key={member.uid} alignItems="center">
                   <TextField
-                    value={getMemberShare(member.uid, team.employees)}
-                    inputProps={{ inputMode: 'numeric', pattern: '[0-100]*' }}
+                    onChange={handleOnchangeShare}
+                    value={newEmployeesShare[`${member.uid}`]}
+                    type="number"
+                    name={member.uid}
                     sx={{ marginRight: '1rem', width: '5rem' }}
                     size="small"
                   />
-                  <ListItemText
-                    primary={
-                      member.role === 'manager' ? 'You' : member.fullName
-                    }
-                  />
+                  <ListItemText primary={member.fullName} />
                 </ListItem>
               ))}
             </List>
@@ -133,14 +168,52 @@ export default function MyTeam() {
         </>
       )}
 
-      <WarehouseCard>
-        <Chart
-          series={myTeamChartData.map((elm) => elm.score)}
-          xAxis={myTeamChartData.map((elm) => elm.member)}
-          type="pie"
-          chartType="pie"
-        />
-      </WarehouseCard>
+      <Box sx={{ display: 'flex', gap: '1rem' }}>
+        <Box sx={{ flex: 2 }}>
+          <WarehouseCard>
+            {loading ? (
+              <WarehouseLoader />
+            ) : (
+              <Chart
+                series={teamMembers?.map((member) => member.share)}
+                xAxis={teamMembers?.map((member) => member.fullName)}
+                type="pie"
+                chartType="pie"
+              />
+            )}
+          </WarehouseCard>
+        </Box>
+        <Box sx={{ flex: 1.5, height: '100%' }}>
+          <WarehouseCard>
+            {loading ? (
+              <WarehouseLoader />
+            ) : (
+              <>
+                <List>
+                  {teamMembers?.map((member) => (
+                    <ListItem key={member.uid} alignItems="center">
+                      <TextField
+                        onChange={handleOnchangeShare}
+                        value={member.share}
+                        type="number"
+                        name={member.uid}
+                        sx={{ marginRight: '1rem', width: '5rem' }}
+                        size="small"
+                      />
+                      <ListItemText primary={member.fullName} />
+                    </ListItem>
+                  ))}
+                </List>
+                <WarehouseButton
+                  onClick={() => handleShareUpdate()}
+                  text="Update"
+                />
+              </>
+            )}
+          </WarehouseCard>
+        </Box>
+      </Box>
+
       <WarehouseHeader title="Team Performance Comparisson Metric" my>
         <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
           <InputLabel id="demo-simple-select-filled-label">Round</InputLabel>

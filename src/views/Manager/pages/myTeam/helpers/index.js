@@ -1,4 +1,11 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+} from 'firebase/firestore';
 import { db } from '../../../../../Database/firestore';
 import { COLLECTION_USERS } from '../../../../../utils/constants';
 
@@ -22,30 +29,15 @@ export const getTeamMembers = async (teamId) => {
   return res;
 };
 
-export const getNewlyAddedEmployeesUids = (employees) => {
-  if (!employees || employees.length === 0) return null;
+export const updateShares = async (data) => {
+  const batch = writeBatch(db);
 
-  const employeesWith0Share = employees.filter(
-    (employee) => employee.share === 0
-  );
+  for (let key in data) {
+    const docRef = doc(db, COLLECTION_USERS, key);
+    batch.update(docRef, { share: data[key] });
+  }
 
-  return employeesWith0Share.map((elm) => elm.uid);
-};
+  await batch.commit();
 
-export const getNewlyAddedEmployeesDetails = (uids, teamMembers) => {
-  const res = [];
-
-  teamMembers.map((member) => {
-    if (uids.includes(member.uid)) {
-      res.push(member);
-    }
-  });
-
-  return res;
-};
-
-export const getMemberShare = (uid, teamMembers) => {
-  const member = teamMembers.find((member) => member.uid === uid);
-
-  return member.share;
+  console.log('Successfully updated');
 };

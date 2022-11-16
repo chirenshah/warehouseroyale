@@ -36,7 +36,6 @@ export function useCreateUser() {
         if (user.role === 'manager') {
           await addDocument(COLLECTION_TEAMS, user.teamId, {
             manager: {
-              share: 100,
               uid,
             },
             employees: [],
@@ -44,7 +43,6 @@ export function useCreateUser() {
         } else {
           await updateDoc(doc(db, COLLECTION_TEAMS, user.teamId), {
             employees: arrayUnion({
-              share: 0,
               uid,
             }),
           });
