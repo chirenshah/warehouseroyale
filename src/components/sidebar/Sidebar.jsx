@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 // Material components
 import Badge from '@mui/material/Badge';
 // Components
@@ -9,7 +9,11 @@ import SwitchUser from '../SwitchUser';
 import './Sidebar.css';
 
 export default function Sidebar({ sidebarConfig }) {
-  const [activeMenu, setActiveMenu] = useState(sidebarConfig[0].item);
+  const location = useLocation();
+
+  const currentPage = location.pathname.split('/').splice(1)[0];
+
+  const [activeMenu, setActiveMenu] = useState(currentPage);
 
   return (
     <div className="sidebar">
@@ -23,8 +27,10 @@ export default function Sidebar({ sidebarConfig }) {
           {sidebarConfig.map(({ item, icon, path, showBadge }) => (
             <Link key={item} to={path}>
               <li
-                className={`sidebar__item ${activeMenu === item && 'active'}`}
-                onClick={() => setActiveMenu(item)}
+                className={`sidebar__item ${
+                  activeMenu === path.substring(1) && 'active'
+                }`}
+                onClick={() => setActiveMenu(path.substring(1))}
               >
                 {showBadge ? (
                   <Badge color="primary" badgeContent={2}>
