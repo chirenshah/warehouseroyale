@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useDocument } from '../../../../hooks/useDocument';
+import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -19,7 +20,10 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import Chart from '../../../../components/chart/Chart';
 // Constants
-import { COLLECTION_TEAMS } from '../../../../utils/constants';
+import {
+  COLLECTION_TEAMS,
+  COLLECTION_USERS,
+} from '../../../../utils/constants';
 // Helpers
 import { getTeamMembers, updateShares } from './helpers';
 // Css
@@ -53,6 +57,12 @@ export default function MyTeam() {
     isPending: isTeamPending,
     error: teamError,
   } = useDocument(COLLECTION_TEAMS, user?.teamId);
+
+  // const {
+  //   documents: teamMembers,
+  //   isPending: areTeamMembersPending,
+  //   error: teamMembersError,
+  // } = useCollection(COLLECTION_USERS, ['teamId', '==', team?.id]);
 
   useEffect(() => {
     if (!team) {
@@ -158,10 +168,12 @@ export default function MyTeam() {
     // TODO: Put validations
 
     if (type === 'new') {
-      updateShares({ ...updatedManagerShare, ...newEmployeesShare });
+      await updateShares({ ...updatedManagerShare, ...newEmployeesShare });
     } else {
-      updateShares({ ...updatedManagerShare, ...employeesShare });
+      await updateShares({ ...updatedManagerShare, ...employeesShare });
     }
+
+    window.location.reload(); // TODO: It's temporary solution!!
   };
 
   return (
@@ -297,7 +309,7 @@ function ShareList({
           />
           <ListItemText primary="You" />
         </ListItem>
-        {employees.map((member) => (
+        {employees?.map((member) => (
           <ListItem key={member.uid} alignItems="center">
             <TextField
               onChange={handleOnChangeShare}

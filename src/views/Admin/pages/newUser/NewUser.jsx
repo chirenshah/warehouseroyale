@@ -29,7 +29,7 @@ export default function NewUser() {
   const {
     documents: teams,
     isPending: areteamsPending,
-    teamsError,
+    error: teamsError,
   } = useCollection(COLLECTION_TEAMS);
 
   const teamIds = teams?.map((team) => team.id);
