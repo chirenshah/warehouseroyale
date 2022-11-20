@@ -48,7 +48,11 @@ export default function NewUser() {
     }
   }, [role, teamId, teamIds]);
 
-  const { createUser, isCreateUserPending, createUserError } = useCreateUser();
+  const {
+    createUser,
+    isPending: isCreateUserPending,
+    createUserError,
+  } = useCreateUser();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
