@@ -34,6 +34,7 @@ export default function UserList() {
 
   const { response, deleteDocument } = useFirestore();
 
+  const [deleteId, setDeleteId] = useState(null);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
 
@@ -75,8 +76,9 @@ export default function UserList() {
   // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleClick = (e, id) => {
+    setAnchorEl(e.currentTarget);
+    setDeleteId(id);
   };
 
   const handleClose = () => {
@@ -130,7 +132,7 @@ export default function UserList() {
             <MdDelete
               aria-describedby={id}
               className="userList__delete"
-              onClick={handleClick}
+              onClick={(e) => handleClick(e, params.row.id)}
             />
             {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
             <Popover
@@ -158,7 +160,7 @@ export default function UserList() {
                 <span>Are you sure?</span>
                 <div style={{ display: 'flex' }}>
                   <WarehouseButton
-                    onClick={() => handleDelete(params.row.id)}
+                    onClick={() => handleDelete(deleteId)}
                     text="Yes"
                     warning
                     sm
