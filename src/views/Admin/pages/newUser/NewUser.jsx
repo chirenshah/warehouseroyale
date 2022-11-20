@@ -70,6 +70,7 @@ export default function NewUser() {
       teamId,
       phone,
       role,
+      isNew: role === 'employee' ? true : null,
       share: role === 'manager' ? 100 : 0,
     });
 

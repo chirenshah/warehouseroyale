@@ -34,7 +34,7 @@ export const updateShares = async (data) => {
 
   for (let key in data) {
     const docRef = doc(db, COLLECTION_USERS, key);
-    batch.update(docRef, { share: data[key] });
+    batch.update(docRef, { share: data[key], isNew: false });
   }
 
   await batch.commit();
