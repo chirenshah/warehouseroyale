@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useDocument } from '../../../../hooks/useDocument';
-import { useCollection } from '../../../../hooks/useCollection';
+// import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -22,7 +22,7 @@ import Chart from '../../../../components/chart/Chart';
 // Constants
 import {
   COLLECTION_TEAMS,
-  COLLECTION_USERS,
+  // COLLECTION_USERS,
 } from '../../../../utils/constants';
 // Helpers
 import { getTeamMembers, updateShares } from './helpers';
@@ -39,7 +39,6 @@ export default function MyTeam() {
   const [teamMembers, setTeamMembers] = useState(null);
   // Manager
   const [managerShare, setManagerShare] = useState({});
-  const [updatedManagerShare, setUpdatedManagerShare] = useState({});
   // Existing employees
   const [employees, setEmployees] = useState(null);
   const [employeesShare, setEmployeesShare] = useState({});
@@ -48,6 +47,7 @@ export default function MyTeam() {
   const [newEmployeesShare, setNewEmployeesShare] = useState({});
 
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [isProceededToShare, setIsProceededToShare] = useState(false);
 
   const [round, setRound] = useState(1);
@@ -83,7 +83,6 @@ export default function MyTeam() {
         ).share,
       };
       setManagerShare((prev) => (prev = managerShare));
-      setUpdatedManagerShare((prev) => (prev = managerShare));
 
       // Update existing Employees' states
       const employees = teamMembers?.filter(
@@ -111,30 +110,11 @@ export default function MyTeam() {
     })();
   }, [team]);
 
-  const calculateTotalSharesOfEmployees = (type) => {
-    const employeeShares = type === 'new' ? newEmployeesShare : employeesShare;
-
-    const totalSharesOfEmployees = Object.values(employeeShares).reduce(
-      (prev, curr) => {
-        return Number(curr) + Number(prev);
-      }
-    );
-
-    return totalSharesOfEmployees;
-  };
-
   // New employee onchange calculation
   useEffect(() => {
     if (!Object.values(newEmployeesShare).length) {
       return;
     }
-
-    const totalSharesOfEmployees = calculateTotalSharesOfEmployees('new');
-
-    setUpdatedManagerShare({
-      [team.manager.uid]:
-        managerShare[`${team.manager.uid}`] - totalSharesOfEmployees,
-    });
   }, [newEmployeesShare]);
 
   // Existing employee onchange calculation
@@ -142,13 +122,6 @@ export default function MyTeam() {
     if (!Object.values(employeesShare).length) {
       return;
     }
-
-    const totalSharesOfEmployees = calculateTotalSharesOfEmployees('existing');
-
-    setUpdatedManagerShare({
-      [team.manager.uid]:
-        managerShare[`${team.manager.uid}`] - totalSharesOfEmployees,
-    });
   }, [employeesShare]);
 
   const handleOnChangeShare = (e, type) => {
@@ -165,13 +138,25 @@ export default function MyTeam() {
   };
 
   const handleShareUpdate = async (type) => {
+    setError(null);
     // TODO: Put validations
+    const shares = type === 'new' ? newEmployeesShare : employeesShare;
 
-    if (type === 'new') {
-      await updateShares({ ...updatedManagerShare, ...newEmployeesShare });
-    } else {
-      await updateShares({ ...updatedManagerShare, ...employeesShare });
+    const totalShares = Object.values(managerShare)
+      .concat(Object.values(shares))
+      .reduce((prev, curr) => {
+        return prev + curr;
+      }, 0);
+
+    if (totalShares > 100) {
+      setError('Total shares should not exceed 100');
+      return;
     }
+
+    await updateShares({
+      ...managerShare,
+      ...shares,
+    });
 
     window.location.reload(); // TODO: It's temporary solution!!
   };
@@ -206,12 +191,13 @@ export default function MyTeam() {
           <WarehouseHeader title="Share structure of the team" />
           <WarehouseCard>
             <ShareList
-              updatedManagerShare={updatedManagerShare}
               managerShare={managerShare}
+              setManagerShare={setManagerShare}
               employees={newlyAddedEmployees}
               employeesShare={newEmployeesShare}
               handleOnChangeShare={(e) => handleOnChangeShare(e, 'new')}
               handleShareUpdate={() => handleShareUpdate('new')}
+              error={error}
             />
           </WarehouseCard>
         </>
@@ -224,7 +210,7 @@ export default function MyTeam() {
               <WarehouseLoader />
             ) : (
               <Chart
-                series={teamMembers?.map((member) => member.share)}
+                series={teamMembers?.map((member) => Number(member.share))}
                 xAxis={teamMembers?.map((member) => member.fullName)}
                 type="pie"
                 chartType="pie"
@@ -238,12 +224,13 @@ export default function MyTeam() {
               <WarehouseLoader />
             ) : (
               <ShareList
-                updatedManagerShare={updatedManagerShare}
                 managerShare={managerShare}
+                setManagerShare={setManagerShare}
                 employees={employees}
                 employeesShare={employeesShare}
                 handleOnChangeShare={(e) => handleOnChangeShare(e, 'existing')}
                 handleShareUpdate={() => handleShareUpdate('existing')}
+                error={error}
               />
             )}
           </WarehouseCard>
@@ -288,24 +275,33 @@ export default function MyTeam() {
 }
 
 function ShareList({
-  updatedManagerShare,
   managerShare,
+  setManagerShare,
   employees,
   employeesShare,
   handleOnChangeShare,
   handleShareUpdate,
+  error,
 }) {
   return (
     <>
-      Your updated share will be: {Object.values(updatedManagerShare)[0]}%
       <List>
         <ListItem alignItems="center">
           <TextField
+            onChange={(e) =>
+              setManagerShare((prev) => {
+                return {
+                  ...prev,
+                  [e.target.name]: Number(e.target.value),
+                };
+              })
+            }
             value={Object.values(managerShare)[0]}
             type="number"
+            name={Object.keys(managerShare)[0]}
             sx={{ marginRight: '1rem', width: '5rem' }}
             size="small"
-            disabled
+            // disabled
           />
           <ListItemText primary="You" />
         </ListItem>
@@ -324,6 +320,7 @@ function ShareList({
         ))}
       </List>
       <WarehouseButton onClick={handleShareUpdate} text="Update" />
+      {error && <span className="inputError">{error}</span>}
     </>
   );
 }
