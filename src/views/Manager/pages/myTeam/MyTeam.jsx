@@ -140,22 +140,29 @@ export default function MyTeam() {
   const handleShareUpdate = async (type) => {
     setError(null);
     // TODO: Put validations
-    const shares = type === 'new' ? newEmployeesShare : employeesShare;
+    const sharesOfEmployees =
+      type === 'new' ? newEmployeesShare : employeesShare;
 
     const totalShares = Object.values(managerShare)
-      .concat(Object.values(shares))
+      .concat(Object.values(sharesOfEmployees))
       .reduce((prev, curr) => {
         return prev + curr;
       }, 0);
 
     if (totalShares > 100) {
-      setError('Total shares should not exceed 100');
+      setError('Total shares must not exceed 100');
+      return;
+    } else if (totalShares < 0) {
+      setError('Total shares must not be negative');
+      return;
+    } else if (totalShares !== 100) {
+      setError('Total shares must be equal to 100');
       return;
     }
 
     await updateShares({
       ...managerShare,
-      ...shares,
+      ...sharesOfEmployees,
     });
 
     window.location.reload(); // TODO: It's temporary solution!!
@@ -297,11 +304,11 @@ function ShareList({
               })
             }
             value={Object.values(managerShare)[0]}
-            type="number"
             name={Object.keys(managerShare)[0]}
+            type="number"
+            InputProps={{ inputProps: { min: 0, max: 100 } }}
             sx={{ marginRight: '1rem', width: '5rem' }}
             size="small"
-            // disabled
           />
           <ListItemText primary="You" />
         </ListItem>
@@ -310,8 +317,9 @@ function ShareList({
             <TextField
               onChange={handleOnChangeShare}
               value={employeesShare[`${member.uid}`]}
-              type="number"
               name={member.uid}
+              type="number"
+              InputProps={{ inputProps: { min: 0, max: 100 } }}
               sx={{ marginRight: '1rem', width: '5rem' }}
               size="small"
             />
