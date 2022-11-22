@@ -1,33 +1,6 @@
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  where,
-  writeBatch,
-} from 'firebase/firestore';
+import { doc, writeBatch } from 'firebase/firestore';
 import { db } from '../../../../../Database/firestore';
 import { COLLECTION_USERS } from '../../../../../utils/constants';
-
-export const getTeamMembers = async (teamId) => {
-  const res = [];
-
-  const q = query(
-    collection(db, COLLECTION_USERS),
-    where('teamId', '==', teamId)
-  );
-
-  const querySnapshot = await getDocs(q);
-
-  querySnapshot.forEach((doc) => {
-    res.push({
-      ...doc.data(),
-      id: doc.id,
-    });
-  });
-
-  return res;
-};
 
 export const updateShares = async (data) => {
   const batch = writeBatch(db);

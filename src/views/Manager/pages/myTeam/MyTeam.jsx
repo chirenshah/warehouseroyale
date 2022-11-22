@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 // Hooks
-import { useAuthContext } from '../../../../hooks/useAuthContext';
+import { useTeamContext } from '../../hooks/useTeamContext';
 import { useDocument } from '../../../../hooks/useDocument';
-// import { useCollection } from '../../../../hooks/useCollection';
+import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -22,10 +22,10 @@ import Chart from '../../../../components/chart/Chart';
 // Constants
 import {
   COLLECTION_TEAMS,
-  // COLLECTION_USERS,
+  COLLECTION_USERS,
 } from '../../../../utils/constants';
 // Helpers
-import { getTeamMembers, updateShares } from './helpers';
+import { updateShares } from './helpers';
 // Css
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
@@ -34,9 +34,8 @@ import myTeamStackedChartData from '../../../../mockData/my-team-stacked-chart-d
 const roundItems = [1, 2, 3, 4];
 
 export default function MyTeam() {
-  const { user } = useAuthContext();
+  const { team: currentTeamId } = useTeamContext();
 
-  const [teamMembers, setTeamMembers] = useState(null);
   // Manager
   const [managerShare, setManagerShare] = useState({});
   // Existing employees
@@ -56,13 +55,13 @@ export default function MyTeam() {
     document: team,
     isPending: isTeamPending,
     error: teamError,
-  } = useDocument(COLLECTION_TEAMS, user?.teamId);
+  } = useDocument(COLLECTION_TEAMS, currentTeamId);
 
-  // const {
-  //   documents: teamMembers,
-  //   isPending: areTeamMembersPending,
-  //   error: teamMembersError,
-  // } = useCollection(COLLECTION_USERS, ['teamId', '==', team?.id]);
+  const {
+    documents: teamMembers,
+    isPending: areTeamMembersPending,
+    error: teamMembersError,
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentTeamId]);
 
   useEffect(() => {
     if (!team) {
@@ -71,10 +70,6 @@ export default function MyTeam() {
 
     (async () => {
       setLoading(true);
-
-      // Get member details from users collection
-      const teamMembers = await getTeamMembers(team.id);
-      setTeamMembers(teamMembers);
 
       // Update manager's states
       const managerShare = {
@@ -110,22 +105,7 @@ export default function MyTeam() {
     })();
   }, [team]);
 
-  // New employee onchange calculation
-  useEffect(() => {
-    if (!Object.values(newEmployeesShare).length) {
-      return;
-    }
-  }, [newEmployeesShare]);
-
-  // Existing employee onchange calculation
-  useEffect(() => {
-    if (!Object.values(employeesShare).length) {
-      return;
-    }
-  }, [employeesShare]);
-
   const handleOnChangeShare = (e, type) => {
-    e.preventDefault();
     if (type === 'new') {
       setNewEmployeesShare((prev) => {
         return { ...prev, [e.target.name]: Number(e.target.value) };
@@ -164,13 +144,11 @@ export default function MyTeam() {
       ...managerShare,
       ...sharesOfEmployees,
     });
-
-    window.location.reload(); // TODO: It's temporary solution!!
   };
 
   return (
     <div className="myTeam">
-      <WarehouseHeader title={`Team ${user?.teamId || ''}`} />
+      <WarehouseHeader title={`Team ${currentTeamId || ''}`} />
       {loading && <WarehouseLoader />}
       {!isProceededToShare && newlyAddedEmployees?.length ? (
         <WarehouseCard>
