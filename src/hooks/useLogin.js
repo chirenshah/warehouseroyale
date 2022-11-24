@@ -33,7 +33,6 @@ export function useLogin() {
   const login = async (email, password) => {
     setError(null);
     setIsPending(true);
-
     try {
       let result = await signInWithEmailAndPassword(Auth, email, password);
 
@@ -48,6 +47,7 @@ export function useLogin() {
 
       //   Save user role to local storage
       localStorage.setItem('warehouse_user_role', userFromCollection.role);
+      localStorage.setItem('warehouse_user_email', userFromCollection.email);
 
       result.user.role = userFromCollection.role;
 

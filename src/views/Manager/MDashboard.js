@@ -30,9 +30,9 @@ export default function MDashboard() {
                     <Route
                         path="game"
                         element={
-                            // <DndProvider backend={HTML5Backend}>
+                            <DndProvider backend={HTML5Backend}>
                             <Game />
-                            // </DndProvider>
+                            </DndProvider>
                         }
                     />
 

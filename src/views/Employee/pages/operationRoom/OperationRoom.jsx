@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import Game from '../../../../components/employee_game';
 // Css
 import './OperationRoom.css';
 
