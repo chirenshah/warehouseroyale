@@ -99,6 +99,16 @@
     justify-content: stretch;
 }
 
+.orders-list-div {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    flex-grow: 1;
+    overflow: auto;
+}
+
 .game-details-card-div, .last-orders-inner-div {
     height: 100%;
     width: 100%;
@@ -121,7 +131,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 0.25em;
+    margin-bottom: 1em;
     text-transform: uppercase;
 }
 
@@ -204,7 +214,26 @@
     align-items: center;
     border-radius: 0.5em;
     background-color: #fff;
-    /*box-shadow: 1px 1px 0.75em 0.1em rgb(0 0 0 / 20%);*/
+    height: 9.4em;
+}
+
+.order-cards {
+    font-family: Arial,sans-serif;
+    /*color: #333;*/
+    box-sizing: border-box;
+    display: flex;
+    width: 12rem;
+    margin: 0.5rem;
+    padding: 0.5em;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    border-radius: 0.5em;
+    background-color: #fff;
+
+    color: #000;
+    border: 0.05em transparent solid;
+    box-shadow: 1px 1px 0.75em 0.1em rgb(0 0 0 / 20%);
 }
 
 .card-heading {
@@ -221,6 +250,48 @@
     align-items: center;
     margin-bottom: 0.25em;
     text-transform: uppercase;
+}
+
+.order-card-heading {
+    width: 100%;
+    border-top-left-radius: 0.5em;
+    border-top-right-radius: 0.5em;
+    font-size: 1em;
+    line-height: 2em;
+    font-weight: 500;
+    font-family: Roboto, sans-serif;
+    border-bottom: 0.05em solid black;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+    margin-bottom: 0.25em;
+    text-transform: uppercase;
+}
+
+.order-card-heading-text {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+    width: 75%;
+    padding-left: 0.5em;
+}
+
+.offer-status-div {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    width: 25%;
+    padding-right: 0.5em;
+}
+
+.offer-status {
+    height: 1em;
+    width: 1em;
+    background-color: red;
+    border-radius: 50%;
 }
 
 .cards-content {
@@ -297,7 +368,7 @@
 .selected-offer-card {
     color: #46489b;
     border: 0.05em transparent solid;
-    box-shadow: 1em 1em 0.75em 0.1em rgb(70 72 155 / 70%);
+    box-shadow: 0.5em 0.5em 0.75em 0.1em rgb(70 72 155 / 70%);
 }
 
 .card-bottom-section {
@@ -369,9 +440,8 @@
     align-items: center;
     -webkit-box-flex: 0;
     flex: 0 0 auto;
-    border: 0.1em solid #46489b;
+    border: 0.1em solid #5D5FEF;
     border-radius: 0.25em;
-    /*background-color: rgba(70, 72, 155, 0.85);*/
     transition: background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
     font-family: 'Roboto Slab', sans-serif;
     color: #fff;
@@ -380,93 +450,35 @@
     font-weight: 500;
     text-align: center;
     text-transform: none;
-    /*cursor: pointer;*/
     transform-style: preserve-3d;
 }
 
-.ref-btn {
-    border-color: #13132a;
-    background-color: rgba(241, 241, 249, 0.85);
-    -webkit-transition: color 100ms ease, background-color 100ms ease, -webkit-transform 100ms ease;
-    transition: color 100ms ease, background-color 100ms ease, -webkit-transform 100ms ease;
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease;
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-    color: rgba(19, 19, 42, 0.85);
-    text-decoration: none;
-}
-
-.ref-btn:hover {
-    cursor: pointer;
-    border-color: #13132a;
-    background-color: rgba(241, 241, 249);
-    -webkit-transition: color 100ms ease, background-color 100ms ease, -webkit-transform 100ms ease;
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-    color: rgba(19, 19, 42);
-    text-decoration: none;
-}
-
-.ref-btn:hover > span {
-    transform: scale(1.2);
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-}
-
-.ref-btn > span {
-    transform: scale(1);
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-}
-
-.task-btn {
-    border-color: #13132a;
-    background-color: rgba(19, 19, 42, 0.85);
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-}
-
-.task-btn-activated:hover {
-    cursor: pointer;
-    border-color: #13132a;
-    background-color: rgba(19, 19, 42);
-    -webkit-transition: color 100ms ease, background-color 100ms ease, -webkit-transform 100ms ease;
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-    color: rgba(255, 255, 255);
-    text-decoration: none;
-}
-
-.task-btn-activated:hover > span {
-    transform: scale(1.2);
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
-}
-
-.task-btn-disabled {
-    opacity: 0.5;
-    cursor: default;
-    background-color: rgba(19, 19, 42, 0.85);
-}
-
 .selected-offer-purchase-btn {
-    background-color: rgba(70, 72, 155, 0.85);
+    background-color: rgba(93, 95, 239, 0.85);
+}
+
+.selected-offer-purchase-btn-activated {
+    opacity: 1;
+    cursor: pointer;
 }
 
 .selected-offer-purchase-btn-activated:hover {
     cursor: pointer;
-    border-color: #13132a;
-    background-color: rgba(70, 72, 155);
+    border-color: #5D5FEF;
+    transform: scale(1.05);
+    /* background-color: rgba(93, 95, 239); */
     -webkit-transition: color 100ms ease, background-color 100ms ease, -webkit-transform 100ms ease;
     transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
     color: rgba(255, 255, 255);
     text-decoration: none;
-}
-
-.selected-offer-purchase-btn-activated:hover > span {
-    transform: scale(1.2);
-    transition: color 100ms ease, background-color 100ms ease, transform 100ms ease, -webkit-transform 100ms ease;
 }
 
 .selected-offer-purchase-btn-disabled {
     opacity: 0.5;
     cursor: default;
+    display: none;
     background-color: rgba(70, 72, 155, 0.85);
 }
-
 
 .horizontal_dotted_line {
     height: 0.25%;
@@ -475,7 +487,6 @@
     border-radius: 1em;
     background-color: #89896C
 }
-
 
 .item-cards {
     font-family: Arial,sans-serif;
