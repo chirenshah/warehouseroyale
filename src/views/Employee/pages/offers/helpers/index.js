@@ -11,14 +11,34 @@ import {
 } from '../../../../../utils/constants';
 
 export const acceptOffer = async (employeeId, teamId, offer) => {
-  const userRef = doc(db, COLLECTION_USERS, employeeId);
+  const employeeRef = doc(db, COLLECTION_USERS, employeeId);
   const teamRef = doc(db, COLLECTION_TEAMS, teamId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      transaction.update(userRef, offer);
+      const foundTeam = await transaction.get(
+        doc(db, COLLECTION_TEAMS, teamId)
+      );
+      if (!foundTeam.exists) {
+        throw 'no team found';
+      }
+      const managerUid = foundTeam.data().manager.uid;
 
-      transaction.update(userRef, {
+      const managerRef = doc(db, COLLECTION_USERS, managerUid);
+
+      const foundManager = await transaction.get(managerRef);
+      if (!foundManager.exists) {
+        throw 'no manager found';
+      }
+      const managerShare = foundManager.data().share;
+
+      transaction.update(employeeRef, offer);
+
+      transaction.update(managerRef, {
+        share: Number(managerShare) - Number(offer.share),
+      });
+
+      transaction.update(employeeRef, {
         offers: arrayRemove(offer),
       });
 
@@ -34,7 +54,7 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
         }),
       });
 
-      transaction.update(userRef, {
+      transaction.update(employeeRef, {
         pastOffers: arrayUnion(offer),
       });
 
@@ -46,12 +66,12 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
 };
 
 export const declineOffer = async (employeeId, teamId, offer) => {
-  const userRef = doc(db, COLLECTION_USERS, employeeId);
+  const employeeRef = doc(db, COLLECTION_USERS, employeeId);
   const teamRef = doc(db, COLLECTION_TEAMS, teamId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      transaction.update(userRef, {
+      transaction.update(employeeRef, {
         offers: arrayRemove(offer),
       });
 

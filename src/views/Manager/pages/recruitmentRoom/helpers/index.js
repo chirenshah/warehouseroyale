@@ -29,12 +29,12 @@ export const getCurrentTeamOffer = (allEmployees, employeeId, teamId) => {
 };
 
 export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
-  const userRef = doc(db, COLLECTION_USERS, employeeToBeHired);
+  const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired);
   const teamRef = doc(db, COLLECTION_TEAMS, teamId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      transaction.update(userRef, {
+      transaction.update(employeeRef, {
         offers: arrayUnion(offer),
       });
 
@@ -57,14 +57,13 @@ export const fireAnEmployee = async (
   manager,
   employeeShare
 ) => {
-  const userRef = doc(db, COLLECTION_USERS, employeeToBeFired);
+  const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired);
+  const managerRef = doc(db, COLLECTION_USERS, manager);
   const teamRef = doc(db, COLLECTION_TEAMS, teamId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      const foundManager = await transaction.get(
-        doc(db, COLLECTION_USERS, manager)
-      );
+      const foundManager = await transaction.get(managerRef);
 
       if (!foundManager.exists) {
         throw 'no manager found';
@@ -72,13 +71,13 @@ export const fireAnEmployee = async (
 
       const managerShare = foundManager.data().share;
 
-      transaction.update(userRef, {
+      transaction.update(employeeRef, {
         share: 0,
         teamId: null,
       });
 
-      transaction.update(doc(db, COLLECTION_USERS, manager), {
-        share: managerShare + employeeShare,
+      transaction.update(managerRef, {
+        share: Number(managerShare) + Number(employeeShare),
       });
 
       transaction.update(teamRef, {
@@ -95,12 +94,12 @@ export const fireAnEmployee = async (
 };
 
 export const deactivateAnOffer = async (employeeId, teamId, offer) => {
-  const userRef = doc(db, COLLECTION_USERS, employeeId);
+  const employeeRef = doc(db, COLLECTION_USERS, employeeId);
   const teamRef = doc(db, COLLECTION_TEAMS, teamId);
 
   try {
     await runTransaction(db, async (transaction) => {
-      transaction.update(userRef, {
+      transaction.update(employeeRef, {
         offers: arrayRemove(offer),
       });
 
