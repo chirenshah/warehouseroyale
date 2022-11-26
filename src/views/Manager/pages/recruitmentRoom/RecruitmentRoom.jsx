@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 // Hooks
+import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useTeamContext } from '../../hooks/useTeamContext';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useCollection } from '../../../../hooks/useCollection';
@@ -19,10 +20,10 @@ import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 // Helpers
 import {
   deactivateAnOffer,
+  fireAnEmployee,
   getCurrentTeamOffer,
   getEmployeeDetails,
   makeAnOffer,
-  useFetchEmployees,
 } from './helpers';
 // Constants
 import {
@@ -33,15 +34,18 @@ import {
 import './RecruitmentRoom.css';
 
 export default function RecruitmentRoom() {
+  const { user: manager } = useAuthContext();
   const { team: currentTeamId } = useTeamContext();
 
-  const [employeeToBeHired, setEmployeeToBeHired] = useState(null);
-  const [employeeToBeHiredError, setEmployeeToBeHiredError] = useState(null);
-  const [employeeDetails, setEmployeeDetails] = useState(null);
   const [shareOffered, setShareOffered] = useState(null);
-  const [employeeToBeFired, setEmployeeToBeFired] = useState('');
 
-  const { share, teamId } = employeeDetails ?? {};
+  const [employeeToBeHired, setEmployeeToBeHired] = useState(null);
+  const [selectedHireDetails, setSelectedHireDetails] = useState(null);
+  const [employeeToBeFired, setEmployeeToBeFired] = useState('');
+  const [selectedFireDetails, setSelectedFireDetails] = useState(null);
+
+  const [currentTeamEmployees, setCurrentTeamEmployees] = useState(null);
+  const [otherEmployees, setOtherEmployees] = useState(null);
 
   const {
     document: team,
@@ -49,18 +53,39 @@ export default function RecruitmentRoom() {
     error: teamError,
   } = useDocument(COLLECTION_TEAMS, currentTeamId);
 
-  // TODO: It's temporary hook. Make useCollection hook to accept multiple where queries
   const {
     documents: allEmployees,
     isPending: areAllEmployeesPending,
     error: allEmployeesError,
-  } = useFetchEmployees(COLLECTION_USERS, currentTeamId || 'noId');
+  } = useCollection(COLLECTION_USERS, ['role', '==', 'employee']);
 
   useEffect(() => {
-    const employeeDetails = getEmployeeDetails(allEmployees, employeeToBeHired);
+    if (!allEmployees?.length) {
+      return;
+    }
 
-    setEmployeeDetails(employeeDetails);
-  }, [allEmployees, employeeToBeHired]);
+    const selectedHireDetails = getEmployeeDetails(
+      allEmployees,
+      employeeToBeHired
+    );
+    setSelectedHireDetails(selectedHireDetails);
+
+    const selectedFireDetails = getEmployeeDetails(
+      allEmployees,
+      employeeToBeFired
+    );
+    setSelectedFireDetails(selectedFireDetails);
+
+    const currentTeamEmployees = allEmployees?.filter(
+      (member) => member.teamId === currentTeamId
+    );
+    setCurrentTeamEmployees(currentTeamEmployees);
+
+    const otherEmployees = allEmployees?.filter(
+      (member) => member.teamId !== currentTeamId
+    );
+    setOtherEmployees(otherEmployees);
+  }, [allEmployees, employeeToBeHired, employeeToBeFired, currentTeamId]);
 
   const handleMakeAnOffer = async () => {
     // TODO: Put validations
@@ -75,8 +100,13 @@ export default function RecruitmentRoom() {
     await deactivateAnOffer(employeeId, currentTeamId, currentTeamOffer);
   };
 
-  const handleFireEmployee = () => {
-    console.log(employeeToBeFired);
+  const handleFireEmployee = async () => {
+    await fireAnEmployee(
+      employeeToBeFired,
+      currentTeamId,
+      manager.uid,
+      selectedFireDetails.share
+    );
   };
 
   return (
@@ -87,7 +117,7 @@ export default function RecruitmentRoom() {
         <WarehouseCard className="recruitmentRoom__hireEmployee">
           {areAllEmployeesPending && <WarehouseLoader />}
           {allEmployeesError && <WarehouseSnackbar text={allEmployeesError} />}
-          {allEmployees?.length && (
+          {otherEmployees?.length && (
             <FormControl sx={{ m: 1, minWidth: 200 }}>
               <InputLabel id="demo-simple-select-filled-label">
                 Select Employee
@@ -99,15 +129,12 @@ export default function RecruitmentRoom() {
                 label="Round"
                 onChange={(e) => setEmployeeToBeHired(e.target.value)}
               >
-                {allEmployees.map(({ fullName, id }) => (
+                {otherEmployees.map(({ fullName, id }) => (
                   <MenuItem key={id} value={id}>
                     {fullName}
                   </MenuItem>
                 ))}
               </Select>
-              {employeeToBeHiredError && (
-                <span className="inputError">{employeeToBeHiredError}</span>
-              )}
             </FormControl>
           )}
           <TextField
@@ -120,10 +147,11 @@ export default function RecruitmentRoom() {
         {employeeToBeHired && (
           <WarehouseCard>
             <p>
-              <strong>Team:</strong> <em>{teamId}</em>
+              <strong>Team:</strong> <em>{selectedHireDetails?.teamId}</em>
             </p>
             <p>
-              <strong>Current share in Team:</strong> <em>{share}</em>
+              <strong>Current share in Team:</strong>{' '}
+              <em>{selectedHireDetails?.share}</em>
             </p>
           </WarehouseCard>
         )}
@@ -152,25 +180,43 @@ export default function RecruitmentRoom() {
 
       {/* ------------------------------ Downsize the team ------------------------------ */}
       <WarehouseHeader title="Downsize the team" my />
-      <WarehouseCard className="recruitmentRoom__downsize">
-        <FormControl sx={{ m: 1, minWidth: 120 }}>
-          <InputLabel id="demo-simple-select-filled-label">Employee</InputLabel>
-          <Select
-            labelId="demo-simple-select-filled-label"
-            id="demo-simple-select-filled"
-            value={employeeToBeFired}
-            label="Round"
-            onChange={(e) => setEmployeeToBeFired(e.target.value)}
-          >
-            {new Array(10).fill('Employee').map((elm, index) => (
-              <MenuItem key={index} value={elm}>
-                {elm}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <WarehouseButton onClick={handleFireEmployee} text="Make an Offer" />
-      </WarehouseCard>
+      <Box sx={{ display: 'flex', gap: '1rem' }}>
+        <WarehouseCard className="recruitmentRoom__downsize">
+          <FormControl sx={{ m: 1, minWidth: 120 }}>
+            <InputLabel id="demo-simple-select-filled-label">
+              Employee
+            </InputLabel>
+            <Select
+              labelId="demo-simple-select-filled-label"
+              id="demo-simple-select-filled"
+              value={employeeToBeFired}
+              label="Round"
+              onChange={(e) => setEmployeeToBeFired(e.target.value)}
+            >
+              {currentTeamEmployees?.map((member, index) => (
+                <MenuItem key={index} value={member.uid}>
+                  {member.fullName}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <WarehouseButton
+            onClick={handleFireEmployee}
+            text="Fire an employee"
+          />
+        </WarehouseCard>
+        {employeeToBeFired && (
+          <WarehouseCard>
+            <p>
+              <strong>Team:</strong> <em>{selectedFireDetails?.teamId}</em>
+            </p>
+            <p>
+              <strong>Current share in Team:</strong>{' '}
+              <em>{selectedFireDetails?.share}</em>
+            </p>
+          </WarehouseCard>
+        )}
+      </Box>
     </div>
   );
 }

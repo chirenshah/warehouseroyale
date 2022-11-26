@@ -2,55 +2,14 @@ import { useEffect, useState } from 'react';
 import {
   arrayRemove,
   arrayUnion,
-  collection,
   doc,
-  onSnapshot,
-  query,
   runTransaction,
-  where,
 } from 'firebase/firestore';
 import { db } from '../../../../../Database/firestore';
 import {
   COLLECTION_TEAMS,
   COLLECTION_USERS,
 } from '../../../../../utils/constants';
-
-export function useFetchEmployees(collectionName, teamId) {
-  const [documents, setDocuments] = useState(null);
-  const [isPending, setIsPending] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setError(null);
-        const q = query(
-          collection(db, collectionName),
-          where('role', '==', 'employee'),
-          where('teamId', '!=', teamId)
-        );
-
-        const unsub = onSnapshot(q, (querySnapshot) => {
-          const docs = [];
-          querySnapshot.forEach((doc) => {
-            docs.push({ ...doc.data(), id: doc.id });
-          });
-          setDocuments(docs);
-          setIsPending(false);
-        });
-
-        // Unsubscribe on unmount
-        return () => unsub();
-      } catch (error) {
-        setIsPending(false);
-        setError(error.message);
-        console.error('Error: ', error);
-      }
-    })();
-  }, [collectionName, teamId]);
-
-  return { documents, isPending, error };
-}
 
 export const getEmployeeDetails = (allEmployees, id) => {
   if (!allEmployees || !id) {
@@ -82,6 +41,49 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
       transaction.update(teamRef, {
         offers: arrayUnion({
           uid: employeeToBeHired,
+        }),
+      });
+
+      console.log('Transaction successfully committed!');
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+  }
+};
+
+export const fireAnEmployee = async (
+  employeeToBeFired,
+  teamId,
+  manager,
+  employeeShare
+) => {
+  const userRef = doc(db, COLLECTION_USERS, employeeToBeFired);
+  const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const foundManager = await transaction.get(
+        doc(db, COLLECTION_USERS, manager)
+      );
+
+      if (!foundManager.exists) {
+        throw 'no manager found';
+      }
+
+      const managerShare = foundManager.data().share;
+
+      transaction.update(userRef, {
+        share: 0,
+        teamId: null,
+      });
+
+      transaction.update(doc(db, COLLECTION_USERS, manager), {
+        share: managerShare + employeeShare,
+      });
+
+      transaction.update(teamRef, {
+        employees: arrayRemove({
+          uid: employeeToBeFired,
         }),
       });
 
