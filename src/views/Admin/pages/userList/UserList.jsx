@@ -16,6 +16,8 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
+// Helpers
+import { deleteUser } from './helpers/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -34,7 +36,7 @@ export default function UserList() {
 
   const { response, deleteDocument } = useFirestore();
 
-  const [deleteId, setDeleteId] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
 
@@ -44,13 +46,12 @@ export default function UserList() {
     'text/csv',
   ];
 
-  const handleDelete = async (id) => {
-    await deleteDocument(COLLECTION_USERS, id);
-
+  const handleDelete = async (userDetails) => {
+    console.log(userDetails);
+    // await deleteDocument(COLLECTION_USERS, id);
     // TODO: Update delete functionality to delete user from authentication and teams collection
-
-    handleClose();
-
+    // await deleteUser(userDetails);
+    // handleClose();
     //! TODO: PROBLEM: We are deleting user from collection only and not the actual auth-user.
     //! And we cannot delete it from client-side, we must do it into safe environment(admin-sdk), that's what firebase says due to security reasons.
     //! So we must create and deploy function which listens to firestore event when "delete user" happens.
@@ -76,9 +77,9 @@ export default function UserList() {
   // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
   const [anchorEl, setAnchorEl] = useState(null);
 
-  const handleClick = (e, id) => {
+  const handleClick = (e, userDetails) => {
     setAnchorEl(e.currentTarget);
-    setDeleteId(id);
+    setUserDetails(userDetails);
   };
 
   const handleClose = () => {
@@ -132,7 +133,7 @@ export default function UserList() {
             <MdDelete
               aria-describedby={id}
               className="userList__delete"
-              onClick={(e) => handleClick(e, params.row.id)}
+              onClick={(e) => handleClick(e, params.row)}
             />
             {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
             <Popover
@@ -160,7 +161,7 @@ export default function UserList() {
                 <span>Are you sure?</span>
                 <div style={{ display: 'flex' }}>
                   <WarehouseButton
-                    onClick={() => handleDelete(deleteId)}
+                    onClick={() => handleDelete(userDetails)}
                     text="Yes"
                     warning
                     sm
