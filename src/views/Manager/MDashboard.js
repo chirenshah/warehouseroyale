@@ -28,11 +28,12 @@ export default function MDashboard() {
             <Route
               path="game"
               element={
-                // <DndProvider backend={HTML5Backend}>
-                <Game />
-                // </DndProvider>
+                <DndProvider backend={HTML5Backend}>
+                  <Game />
+                </DndProvider>
               }
             />
+
             <Route path="messenger" element={<Messenger />} />
             <Route path="operationroom" element={<OperationRoom />} />
             <Route path="about" element={<About />} />

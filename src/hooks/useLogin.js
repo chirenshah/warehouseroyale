@@ -33,7 +33,6 @@ export function useLogin() {
   const login = async (email, password) => {
     setError(null);
     setIsPending(true);
-
     try {
       let result = await signInWithEmailAndPassword(Auth, email, password);
 

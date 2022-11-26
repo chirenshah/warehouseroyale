@@ -4,7 +4,6 @@ import LoginForm from './components/LoginForm';
 import Game from './components/employee_game';
 // import { HTML5Backend } from "react-dnd-html5-backend";
 // import { DndProvider } from "react-dnd";
-import { emailPasswordAuth } from './Database/Auth';
 // import { ContextProvider } from "./components/views/Manager/dashboard/contexts/ContextProvider";
 // import { BrowserRouter, Route, Routes } from "react-router-dom";
 // import {
