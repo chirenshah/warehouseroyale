@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 // Hooks
-import { useTeamContext } from '../../hooks/useTeamContext';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
@@ -34,7 +33,7 @@ import myTeamStackedChartData from '../../../../mockData/my-team-stacked-chart-d
 const roundItems = [1, 2, 3, 4];
 
 export default function MyTeam() {
-  const { team: currentTeamId } = useTeamContext();
+  const currentTeamId = localStorage.getItem('warehouse_team_id');
 
   // Manager
   const [managerShare, setManagerShare] = useState({});
@@ -61,10 +60,10 @@ export default function MyTeam() {
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentTeamId]);
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentTeamId || '13']);
 
   useEffect(() => {
-    if (!team) {
+    if (!team || !teamMembers?.length) {
       return;
     }
 
@@ -103,7 +102,7 @@ export default function MyTeam() {
 
       setLoading(false);
     })();
-  }, [team]);
+  }, [team, teamMembers]);
 
   const handleOnChangeShare = (e, type) => {
     if (type === 'new') {
@@ -120,8 +119,7 @@ export default function MyTeam() {
   const handleShareUpdate = async (type) => {
     setError(null);
     // TODO: Put validations
-    const sharesOfEmployees =
-      type === 'new' ? newEmployeesShare : employeesShare;
+    const sharesOfEmployees = { ...newEmployeesShare, ...employeesShare };
 
     const totalShares = Object.values(managerShare)
       .concat(Object.values(sharesOfEmployees))
@@ -144,6 +142,8 @@ export default function MyTeam() {
       ...managerShare,
       ...sharesOfEmployees,
     });
+
+    setIsProceededToShare(false);
   };
 
   return (
@@ -178,8 +178,8 @@ export default function MyTeam() {
             <ShareList
               managerShare={managerShare}
               setManagerShare={setManagerShare}
-              employees={newlyAddedEmployees}
-              employeesShare={newEmployeesShare}
+              employees={[...newlyAddedEmployees, ...employees]}
+              employeesShare={{ ...newEmployeesShare, ...employeesShare }}
               handleOnChangeShare={(e) => handleOnChangeShare(e, 'new')}
               handleShareUpdate={() => handleShareUpdate('new')}
               error={error}
