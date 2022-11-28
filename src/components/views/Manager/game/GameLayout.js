@@ -6,12 +6,17 @@ import Offer from './Offer';
 import Orders from './Orders';
 import Button from '@mui/material/Button';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import TextField from '@mui/material/TextField';
 
 const theme = createTheme({
     palette: {
       neutral: {
         main: '#5D5FEF',
         contrastText: '#fff',
+      },
+      purchaseColor: {
+        main: '#13132A',
+        contrastText: '#000',
       },
     },
   });
@@ -21,6 +26,11 @@ function GameLayout() {
     const [isAnyOfferSelected, setIsAnyOfferSelected] = useState(false);
     const [orderList, setOrderList] = useState([]);
     const [selectBtnDisabled, setSelectBtnDisabled] = useState(true);
+    const [itemXValue, setItemXValue] = useState(0);
+    const [itemYValue, setItemYValue] = useState(0);
+    const [itemZValue, setItemZValue] = useState(0);
+    const [inventoryBtnDisabled, setInventoryBtnDisabled] = useState(true);
+    // const [inventoryPurchase, setInventoryPurchase] = useState({"itemX" : 0, "itemY" : 0, "itemZ" : 0});
     
     
     function getSelectedOffer (obj) {
@@ -29,42 +39,108 @@ function GameLayout() {
         setIsAnyOfferSelected(true);
     }
 
-    // function displaySelectedOffer() {
-    //     if (isAnyOfferSelected) {
-    //         return (
-    //             <Offer 
-    //                 data-id='selected-offer'
-    //                 data-offer-name={selectedOffer['data-offer-name']}
-    //                 data-number-of-offers-items={selectedOffer['data-number-of-offers-items']}
-    //                 data-values={selectedOffer['data-values']}
-    //                 data-items={selectedOffer['data-items']}
-    //                 disableDataFetch={true}
-    //                 getOfferData={getSelectedOffer}
-    //             />
-    //         )
-    //     }
-    // }
-
-    function purchaseBtnClickHandler(e) {
+    function selectBtnClickHandler(e) {
         e.stopPropagation();
 
-        let element = document.getElementById(`selected-offer-purchase-btn`);
-        element.classList.add(`dr-clicked`);
-        setTimeout(function() {
-            setOrderList([
-                ...orderList,
-                <Orders 
-                    key={orderList.length}
-                    data-id={'order-' + Date.now()}
-                    data-offer-name={selectedOffer['data-offer-name']}
-                    data-number-of-offers-items={selectedOffer['data-number-of-offers-items']}
-                    data-values={selectedOffer['data-values']}
-                    data-items={selectedOffer['data-items']}
-                />
-            ]);
-            element.classList.remove(`dr-clicked`);
-        }, 100);
+        setOrderList([
+            ...orderList,
+            <Orders 
+                key={orderList.length}
+                data-id={'order-' + Date.now()}
+                data-offer-name={`Order ${orderList.length + 1}`}
+                data-number-of-offers-items={selectedOffer['data-number-of-offers-items']}
+                data-values={selectedOffer['data-values']}
+                data-items={selectedOffer['data-items']}
+            />
+        ]);
+    }
+    
+    function purchaseBtnClickHandler(e) {
+        let object = {};
+        object["data-offer-name"] = `Order ${orderList.length + 1}`;
+        object["data-values"] = [];
+        object["data-items"] = [];
 
+        let count = 0;
+        if (itemXValue != 0) {
+            object["data-items"].push("X")
+            object["data-values"].push(itemXValue)
+            count += 1;
+        }
+        if (itemYValue != 0) {
+            object["data-items"].push("Y")
+            object["data-values"].push(itemYValue)
+            count += 1;
+        }
+        if (itemZValue != 0) {
+            object["data-items"].push("Z")
+            object["data-values"].push(itemZValue)
+            count += 1;
+        }
+        object["data-number-of-offers-items"] = count;
+
+        setOrderList([
+            ...orderList,
+            <Orders 
+                key={orderList.length}
+                data-id={'order-' + Date.now()}
+                data-offer-name={object['data-offer-name']}
+                data-number-of-offers-items={object['data-number-of-offers-items']}
+                data-values={object['data-values']}
+                data-items={object['data-items']}
+            />
+        ]);
+    }
+
+    function checkForPositiveValue(value, item) {
+        if (value.trim().length != 0) {
+            let val = parseInt(value);
+            if (val <= 0) {
+                if (item === "X") {
+                    setItemXValue(0);
+                    if (itemYValue === 0 && itemZValue === 0) {
+                        setInventoryBtnDisabled(true)
+                    }
+                } else if (item === "Y") {
+                    setItemYValue(0);
+                    if (itemXValue === 0 && itemZValue === 0) {
+                        setInventoryBtnDisabled(true)
+                    }
+                } else if (item === "Z") {
+                    setItemZValue(0);
+                    if (itemXValue === 0 && itemYValue === 0) {
+                        setInventoryBtnDisabled(true)
+                    }
+                }
+            } else {
+                if (item === "X") {
+                    setItemXValue(val);
+                } else if (item === "Y") {
+                    setItemYValue(val);
+                } else if (item === "Z") {
+                    setItemZValue(val);
+                }
+                setInventoryBtnDisabled(false);
+            }
+        } else {
+            if (item === "X") {
+                setItemXValue("");
+                if (itemYValue === 0 && itemZValue === 0) {
+                    setInventoryBtnDisabled(true)
+                }
+            } else if (item === "Y") {
+                setItemYValue("");
+                if (itemXValue === 0 && itemZValue === 0) {
+                    setInventoryBtnDisabled(true)
+                }
+            } else if (item === "Z") {
+                setItemZValue("");
+                if (itemXValue === 0 && itemYValue === 0) {
+                    setInventoryBtnDisabled(true)
+                }
+            }
+        }
+        
     }
 
     return (
@@ -163,7 +239,7 @@ function GameLayout() {
                                     color="neutral" 
                                     variant="contained" 
                                     size="medium" 
-                                    onClick={purchaseBtnClickHandler}
+                                    onClick={selectBtnClickHandler}
                                     disabled={selectBtnDisabled}
                                 >Select</Button>
                             </Box>
@@ -190,17 +266,64 @@ function GameLayout() {
                             </Box>
                             <Box className='cards-div-game-details-verticle-separation'></Box>
                             <Box className='cards-div-game-details-select-order'>
-                                <Box id="" className="game-details-card-div ">
-                                    <Box id="" className="game-details-card-heading ">
+                                <Box id="game-details-card-div" className="game-details-card-div ">
+                                    <Box id="game-details-card-heading" className="game-details-card-heading ">
                                         INVENTORY PURCHASE
                                     </Box>
                                     {/* {displaySelectedOffer()} */}
-                                    <Box 
-                                        id="selected-offer-purchase-btn" 
-                                        className="btn selected-offer-purchase-btn selected-offer-purchase-btn-disabled"
-                                        onClick={purchaseBtnClickHandler}
-                                    >
-                                        <span>Purchase</span>
+                                    <Box id="inventory-purchase" className="inventory-purchase-box">
+                                        <Box id="" className="cards-sub-content">
+                                            <Box id="" className="cards-sub-content-key">Item X</Box>
+                                            <TextField 
+                                                className='inventory-text-field' 
+                                                variant="standard" 
+                                                size='small'
+                                                type="number"
+                                                value={itemXValue}
+                                                InputProps={{ inputProps: { min: 1 } }}
+                                                onChange={(e) => {
+                                                    checkForPositiveValue(e.target.value, "X");
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box id="" className="cards-sub-content">
+                                            <Box id="" className="cards-sub-content-key">Item Y</Box>
+                                            <TextField 
+                                                className='inventory-text-field' 
+                                                variant="standard" 
+                                                size='small'
+                                                type="number"
+                                                value={itemYValue}
+                                                InputProps={{ inputProps: { min: 1 } }}
+                                                onChange={(e) => {
+                                                    checkForPositiveValue(e.target.value, "Y");
+                                                }}
+                                            />
+                                        </Box>
+                                        <Box id="" className="cards-sub-content">
+                                            <Box id="" className="cards-sub-content-key">Item Z</Box>
+                                            <TextField 
+                                                className='inventory-text-field' 
+                                                variant="standard" 
+                                                size='small'
+                                                type="number"
+                                                value={itemZValue}
+                                                InputProps={{ inputProps: { min: 1 } }}
+                                                onChange={(e) => {
+                                                    checkForPositiveValue(e.target.value, "Z");
+                                                }}
+                                            />
+                                        </Box>
+                                    </Box>
+                                    <Box className='inventory-purchase-btn-box'>
+                                        <Button 
+                                            className='inventory-purchase-btn'
+                                            color="purchaseColor" 
+                                            variant="outlined" 
+                                            size="medium" 
+                                            onClick={purchaseBtnClickHandler}
+                                            disabled={inventoryBtnDisabled}
+                                        >Purchase</Button>
                                     </Box>
                                 </Box>
                             </Box>
