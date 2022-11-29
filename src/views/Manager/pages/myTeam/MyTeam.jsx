@@ -60,7 +60,11 @@ export default function MyTeam() {
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentTeamId || '13']);
+  } = useCollection(COLLECTION_USERS, [
+    'teamId',
+    '==',
+    currentTeamId || 'noId',
+  ]);
 
   useEffect(() => {
     if (!team || !teamMembers?.length) {
@@ -287,6 +291,8 @@ function ShareList({
             InputProps={{ inputProps: { min: 0, max: 100 } }}
             sx={{ marginRight: '1rem', width: '5rem' }}
             size="small"
+            color={Object.values(managerShare)[0] < 0 ? 'error' : 'primary'}
+            focused={Object.values(managerShare)[0] < 0}
           />
           <ListItemText primary="You" />
         </ListItem>
@@ -300,6 +306,8 @@ function ShareList({
               InputProps={{ inputProps: { min: 0, max: 100 } }}
               sx={{ marginRight: '1rem', width: '5rem' }}
               size="small"
+              color={employeesShare[`${member.uid}`] < 0 ? 'error' : 'primary'}
+              focused={employeesShare[`${member.uid}`] < 0}
             />
             <ListItemText primary={member.fullName} />
           </ListItem>
