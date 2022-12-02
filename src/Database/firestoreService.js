@@ -8,32 +8,76 @@ import {
 import { db } from './firestore';
 import { COLLECTION_TEAMS, COLLECTION_USERS } from '../utils/constants';
 
+const successResponse = (message) => {
+  return {
+    success: true,
+    message,
+  };
+};
+
+const failedResponse = (error) => {
+  return {
+    success: false,
+    message: error,
+  };
+};
+
 /**
  * @dashboard       Admin
- * @operations      DELETE user from users col, team, auth
- *                  UPDATE manager share
+ * @operations      DELETE employee from users col
+ *                  UPDATE manager share with {share: share + employeeShare}
+ *                  REMOVE from team offers if any
+ *                  REMOVE employee from team employees
  *
- * @param {Object} user (whole user object)
+ * @param {Object} employee (whole employee object)
  */
 // TODO: Update this function
-export const deleteUser = async (user) => {
+export const deleteEmployee = async (employee) => {
   try {
-    const userRef = doc(db, COLLECTION_USERS, user.id);
-    const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.uid);
+    const teamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
 
     await runTransaction(db, async (transaction) => {
-      transaction.delete(userRef);
+      const foundTeam = await transaction.get(
+        doc(db, COLLECTION_TEAMS, employee.teamId)
+      );
+      if (!foundTeam.exists) {
+        throw new Error('No team found');
+      }
+      const managerUid = foundTeam.data().manager.uid;
+
+      const managerRef = doc(db, COLLECTION_USERS, managerUid);
+
+      const foundManager = await transaction.get(managerRef);
+      if (!foundManager.exists) {
+        throw new Error('No manager found');
+      }
+      const managerShare = foundManager.data().share;
+
+      transaction.delete(employeeRef);
+
+      transaction.update(managerRef, {
+        share: Number(managerShare) + Number(employee.share),
+      });
 
       transaction.update(teamRef, {
-        // offers: arrayRemove({
-        //   uid: employeeId,
-        // }),
+        offers: arrayRemove({
+          uid: employee.uid,
+        }),
+      });
+
+      transaction.update(teamRef, {
+        employees: arrayRemove({
+          uid: employee.uid,
+        }),
       });
 
       console.log('Transaction successfully committed!');
+      return successResponse('User successfully deleted');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -45,7 +89,6 @@ export const deleteUser = async (user) => {
  * @param {Object} data { managerUid: share, employeeUid: share }
  * */
 export const updateShares = async (data) => {
-  console.log(data);
   try {
     const batch = writeBatch(db);
 
@@ -57,8 +100,10 @@ export const updateShares = async (data) => {
     await batch.commit();
 
     console.log('Batch successfully commited!');
+    return successResponse('Shares successfully updated');
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -88,9 +133,11 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
       });
 
       console.log('Transaction successfully committed!');
+      return successResponse('Offer successfully made');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -121,7 +168,7 @@ export const fireAnEmployee = async (
       const foundManager = await transaction.get(managerRef);
 
       if (!foundManager.exists) {
-        throw 'no manager found';
+        throw new Error('No manager found');
       }
 
       const managerShare = foundManager.data().share;
@@ -142,9 +189,11 @@ export const fireAnEmployee = async (
       });
 
       console.log('Transaction successfully committed!');
+      return successResponse('Team successfully downsized');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -173,9 +222,11 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
         }),
       });
       console.log('Transaction successfully committed!');
+      return successResponse('Offer successfully deactivated');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -204,7 +255,7 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
         doc(db, COLLECTION_TEAMS, teamId)
       );
       if (!foundTeam.exists) {
-        throw 'no team found';
+        throw new Error('No team found');
       }
       const managerUid = foundTeam.data().manager.uid;
 
@@ -212,7 +263,7 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
 
       const foundManager = await transaction.get(managerRef);
       if (!foundManager.exists) {
-        throw 'no manager found';
+        throw new Error('No manager found');
       }
       const managerShare = foundManager.data().share;
 
@@ -243,9 +294,11 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
       });
 
       console.log('Transaction successfully committed!');
+      return successResponse('Offer successfully accepted');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
 
@@ -275,8 +328,10 @@ export const declineOffer = async (employeeId, teamId, offer) => {
       });
 
       console.log('Transaction successfully committed!');
+      return successResponse('Offer successfully declined');
     });
   } catch (error) {
     console.error('Error: ', error);
+    return failedResponse(error.message);
   }
 };
