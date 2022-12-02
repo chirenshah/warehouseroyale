@@ -227,7 +227,7 @@ export const acceptOffer = async (employeeId, teamId, offer) => {
       });
 
       transaction.update(teamRef, {
-        empoyees: arrayUnion({
+        employees: arrayUnion({
           uid: employeeId,
         }),
       });
