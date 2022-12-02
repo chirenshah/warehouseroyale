@@ -16,8 +16,6 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
-// Helpers
-import { deleteUser } from './helpers/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css

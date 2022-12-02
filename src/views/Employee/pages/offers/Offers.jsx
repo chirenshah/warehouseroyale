@@ -5,11 +5,15 @@ import { useDocument } from '../../../../hooks/useDocument';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
+// Firestore services
+import {
+  acceptOffer,
+  declineOffer,
+} from '../../../../Database/firestoreService';
 // Consttants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
 import './Offers.css';
-import { acceptOffer, declineOffer } from './helpers';
 
 export default function Offers() {
   const { user } = useAuthContext();

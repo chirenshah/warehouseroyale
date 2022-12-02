@@ -18,13 +18,13 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import Chart from '../../../../components/chart/Chart';
+// Firebase services
+import { updateShares } from '../../../../Database/firestoreService';
 // Constants
 import {
   COLLECTION_TEAMS,
   COLLECTION_USERS,
 } from '../../../../utils/constants';
-// Helpers
-import { updateShares } from './helpers';
 // Css
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
@@ -128,7 +128,7 @@ export default function MyTeam() {
     const totalShares = Object.values(managerShare)
       .concat(Object.values(sharesOfEmployees))
       .reduce((prev, curr) => {
-        return prev + curr;
+        return Number(prev) + Number(curr);
       }, 0);
 
     if (totalShares > 100) {

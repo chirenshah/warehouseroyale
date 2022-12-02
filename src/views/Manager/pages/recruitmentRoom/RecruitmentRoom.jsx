@@ -17,14 +17,14 @@ import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
-// Helpers
+// Firestore services
 import {
   deactivateAnOffer,
   fireAnEmployee,
-  getCurrentTeamOffer,
-  getEmployeeDetails,
   makeAnOffer,
-} from './helpers';
+} from '../../../../Database/firestoreService';
+// Helpers
+import { getCurrentTeamOffer, getEmployeeDetails } from './helpers';
 // Constants
 import {
   COLLECTION_TEAMS,
