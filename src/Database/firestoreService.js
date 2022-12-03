@@ -1,7 +1,8 @@
 import {
   doc,
-  arrayRemove,
+  getDoc,
   arrayUnion,
+  arrayRemove,
   runTransaction,
   writeBatch,
 } from 'firebase/firestore';
@@ -20,6 +21,91 @@ const failedResponse = (error) => {
     success: false,
     message: error,
   };
+};
+
+/**
+ * @dashboard       Admin
+ * @operations      ADD user to users col
+ *                  ADD manager(if role === 'manager') to team col
+ *                  ADD employee(if role === 'employee') to team employees
+ *
+ * @param {Object} user (manager/employee object)
+ */
+export const createNewUser = async (user) => {
+  try {
+    const userRef = doc(db, COLLECTION_USERS, user.email);
+    const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
+
+    await runTransaction(db, async (transaction) => {
+      const docSnap = await transaction.get(userRef);
+
+      if (docSnap.exists()) {
+        throw new Error('User with this email already exists');
+      }
+
+      // TODO: Encrypt password
+
+      transaction.set(userRef, user);
+
+      if (user.role === 'manager') {
+        transaction.set(
+          teamRef,
+          {
+            manager: {
+              email: user.email,
+            },
+          },
+          { merge: true }
+        );
+      } else {
+        transaction.set(
+          teamRef,
+          {
+            employees: arrayUnion({
+              email: user.email,
+            }),
+          },
+          { merge: true }
+        );
+      }
+
+      console.log('Transaction successfully committed!');
+      return successResponse('User successfully created');
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+    return failedResponse(error.message);
+  }
+};
+
+/**
+ * @dashboard       LOGIN PAGE
+ * @operations      GET user from users col
+ *
+ * @param {Object} user (manager/employee object)
+ */
+export const loginUser = async (email, password) => {
+  try {
+    const userRef = doc(db, COLLECTION_USERS, email);
+
+    const docSnap = await getDoc(userRef);
+
+    if (!docSnap.exists()) throw new Error('Wrong credentials');
+
+    const foundUser = docSnap.data();
+
+    const { password: savedPassword } = foundUser;
+
+    if (savedPassword !== password) throw new Error('Wrong credentials');
+
+    return {
+      success: true,
+      data: foundUser,
+    };
+  } catch (error) {
+    console.error('Error: ', error);
+    return failedResponse(error.message);
+  }
 };
 
 /**

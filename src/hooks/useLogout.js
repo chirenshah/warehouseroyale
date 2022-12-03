@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useAuthContext } from './useAuthContext';
-import { Auth } from '../Database/Auth';
 
 export function useLogout() {
-  const { dispatch } = useAuthContext();
+  const { setUser } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
@@ -13,12 +12,9 @@ export function useLogout() {
     setIsPending(true);
 
     try {
-      await Auth.signOut();
+      localStorage.removeItem('warehouse_user');
 
-      localStorage.removeItem('warehouse_user_role');
-      localStorage.removeItem('warehouse_team_id');
-
-      dispatch({ type: 'LOGOUT' });
+      setUser(null);
 
       setIsPending(false);
       setError(null);
