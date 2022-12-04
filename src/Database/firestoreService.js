@@ -227,6 +227,35 @@ export const deleteEmployee = async (employee) => {
 
 /**
  * @dashboard       Admin
+ * @operations      DELETE manager from users col
+ *                  DELETE team
+ *
+ * @param {Object} employee (manager object)
+ */
+
+export const deleteManager = async (manager) => {
+  try {
+    const managerRef = doc(db, COLLECTION_USERS, manager.email);
+    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+
+    const batch = writeBatch(db);
+
+    batch.delete(managerRef);
+
+    batch.delete(teamRef);
+
+    await batch.commit();
+
+    console.log('Batch successfully commited!');
+    return successResponse('Manage successfully deleted');
+  } catch (error) {
+    console.error('Error: ', error);
+    return failedResponse(error.message);
+  }
+};
+
+/**
+ * @dashboard       Admin
  * @operations      UPDATE employee role to manager
  *                  UPDATE employee share with share: { share + managerShare }
  *                  DELETE manager from users col
@@ -236,7 +265,7 @@ export const deleteEmployee = async (employee) => {
  * @param {Object} employee (whole employee object)
  */
 
-export const deleteManager = async (manager, employee) => {
+export const deleteManagerAndPromoteEmployee = async (manager, employee) => {
   try {
     const managerRef = doc(db, COLLECTION_USERS, manager.email);
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
@@ -252,7 +281,10 @@ export const deleteManager = async (manager, employee) => {
     batch.delete(managerRef);
 
     batch.update(teamRef, {
-      manager: { email: employee.emaiil },
+      manager: { email: employee.email },
+    });
+
+    batch.update(teamRef, {
       employees: arrayRemove({
         email: employee.email,
       }),

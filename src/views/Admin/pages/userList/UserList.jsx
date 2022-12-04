@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
 import Popover from '@mui/material/Popover';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
 import { DataGrid } from '@mui/x-data-grid';
 // React Icons
 import { MdDelete, MdOutlineFileUpload } from 'react-icons/md';
@@ -20,6 +21,7 @@ import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfi
 import {
   deleteEmployee,
   deleteManager,
+  deleteManagerAndPromoteEmployee,
 } from '../../../../Database/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
@@ -37,11 +39,10 @@ export default function UserList() {
     ['role', 'desc']
   );
 
-  const { response, deleteDocument } = useFirestore();
-
   const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fileTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -53,7 +54,8 @@ export default function UserList() {
     if (userDetails.role === 'employee') {
       await deleteEmployee(userDetails);
     } else {
-      await deleteManager('');
+      console.log(users);
+      handleOpenModal();
     }
   };
 
@@ -180,6 +182,9 @@ export default function UserList() {
     },
   ];
 
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
+
   return (
     <div className="userList">
       <WarehouseHeader>
@@ -190,7 +195,7 @@ export default function UserList() {
       <WarehouseCard>
         <Box sx={{ height: 450, width: '100%' }}>
           {isPending && <WarehouseLoader />}
-          {error && <WarehouseSnackbar text={error || response.error} />}
+          {error && <WarehouseSnackbar text={error} />}
           {users && (
             <DataGrid
               rows={users}
@@ -220,6 +225,90 @@ export default function UserList() {
           />
         </div>
       </WarehouseCard>
+      {isModalOpen && (
+        <DeleteManagerModal
+          isModalOpen={isModalOpen}
+          handleCloseModal={handleCloseModal}
+          manager={userDetails}
+        />
+      )}
     </div>
+  );
+}
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+};
+function DeleteManagerModal({ isModalOpen, handleCloseModal, manager }) {
+  const {
+    documents: teamMembers,
+    isPending: areTeamMembersPending,
+    error: teamMembersError,
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', manager.teamId]);
+
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+
+  const handleSubmit = async () => {
+    if (teamMembers.length > 1 && selectedEmployee === '') return;
+
+    if (selectedEmployee === '' && teamMembers.length === 1) {
+      await deleteManager(manager);
+    }
+
+    const employee = teamMembers.find(
+      (member) => member.fullName === selectedEmployee
+    );
+
+    await deleteManagerAndPromoteEmployee(manager, employee);
+
+    handleCloseModal();
+  };
+
+  return (
+    <Modal
+      open={isModalOpen}
+      onClose={handleCloseModal}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box sx={style}>
+        <WarehouseCard>
+          {teamMembers.length === 1 ? (
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Manager has no employees in his team. You can submit to delete.
+            </Typography>
+          ) : (
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Choose one of the employees to promote before you delete the
+              manager.
+            </Typography>
+          )}
+          {teamMembers.length > 1 && (
+            <select
+              onChange={(e) => setSelectedEmployee(e.target.value)}
+              value={selectedEmployee}
+              required
+            >
+              <option value="" disabled selected>
+                Select an employee
+              </option>
+              {teamMembers
+                ?.filter((member) => member.role === 'admin')
+                .map((member) => (
+                  <option key={member.email} value={member.fullName}>
+                    {member.fullName}
+                  </option>
+                ))}
+            </select>
+          )}
+
+          <WarehouseButton text="Submit" onClick={handleSubmit} />
+        </WarehouseCard>
+      </Box>
+    </Modal>
   );
 }
