@@ -1,4 +1,5 @@
 // Hooks
+import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useCollection } from '../../../../hooks/useCollection';
 // Components
 import Chart from '../../../../components/chart/Chart';
@@ -11,17 +12,12 @@ import { COLLECTION_USERS } from '../../../../utils/constants';
 import './MyTeam.css';
 
 export default function MyTeam() {
-  const currentTeamId = localStorage.getItem('warehouse_team_id');
-
+  const { user: currentUser } = useAuthContext();
   const {
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, [
-    'teamId',
-    '==',
-    currentTeamId || 'noId',
-  ]);
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentUser.teamId]);
 
   return (
     <div className="myTeam">

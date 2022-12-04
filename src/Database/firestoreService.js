@@ -1,10 +1,17 @@
 import {
   doc,
   getDoc,
+  setDoc,
+  query,
+  collection,
+  orderBy,
+  where,
+  onSnapshot,
   arrayUnion,
   arrayRemove,
   runTransaction,
   writeBatch,
+  serverTimestamp,
 } from 'firebase/firestore';
 import { db } from './firestore';
 import { hashPassword } from '../utils/functions/hashPassword';
@@ -23,6 +30,53 @@ const failedResponse = (error) => {
     success: false,
     message: error,
   };
+};
+
+export const addAdmin = async (admin) => {
+  try {
+    const adminRef = doc(db, COLLECTION_USERS, admin.email);
+
+    admin.password = hashPassword(admin.password);
+
+    await setDoc(adminRef, admin);
+
+    console.log('Admin successfully added!');
+  } catch (error) {
+    console.error('Error: ', error);
+  }
+};
+
+/**
+ * @dashboard       All
+ * @operations      Fetch collection
+ */
+export const fetchCOllection = async (
+  collectionName,
+  whereQuery,
+  orderQuery = ['createdAt', 'desc']
+) => {
+  try {
+    const q = query(
+      collection(db, collectionName),
+      orderBy(orderQuery),
+      ...whereQuery.map((query) =>
+        where(query.key, query.operator, query.value)
+      )
+    );
+
+    onSnapshot(q, (querySnapshot) => {
+      const docs = [];
+
+      querySnapshot.forEach((doc) => {
+        docs.push({ ...doc.data(), id: doc.id });
+      });
+
+      return docs;
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+    return failedResponse(error.message);
+  }
 };
 
 /**
@@ -46,6 +100,8 @@ export const createNewUser = async (user) => {
       }
 
       user.password = hashPassword(user.password);
+
+      user.createdAt = serverTimestamp(Date.now());
 
       transaction.set(userRef, user);
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 // Hooks
-import { useDocument } from '../../../../hooks/useDocument';
+import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
@@ -21,10 +21,7 @@ import Chart from '../../../../components/chart/Chart';
 // Firebase services
 import { updateShares } from '../../../../Database/firestoreService';
 // Constants
-import {
-  COLLECTION_TEAMS,
-  COLLECTION_USERS,
-} from '../../../../utils/constants';
+import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
@@ -33,7 +30,7 @@ import myTeamStackedChartData from '../../../../mockData/my-team-stacked-chart-d
 const roundItems = [1, 2, 3, 4];
 
 export default function MyTeam() {
-  const currentTeamId = localStorage.getItem('warehouse_team_id');
+  const { user: currentUser } = useAuthContext();
 
   // Manager
   const [managerShare, setManagerShare] = useState({});
@@ -51,23 +48,13 @@ export default function MyTeam() {
   const [round, setRound] = useState(1);
 
   const {
-    document: team,
-    isPending: isTeamPending,
-    error: teamError,
-  } = useDocument(COLLECTION_TEAMS, currentTeamId);
-
-  const {
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, [
-    'teamId',
-    '==',
-    currentTeamId || 'noId',
-  ]);
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentUser.teamId]);
 
   useEffect(() => {
-    if (!team || !teamMembers?.length) {
+    if (!teamMembers?.length) {
       return;
     }
 
@@ -76,11 +63,11 @@ export default function MyTeam() {
 
       // Update manager's states
       const managerShare = {
-        [team.manager.uid]: teamMembers.find(
-          (member) => member.role === 'manager'
+        [currentUser.email]: teamMembers.find(
+          (member) => member.email === currentUser.email
         ).share,
       };
-      setManagerShare((prev) => (prev = managerShare));
+      setManagerShare(managerShare);
 
       // Update existing Employees' states
       const employees = teamMembers?.filter(
@@ -90,7 +77,7 @@ export default function MyTeam() {
 
       let employeesShare = {};
       for (const employee of employees) {
-        employeesShare[`${employee.uid}`] = employee.share;
+        employeesShare[`${employee.email}`] = employee.share;
       }
       setEmployeesShare(employeesShare);
 
@@ -100,13 +87,13 @@ export default function MyTeam() {
 
       let newlyAddedEmployeesShare = {};
       for (const employee of newlyAddedEmployees) {
-        newlyAddedEmployeesShare[`${employee.uid}`] = employee.share;
+        newlyAddedEmployeesShare[`${employee.email}`] = employee.share;
       }
       setNewEmployeesShare(newlyAddedEmployeesShare);
 
       setLoading(false);
     })();
-  }, [team, teamMembers]);
+  }, [teamMembers]);
 
   const handleOnChangeShare = (e, type) => {
     if (type === 'new') {
@@ -120,7 +107,7 @@ export default function MyTeam() {
     }
   };
 
-  const handleShareUpdate = async (type) => {
+  const handleShareUpdate = async () => {
     setError(null);
     // TODO: Put validations
     const sharesOfEmployees = { ...newEmployeesShare, ...employeesShare };
@@ -152,13 +139,13 @@ export default function MyTeam() {
 
   return (
     <div className="myTeam">
-      <WarehouseHeader title={`Team ${currentTeamId || ''}`} />
+      <WarehouseHeader title={`Team ${currentUser.teamId}`} />
       {loading && <WarehouseLoader />}
       {!isProceededToShare && newlyAddedEmployees?.length ? (
         <WarehouseCard>
           <List sx={{ width: '100%' }}>
             {newlyAddedEmployees.map((employee) => (
-              <ListItem key={employee.uid}>
+              <ListItem key={employee.email}>
                 <ListItemText
                   primary={employee.fullName}
                   secondary="has been added to your organization."
@@ -185,7 +172,7 @@ export default function MyTeam() {
               employees={[...newlyAddedEmployees, ...employees]}
               employeesShare={{ ...newEmployeesShare, ...employeesShare }}
               handleOnChangeShare={(e) => handleOnChangeShare(e, 'new')}
-              handleShareUpdate={() => handleShareUpdate('new')}
+              handleShareUpdate={handleShareUpdate}
               error={error}
             />
           </WarehouseCard>
@@ -218,7 +205,7 @@ export default function MyTeam() {
                 employees={employees}
                 employeesShare={employeesShare}
                 handleOnChangeShare={(e) => handleOnChangeShare(e, 'existing')}
-                handleShareUpdate={() => handleShareUpdate('existing')}
+                handleShareUpdate={handleShareUpdate}
                 error={error}
               />
             )}
@@ -297,17 +284,19 @@ function ShareList({
           <ListItemText primary="You" />
         </ListItem>
         {employees?.map((member) => (
-          <ListItem key={member.uid} alignItems="center">
+          <ListItem key={member.email} alignItems="center">
             <TextField
               onChange={handleOnChangeShare}
-              value={employeesShare[`${member.uid}`]}
-              name={member.uid}
+              value={employeesShare[`${member.email}`]}
+              name={member.email}
               type="number"
               InputProps={{ inputProps: { min: 0, max: 100 } }}
               sx={{ marginRight: '1rem', width: '5rem' }}
               size="small"
-              color={employeesShare[`${member.uid}`] < 0 ? 'error' : 'primary'}
-              focused={employeesShare[`${member.uid}`] < 0}
+              color={
+                employeesShare[`${member.email}`] < 0 ? 'error' : 'primary'
+              }
+              focused={employeesShare[`${member.email}`] < 0}
             />
             <ListItemText primary={member.fullName} />
           </ListItem>

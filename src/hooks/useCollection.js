@@ -40,9 +40,11 @@ export function useCollection(
         }
         const unsub = onSnapshot(q, (querySnapshot) => {
           const docs = [];
+
           querySnapshot.forEach((doc) => {
             docs.push({ ...doc.data(), id: doc.id });
           });
+
           setDocuments(docs);
           setIsPending(false);
         });
