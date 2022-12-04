@@ -16,6 +16,11 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
+// Firestore services
+import {
+  deleteEmployee,
+  deleteManager,
+} from '../../../../Database/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -45,16 +50,11 @@ export default function UserList() {
   ];
 
   const handleDelete = async (userDetails) => {
-    console.log(userDetails);
-    // await deleteDocument(COLLECTION_USERS, id);
-    // TODO: Update delete functionality to delete user from authentication and teams collection
-    // await deleteUser(userDetails);
-    // handleClose();
-    //! TODO: PROBLEM: We are deleting user from collection only and not the actual auth-user.
-    //! And we cannot delete it from client-side, we must do it into safe environment(admin-sdk), that's what firebase says due to security reasons.
-    //! So we must create and deploy function which listens to firestore event when "delete user" happens.
-    // https://stackoverflow.com/questions/38800414/delete-a-specific-user-from-firebase
-    // https://stackoverflow.com/questions/44721897/delete-firebase-authenticated-user-from-web-application/44723666#44723666
+    if (userDetails.role === 'employee') {
+      await deleteEmployee(userDetails);
+    } else {
+      await deleteManager('');
+    }
   };
 
   const handleOnFileChange = (e) => {

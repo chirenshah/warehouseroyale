@@ -112,30 +112,29 @@ export const loginUser = async (email, password) => {
  * @dashboard       Admin
  * @operations      DELETE employee from users col
  *                  UPDATE manager share with {share: share + employeeShare}
- *                  REMOVE from team offers if any
  *                  REMOVE employee from team employees
+ *                  REMOVE from team offers if any
  *
  * @param {Object} employee (whole employee object)
  */
-// TODO: Update this function
 export const deleteEmployee = async (employee) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employee.uid);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
     const teamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
 
     await runTransaction(db, async (transaction) => {
       const foundTeam = await transaction.get(
         doc(db, COLLECTION_TEAMS, employee.teamId)
       );
-      if (!foundTeam.exists) {
+      if (!foundTeam.exists()) {
         throw new Error('No team found');
       }
-      const managerUid = foundTeam.data().manager.uid;
+      const managerEmail = foundTeam.data().manager.email;
 
-      const managerRef = doc(db, COLLECTION_USERS, managerUid);
+      const managerRef = doc(db, COLLECTION_USERS, managerEmail);
 
       const foundManager = await transaction.get(managerRef);
-      if (!foundManager.exists) {
+      if (!foundManager.exists()) {
         throw new Error('No manager found');
       }
       const managerShare = foundManager.data().share;
@@ -147,20 +146,63 @@ export const deleteEmployee = async (employee) => {
       });
 
       transaction.update(teamRef, {
-        offers: arrayRemove({
-          uid: employee.uid,
+        employees: arrayRemove({
+          email: employee.email,
         }),
       });
 
       transaction.update(teamRef, {
-        employees: arrayRemove({
-          uid: employee.uid,
+        offers: arrayRemove({
+          email: employee.email,
         }),
       });
 
       console.log('Transaction successfully committed!');
       return successResponse('User successfully deleted');
     });
+  } catch (error) {
+    console.error('Error: ', error);
+    return failedResponse(error.message);
+  }
+};
+
+/**
+ * @dashboard       Admin
+ * @operations      UPDATE employee role to manager
+ *                  UPDATE employee share with share: { share + managerShare }
+ *                  DELETE manager from users col
+ *                  UPDATE manager with employee in team
+ *                  REMOVE employee from team employees
+ *
+ * @param {Object} employee (whole employee object)
+ */
+
+export const deleteManager = async (manager, employee) => {
+  try {
+    const managerRef = doc(db, COLLECTION_USERS, manager.email);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+
+    const batch = writeBatch(db);
+
+    batch.update(employeeRef, {
+      role: 'manager',
+      share: Number(manager.share) + Number(employee.share),
+    });
+
+    batch.delete(managerRef);
+
+    batch.update(teamRef, {
+      manager: { email: employee.emaiil },
+      employees: arrayRemove({
+        email: employee.email,
+      }),
+    });
+
+    await batch.commit();
+
+    console.log('Batch successfully commited!');
+    return successResponse('Manage successfully deleted');
   } catch (error) {
     console.error('Error: ', error);
     return failedResponse(error.message);
