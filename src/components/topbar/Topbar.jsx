@@ -27,7 +27,7 @@ export default function Topbar() {
     document: user,
     isPending: isPendingUser,
     error: userError,
-  } = useDocument(COLLECTION_USERS, currentUser?.uid);
+  } = useDocument(COLLECTION_USERS, currentUser?.email);
 
   const { logout, isPending, error } = useLogout();
 
@@ -112,7 +112,7 @@ const UserProfile = React.forwardRef(
                       file,
                       currentUser?.uid
                     )}`}
-                    userId={currentUser?.uid}
+                    userId={currentUser?.email}
                   />
                 </div>
               )}
