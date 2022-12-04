@@ -7,6 +7,8 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from './firestore';
+import { hashPassword } from '../utils/functions/hashPassword';
+import { matchPassword } from '../utils/functions/matchPassword';
 import { COLLECTION_TEAMS, COLLECTION_USERS } from '../utils/constants';
 
 const successResponse = (message) => {
@@ -43,7 +45,7 @@ export const createNewUser = async (user) => {
         throw new Error('User with this email already exists');
       }
 
-      // TODO: Encrypt password
+      user.password = hashPassword(user.password);
 
       transaction.set(userRef, user);
 
@@ -96,7 +98,8 @@ export const loginUser = async (email, password) => {
 
     const { password: savedPassword } = foundUser;
 
-    if (savedPassword !== password) throw new Error('Wrong credentials');
+    const isPasswordMatched = matchPassword(password, savedPassword);
+    if (!isPasswordMatched) throw new Error('Wrong credentials');
 
     return {
       success: true,
