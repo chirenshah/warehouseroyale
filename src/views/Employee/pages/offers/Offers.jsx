@@ -16,20 +16,22 @@ import { COLLECTION_USERS } from '../../../../utils/constants';
 import './Offers.css';
 
 export default function Offers() {
-  const { user } = useAuthContext();
+  const { user, updateUser } = useAuthContext();
 
   const {
     document: employee,
     isPending: isEmployeePending,
     error: employeeError,
-  } = useDocument(COLLECTION_USERS, user?.uid);
+  } = useDocument(COLLECTION_USERS, user?.email);
 
   const handleAcceptOffer = async (offer) => {
-    await acceptOffer(employee.uid, offer.teamId, offer);
+    await acceptOffer(user, offer);
+
+    updateUser({ ...user, ...offer });
   };
 
   const handleDeclineOffer = async (offer) => {
-    await declineOffer(employee.uid, offer.teamId, offer);
+    await declineOffer(employee.email, offer.teamId, offer);
   };
 
   return (

@@ -2,7 +2,7 @@ export const getEmployeeDetails = (allEmployees, id) => {
   if (!allEmployees || !id) {
     return null;
   }
-  return allEmployees.find((employee) => employee.id === id);
+  return allEmployees.find((employee) => employee.email === id);
 };
 
 export const getCurrentTeamOffer = (allEmployees, employeeId, teamId) => {

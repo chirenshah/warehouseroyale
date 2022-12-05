@@ -9,8 +9,13 @@ export const AuthContextProvider = ({ children }) => {
       : null
   );
 
+  const updateUser = (updatedUser) => {
+    localStorage.setItem('warehouse_user', JSON.stringify(updatedUser));
+    setUser((prev) => updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

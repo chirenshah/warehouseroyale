@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuthContext } from './useAuthContext';
 
 export function useLogout() {
-  const { setUser } = useAuthContext();
+  const { updateUser } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ export function useLogout() {
     try {
       localStorage.removeItem('warehouse_user');
 
-      setUser(null);
+      updateUser(null);
 
       setIsPending(false);
       setError(null);

@@ -347,7 +347,7 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayUnion({
-          uid: employeeToBeHired,
+          email: employeeToBeHired,
         }),
       });
 
@@ -403,7 +403,7 @@ export const fireAnEmployee = async (
 
       transaction.update(teamRef, {
         employees: arrayRemove({
-          uid: employeeToBeFired,
+          email: employeeToBeFired,
         }),
       });
 
@@ -437,7 +437,7 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          uid: employeeId,
+          email: employeeId,
         }),
       });
       console.log('Transaction successfully committed!');
@@ -451,65 +451,100 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 
 /**
  * @dashboard       Employee
- * @operations      FIND team
- *                  FIND manager
- *                  UPDATE employee offer with {teamId: '', share: ''}
- *                  UPDATE manager share with {share: share - employeeShare}
+ * @operations      UPDATE current manager share with {share: share + employeeShare}
+ *                  UPDATE new manager share with {share: share - employeeShare}
+ *                  UPDATE employee offer with {teamId: newTeamId, share: ''}
  *                  REMOVE offer from employee offers
- *                  ADD employee to team employees
- *                  REMOVE offer from team offers
+ *                  REMOVE employee from current team employees
+ *                  ADD employee to new team employees
  *                  ADD offer to employee pastOffers
  *
- * @param {String} employeeId
- * @param {String} teamId
+ * @param {Object} employee (employee object)
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const acceptOffer = async (employeeId, teamId, offer) => {
+export const acceptOffer = async (employee, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const currentTeamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
+    const newTeamRef = doc(db, COLLECTION_TEAMS, offer.teamId);
 
     await runTransaction(db, async (transaction) => {
-      const foundTeam = await transaction.get(
-        doc(db, COLLECTION_TEAMS, teamId)
-      );
-      if (!foundTeam.exists) {
+      // Find current manager
+      const currentTeam = await transaction.get(currentTeamRef);
+      if (!currentTeam.exists) {
         throw new Error('No team found');
       }
-      const managerUid = foundTeam.data().manager.uid;
+      const currentManagerUid = await currentTeam.data().manager.email;
 
-      const managerRef = doc(db, COLLECTION_USERS, managerUid);
+      const currentManagerRef = doc(db, COLLECTION_USERS, currentManagerUid);
 
-      const foundManager = await transaction.get(managerRef);
-      if (!foundManager.exists) {
+      const currentManager = await transaction.get(currentManagerRef);
+      if (!currentManager.exists) {
         throw new Error('No manager found');
       }
-      const managerShare = foundManager.data().share;
+      const currentManagerShare = await currentManager.data().share;
+      const updatedCurrentManagerShare =
+        Number(currentManagerShare) + Number(employee.share);
 
+      // Find new manager
+      const newTeam = await transaction.get(newTeamRef);
+      if (!newTeam.exists) {
+        throw new Error('No team found');
+      }
+      const newManagerUid = await newTeam.data().manager.email;
+
+      const newManagerRef = doc(db, COLLECTION_USERS, newManagerUid);
+
+      const newManager = await transaction.get(newManagerRef);
+      if (!newManager.exists) {
+        throw new Error('No manager found');
+      }
+      const newManagerShare = await newManager.data().share;
+      const updatedNewManagerShare =
+        Number(newManagerShare) - Number(offer.share);
+
+      // Update employee share & teamId
       transaction.update(employeeRef, offer);
 
-      transaction.update(managerRef, {
-        share: Number(managerShare) - Number(offer.share),
-      });
-
+      // Remove offer from employee offers
       transaction.update(employeeRef, {
         offers: arrayRemove(offer),
       });
 
-      transaction.update(teamRef, {
-        employees: arrayUnion({
-          uid: employeeId,
-        }),
-      });
-
-      transaction.update(teamRef, {
-        offers: arrayRemove({
-          uid: employeeId,
-        }),
-      });
-
+      // Add offer to employee pastOffers
       transaction.update(employeeRef, {
         pastOffers: arrayUnion(offer),
+      });
+
+      // Update current manager share
+      transaction.update(currentManagerRef, {
+        share: updatedCurrentManagerShare,
+      });
+
+      // Update new manager share
+      transaction.update(newManagerRef, {
+        share: updatedNewManagerShare,
+      });
+
+      // Remove employee from current team employees
+      transaction.update(currentTeamRef, {
+        employees: arrayRemove({
+          email: employee.email,
+        }),
+      });
+
+      // Remove employee from current team offers
+      transaction.update(currentTeamRef, {
+        offers: arrayRemove({
+          email: employee.email,
+        }),
+      });
+
+      // Add employee to new team employees
+      transaction.update(newTeamRef, {
+        employees: arrayUnion({
+          email: employee.email,
+        }),
       });
 
       console.log('Transaction successfully committed!');
@@ -542,7 +577,7 @@ export const declineOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          uid: employeeId,
+          email: employeeId,
         }),
       });
 

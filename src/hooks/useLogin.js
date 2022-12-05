@@ -3,7 +3,7 @@ import { useAuthContext } from './useAuthContext';
 import { loginUser } from '../Database/firestoreService';
 
 export function useLogin() {
-  const { setUser } = useAuthContext();
+  const { updateUser } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
@@ -22,7 +22,7 @@ export function useLogin() {
 
       localStorage.setItem('warehouse_user', JSON.stringify(rest));
 
-      setUser(rest);
+      updateUser(rest);
 
       setIsPending(false);
     } catch (error) {
