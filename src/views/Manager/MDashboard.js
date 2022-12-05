@@ -8,11 +8,12 @@ import RecruitmentRoom from './pages/recruitmentRoom/RecruitmentRoom';
 import Messenger from './pages/messenger/Messenger';
 import OperationRoom from './pages/operationRoom/OperationRoom';
 import About from './pages/about/About';
-import Game from '../../components/employee_game';
+
 // Configs
 import { mDashboardSidebarConfig } from '../../configs/sidebarConfigs';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import GameLayout from '../../components/views/Manager/game/GameLayout';
 
 export default function MDashboard() {
   return (
@@ -30,7 +31,7 @@ export default function MDashboard() {
           path="game"
           element={
             <DndProvider backend={HTML5Backend}>
-              <Game />
+              <GameLayout />
             </DndProvider>
           }
         />
