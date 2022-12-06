@@ -77,6 +77,13 @@
     /* flex: 1; */
 }
 
+#cards-div-offer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
 .cards-div-offer {
     height: 30.25%;
 }
@@ -85,6 +92,13 @@
     height: 40.25%;
     padding-top: 1em;
     padding-bottom: 1em;
+}
+
+.inventory-purchase-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
 }
 
 .cards-div-game-details-last-orders {
@@ -116,7 +130,7 @@
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: center;
+    align-items: stretch;
 }
 
 .game-details-card-heading, .last-orders-heading {
@@ -168,11 +182,19 @@
     justify-content: stretch;
     align-items: stretch;
     flex-wrap: wrap;
-    /* padding-top: 1rem;
-    padding-bottom: 1rem; */
     padding: 1rem;
+    padding-bottom: 0px;
     overflow: auto;
     flex: 1;
+}
+
+.offer-cards-inner-btns-div {
+    padding-top: 1em;
+    padding-bottom: 1em;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
 }
 
 .offer-cards-inner-padding-div {
@@ -181,11 +203,14 @@
     justify-content: space-evenly;
     align-items: stretch;
     flex-wrap: wrap;
-    /* padding: 1.5rem; */
     height: 100%;
     width: 100%;
     overflow: auto;
     flex: 1;
+    background-color: #EDEDED;
+    border-radius: 0.5em;
+    /* padding-top: 0.25em; */
+    /* padding-bottom: 0.25em; */
 }
 
 .cards-div-items {
@@ -350,6 +375,18 @@
     line-height: 1.25em;
     font-weight: 500;
     text-align: center;
+}
+
+.inventory-text-field:focus {
+    border-color: #5D5FEF;
+}
+
+.inventory-purchase-btn-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1em;
 }
 
 .unselected-offer-card {
