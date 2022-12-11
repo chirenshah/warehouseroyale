@@ -54,7 +54,6 @@ export default function UserList() {
     if (userDetails.role === 'employee') {
       await deleteEmployee(userDetails);
     } else {
-      console.log(users);
       handleOpenModal();
     }
   };
@@ -275,40 +274,44 @@ function DeleteManagerModal({ isModalOpen, handleCloseModal, manager }) {
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={style}>
-        <WarehouseCard>
-          {teamMembers.length === 1 ? (
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Manager has no employees in his team. You can submit to delete.
-            </Typography>
-          ) : (
-            <Typography id="modal-modal-title" variant="h6" component="h2">
-              Choose one of the employees to promote before you delete the
-              manager.
-            </Typography>
-          )}
-          {teamMembers.length > 1 && (
-            <select
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              value={selectedEmployee}
-              required
-            >
-              <option value="" disabled selected>
-                Select an employee
-              </option>
-              {teamMembers
-                ?.filter((member) => member.role === 'admin')
-                .map((member) => (
-                  <option key={member.email} value={member.fullName}>
-                    {member.fullName}
-                  </option>
-                ))}
-            </select>
-          )}
+      {areTeamMembersPending ? (
+        <WarehouseLoader />
+      ) : (
+        <Box sx={style}>
+          <WarehouseCard>
+            {teamMembers.length === 1 ? (
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                Manager has no employees in his team. You can submit to delete.
+              </Typography>
+            ) : (
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                Choose one of the employees to promote before you delete the
+                manager.
+              </Typography>
+            )}
+            {teamMembers.length > 1 && (
+              <select
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                value={selectedEmployee}
+                required
+              >
+                <option value="" disabled selected>
+                  Select an employee
+                </option>
+                {teamMembers
+                  ?.filter((member) => member.role === 'employee')
+                  .map((member) => (
+                    <option key={member.email} value={member.fullName}>
+                      {member.fullName}
+                    </option>
+                  ))}
+              </select>
+            )}
 
-          <WarehouseButton text="Submit" onClick={handleSubmit} />
-        </WarehouseCard>
-      </Box>
+            <WarehouseButton text="Submit" onClick={handleSubmit} />
+          </WarehouseCard>
+        </Box>
+      )}
     </Modal>
   );
 }
