@@ -257,6 +257,19 @@ export async function getPerformanceData() {
   return physicalLogs;
 }
 
+export async function updateOrderListManager(selectData) {
+  let order = {};
+  for (let i = 0; i < selectData['data-items'].length; i++) {
+    order[selectData['data-items'][i]] = selectData['data-values'][i];
+  }
+  let temp = {
+    orders: arrayUnion(order),
+  };
+  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
+    console.log(err)
+  );
+}
+
 export async function calculateScore(data, bins_val, bin_label) {
   // check how many bin_vals are present in data
   // errors are counted by units of absence of what should be and the presence of what shouldnt be.
