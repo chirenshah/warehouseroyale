@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
-import { useTeamContext } from '../../hooks/useTeamContext';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useCollection } from '../../../../hooks/useCollection';
 // Material Components
@@ -35,7 +34,6 @@ import './RecruitmentRoom.css';
 
 export default function RecruitmentRoom() {
   const { user: manager } = useAuthContext();
-  // const { team: manager.teamId } = useTeamContext();
 
   const [shareOffered, setShareOffered] = useState(null);
 
