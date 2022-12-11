@@ -1,6 +1,7 @@
 .newUser__items {
   display: flex;
   flex-wrap: wrap;
+  margin-bottom: 1rem;
 }
 
 .newUser__item {
@@ -30,8 +31,4 @@
 .newUser__item select {
   height: 40px;
   border-radius: 5px;
-}
-
-.newUser__form button {
-  margin-top: 1rem;
 }

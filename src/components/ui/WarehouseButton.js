@@ -23,7 +23,7 @@ export default function WarehouseButton({
   };
 
   return (
-    <Box sx={{ m: 1, position: 'relative' }}>
+    <Box sx={{ m: 1, position: 'relative', width: 'fit-content' }}>
       <button {...rest} style={warehouseButtonStyle} disabled={loading}>
         {text}
       </button>
