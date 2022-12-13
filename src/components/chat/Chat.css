@@ -1,0 +1,138 @@
+.chat__warehouseCard {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.chat {
+  display: flex;
+  height: 80vh;
+}
+
+.chat__left {
+  height: 100%;
+  width: 25%;
+  background-color: hsl(var(--primaryBg));
+  border: 1px solid hsl(var(--borderColor));
+}
+
+.chat__leftHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: linear-gradient(
+    180deg,
+    hsla(var(--accentColor), 0.2) 0%,
+    hsla(var(--primaryBg), 0) 100%
+  );
+  height: 3rem;
+}
+
+.chat__leftList {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  overflow-y: scroll;
+  height: calc(
+    100% - 5rem
+  ); /* - leftHeader height - 1rem padding - 1rem padding*/
+}
+
+.chat__user {
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 10px;
+  margin: 0.2rem 0;
+}
+
+.chat__userImage {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.chat__right .chat__user span {
+  color: hsl(var(--primaryTextColor));
+}
+
+.chat__user.active {
+  color: hsl(var(--primaryTextColor));
+  background-color: hsla(var(--accentColor), 0.7);
+}
+
+.chat__user:hover {
+  color: hsl(var(--primaryTextColor));
+  background-color: hsla(var(--accentColor), 0.2);
+  transition: var(--transition);
+}
+
+.chat__right {
+  position: relative;
+  height: 100%;
+  width: 75%;
+  border: 1px solid hsl(var(--borderColor));
+}
+
+.chat__rightHeader {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  background-color: hsla(var(--accentColor));
+}
+
+.chat__rightChat {
+  overflow-y: scroll;
+  display: flex;
+  flex-direction: column;
+  height: 90%;
+}
+
+.chat__message {
+  background-color: hsla(var(--accentColor), 0.2);
+  margin: 1rem;
+  padding: 0.3rem 1rem;
+  width: fit-content;
+  border-radius: 10px;
+}
+
+.chat__message.right {
+  background-color: hsla(var(--accentColor), 0.5);
+  align-self: flex-end;
+  color: hsl(var(--primaryTextColor));
+}
+
+.chat__input {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  bottom: 0;
+  width: 100%;
+  background-color: hsla(var(--accentColor), 0.2);
+}
+
+.chat__input input {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  outline: none;
+  font-size: 1rem;
+}
+
+.chat__leftList::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat__leftList::-webkit-scrollbar-thumb {
+  background-color: hsla(var(--accentColor), 0.2);
+}
+
+.chat__rightChat::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat__rightChat::-webkit-scrollbar-thumb {
+  background-color: hsla(var(--accentColor), 0.2);
+}
