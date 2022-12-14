@@ -16,6 +16,7 @@ import {
     orderBy,
     limit,
 } from "firebase/firestore";
+import { GrOrderedList } from "react-icons/gr";
 
 import app from "./config";
 
@@ -210,8 +211,45 @@ export async function calculateLogs() {
 export async function getPerformanceData() {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
     physicalLogs = physicalLogs.data();
-
     return physicalLogs;
+}
+
+// Standard Normal variate using Box-Muller transform.
+function gaussianRandom(mean = 0, stdev = 1) {
+    let u = 1 - Math.random(); //Converting [0,1) to (0,1)
+    let v = Math.random();
+    let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+    // Transform to the desired mean and standard deviation:
+    return z * stdev + mean;
+}
+export async function creatOrderOptions(range) {
+    let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
+    let max_sku = 15;
+    let min_sku = 5;
+    let OrderedList = [];
+    // console.log(physicalLogs.data());
+    let sku_ids = Object.keys(physicalLogs.data()["Bins"]);
+    for (let i = 0; i < range; i++) {
+        let order = {};
+        let amount = 0;
+        for (let j = 0; j < sku_ids.length; j++) {
+            if (Math.random() < 0.2) {
+                const quantity = Math.floor(
+                    Math.random() * (max_sku - min_sku) + min_sku
+                );
+                order[sku_ids[j]] = quantity;
+                let val = Math.floor(quantity * gaussianRandom(1, 0.3));
+                amount += val;
+            }
+        }
+        order["Points"] = amount;
+        order["title"] =
+            "Order #" + Math.floor(Math.random() * (9999 - 999) + 999);
+        order["status"] = false;
+        if (amount > 0) OrderedList.push(order);
+    }
+    return OrderedList;
+    // console.log(OrderedList);
 }
 
 export async function createOrders(setOrder, bins_val, bin_label) {
@@ -354,6 +392,17 @@ export async function binListener(set_data, setorderList) {
         setorderList(temp);
     });
 }
+export async function orderListListerner(setorderList) {
+    onSnapshot(doc(db, "instance1", "Room 1"), async (snapshot) => {
+        setorderList(snapshot.data()["orders"]);
+    });
+}
+
+export async function updateOrderList(orderList) {
+    updateDoc(doc(db, "instance1", "Room 1"), {
+        orders: orderList,
+    });
+}
 
 export async function chat_sendMessage(message) {
     if (message !== "") {
@@ -402,7 +451,8 @@ export async function addIceCandidate(json) {
 }
 export async function skuFinder(skuId) {
     let physicalLogs = await getDoc(doc(db, "instance1", "Logs"));
-    Object.keys(physicalLogs.data()).forEach((val) => {});
+    let records = physicalLogs.data()["Bins"][skuId];
+    return records;
 }
 export async function icelistners(peerConnection) {
     onSnapshot(
