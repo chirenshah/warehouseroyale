@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
+import Popover from '@mui/material/Popover';
+import Modal from '@mui/material/Modal';
+import Typography from '@mui/material/Typography';
 import { DataGrid } from '@mui/x-data-grid';
 // React Icons
 import { MdDelete, MdOutlineFileUpload } from 'react-icons/md';
@@ -14,6 +16,13 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
+// Firestore services
+import {
+  deleteEmployee,
+  deleteManager,
+  deleteManagerAndPromoteEmployee,
+} from '../../../../Database/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -30,10 +39,10 @@ export default function UserList() {
     ['role', 'desc']
   );
 
-  const { response, deleteDocument } = useFirestore();
-
+  const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fileTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -41,8 +50,12 @@ export default function UserList() {
     'text/csv',
   ];
 
-  const handleDelete = async (id) => {
-    await deleteDocument(COLLECTION_USERS, id);
+  const handleDelete = async (userDetails) => {
+    if (userDetails.role === 'employee') {
+      await deleteEmployee(userDetails);
+    } else {
+      handleOpenModal();
+    }
   };
 
   const handleOnFileChange = (e) => {
@@ -59,6 +72,22 @@ export default function UserList() {
   const handleFileUpload = () => {
     console.log(file);
   };
+
+  // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (e, userDetails) => {
+    setAnchorEl(e.currentTarget);
+    setUserDetails(userDetails);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+  const id = open ? 'simple-popover' : undefined;
+  // Popover-----------------------------------------------------------
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -101,14 +130,59 @@ export default function UserList() {
               <WarehouseButton text="Edit" sm success />
             </Link>
             <MdDelete
+              aria-describedby={id}
               className="userList__delete"
-              onClick={() => handleDelete(params.row.id)}
+              onClick={(e) => handleClick(e, params.row)}
             />
+            {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
+            <Popover
+              id={id}
+              open={open}
+              anchorEl={anchorEl}
+              onClose={handleClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'center',
+              }}
+              transformOrigin={{
+                vertical: 'center',
+                horizontal: 'right',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  padding: '0.5rem',
+                }}
+              >
+                <span>Are you sure?</span>
+                <div style={{ display: 'flex' }}>
+                  <WarehouseButton
+                    onClick={() => handleDelete(userDetails)}
+                    text="Yes"
+                    warning
+                    sm
+                  />
+                  <WarehouseButton
+                    onClick={handleClose}
+                    text="Cancel"
+                    success
+                    sm
+                  />
+                </div>
+              </div>
+            </Popover>
+            {/* Popover----------------------------------------------------------- */}
           </>
         );
       },
     },
   ];
+
+  const handleOpenModal = () => setIsModalOpen(true);
+  const handleCloseModal = () => setIsModalOpen(false);
 
   return (
     <div className="userList">
@@ -120,7 +194,7 @@ export default function UserList() {
       <WarehouseCard>
         <Box sx={{ height: 450, width: '100%' }}>
           {isPending && <WarehouseLoader />}
-          {error && <WarehouseSnackbar text={error || response.error} />}
+          {error && <WarehouseSnackbar text={error} />}
           {users && (
             <DataGrid
               rows={users}
@@ -150,6 +224,94 @@ export default function UserList() {
           />
         </div>
       </WarehouseCard>
+      {isModalOpen && (
+        <DeleteManagerModal
+          isModalOpen={isModalOpen}
+          handleCloseModal={handleCloseModal}
+          manager={userDetails}
+        />
+      )}
     </div>
+  );
+}
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+};
+function DeleteManagerModal({ isModalOpen, handleCloseModal, manager }) {
+  const {
+    documents: teamMembers,
+    isPending: areTeamMembersPending,
+    error: teamMembersError,
+  } = useCollection(COLLECTION_USERS, ['teamId', '==', manager.teamId]);
+
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+
+  const handleSubmit = async () => {
+    if (teamMembers.length > 1 && selectedEmployee === '') return;
+
+    if (selectedEmployee === '' && teamMembers.length === 1) {
+      await deleteManager(manager);
+    }
+
+    const employee = teamMembers.find(
+      (member) => member.fullName === selectedEmployee
+    );
+
+    await deleteManagerAndPromoteEmployee(manager, employee);
+
+    handleCloseModal();
+  };
+
+  return (
+    <Modal
+      open={isModalOpen}
+      onClose={handleCloseModal}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      {areTeamMembersPending ? (
+        <WarehouseLoader />
+      ) : (
+        <Box sx={style}>
+          <WarehouseCard>
+            {teamMembers.length === 1 ? (
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                Manager has no employees in his team. You can submit to delete.
+              </Typography>
+            ) : (
+              <Typography id="modal-modal-title" variant="h6" component="h2">
+                Choose one of the employees to promote before you delete the
+                manager.
+              </Typography>
+            )}
+            {teamMembers.length > 1 && (
+              <select
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+                value={selectedEmployee}
+                required
+              >
+                <option value="" disabled selected>
+                  Select an employee
+                </option>
+                {teamMembers
+                  ?.filter((member) => member.role === 'employee')
+                  .map((member) => (
+                    <option key={member.email} value={member.fullName}>
+                      {member.fullName}
+                    </option>
+                  ))}
+              </select>
+            )}
+
+            <WarehouseButton text="Submit" onClick={handleSubmit} />
+          </WarehouseCard>
+        </Box>
+      )}
+    </Modal>
   );
 }

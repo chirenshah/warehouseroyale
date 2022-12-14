@@ -18,15 +18,13 @@ import MDashboard from './views/Manager/MDashboard';
 import EDashboard from './views/Employee/EDashboard';
 
 function App() {
-  const { user, isAuthReady } = useAuthContext();
+  const { user } = useAuthContext();
 
-  const role = localStorage.getItem('warehouse_user_role');
-
-  return isAuthReady && user && role === 'admin' ? (
+  return user && user.role === 'admin' ? (
     <ADashboard />
-  ) : role === 'manager' ? (
+  ) : user && user.role === 'manager' ? (
     <MDashboard />
-  ) : role === 'employee' ? (
+  ) : user && user.role === 'employee' ? (
     <EDashboard />
   ) : (
     <LoginForm />

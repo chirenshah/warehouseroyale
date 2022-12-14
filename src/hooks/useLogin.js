@@ -1,57 +1,29 @@
 import { useState } from 'react';
 import { useAuthContext } from './useAuthContext';
-import { LOGIN } from '../contexts/AuthContext';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { Auth } from '../Database/Auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { COLLECTION_USERS } from '../utils/constants';
-import { db } from '../Database/firestore';
+import { loginUser } from '../Database/firestoreService';
 
 export function useLogin() {
-  const { dispatch } = useAuthContext();
+  const { updateUser } = useAuthContext();
 
   const [isPending, setIsPending] = useState(false);
   const [error, setError] = useState(null);
-
-  const getDocument = async (collectionName, documentId) => {
-    try {
-      const documentRef = doc(db, collectionName, documentId);
-
-      const documentSnap = await getDoc(documentRef);
-
-      if (documentSnap.exists()) {
-        return { ...documentSnap.data(), id: documentSnap.id };
-      } else {
-        return null;
-      }
-    } catch (error) {
-      console.error('Error: ', error.message);
-      return null;
-    }
-  };
 
   const login = async (email, password) => {
     setError(null);
     setIsPending(true);
     try {
-      let result = await signInWithEmailAndPassword(Auth, email, password);
+      const foundUser = await loginUser(email, password);
 
-      const userFromCollection = await getDocument(
-        COLLECTION_USERS,
-        result.user.uid
-      );
-
-      if (!userFromCollection) {
-        throw new Error('user from collection not fetched');
+      if (!foundUser.success) {
+        throw new Error(foundUser.message);
       }
 
-      //   Save user role to local storage
-      localStorage.setItem('warehouse_user_role', userFromCollection.role);
-      localStorage.setItem('warehouse_user_email', userFromCollection.email);
+      const { password: savedPassword, ...rest } = foundUser.data;
 
-      result.user.role = userFromCollection.role;
+      localStorage.setItem('warehouse_user', JSON.stringify(rest));
 
-      dispatch({ type: LOGIN, payload: result.user });
+      updateUser(rest);
+
       setIsPending(false);
     } catch (error) {
       setError(error.message);

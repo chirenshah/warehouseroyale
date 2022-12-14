@@ -1,27 +1,66 @@
+// Hooks
+import { useAuthContext } from '../../../../hooks/useAuthContext';
+import { useDocument } from '../../../../hooks/useDocument';
 // Components
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
+// Firestore services
+import {
+  acceptOffer,
+  declineOffer,
+} from '../../../../Database/firestoreService';
+// Consttants
+import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
-
 import './Offers.css';
 
 export default function Offers() {
+  const { user, updateUser } = useAuthContext();
+
+  const {
+    document: employee,
+    isPending: isEmployeePending,
+    error: employeeError,
+  } = useDocument(COLLECTION_USERS, user?.email);
+
+  const handleAcceptOffer = async (offer) => {
+    await acceptOffer(user, offer);
+
+    updateUser({ ...user, ...offer });
+  };
+
+  const handleDeclineOffer = async (offer) => {
+    await declineOffer(employee.email, offer.teamId, offer);
+  };
+
   return (
     <div className="offers">
       {/* ------------------------------ Active offers ------------------------------ */}
       <WarehouseHeader title="Active offers" />
       <WarehouseCard>
         <div className="offers__activeOffer">
-          <h3>1.</h3>
           <div>
-            <h3>
-              You are offered a position at Team X for X% share in organization
-            </h3>
-            <div className="offers__acceptDecline">
-              <WarehouseButton text="Accept" success />
-              <WarehouseButton text="Decline" warning />
-            </div>
+            {employee?.offers?.map(({ teamId, share }, index) => (
+              <div key={index}>
+                <h3>
+                  {index + 1}. You are offered a position at Team {teamId} for{' '}
+                  {share}% share in organization
+                </h3>
+                <div className="offers__acceptDecline">
+                  <WarehouseButton
+                    onClick={() => handleAcceptOffer({ teamId, share })}
+                    text="Accept"
+                    success
+                  />
+                  <WarehouseButton
+                    onClick={() => handleDeclineOffer({ teamId, share })}
+                    text="Decline"
+                    warning
+                  />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </WarehouseCard>
@@ -29,7 +68,11 @@ export default function Offers() {
       {/* ------------------------------ Past offers ------------------------------ */}
       <WarehouseHeader title="Past offers" my />
       <WarehouseCard>
-        <h3>1. At Team V for J% share</h3>
+        {employee?.pastOffers?.map(({ teamId, share }, index) => (
+          <h3 key={index}>
+            {index + 1}. At Team {teamId} for {share}% share
+          </h3>
+        ))}
       </WarehouseCard>
     </div>
   );
