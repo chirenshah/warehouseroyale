@@ -82,6 +82,7 @@
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
+    height: auto;
 }
 
 .cards-div-offer {
@@ -240,6 +241,7 @@
     border-radius: 0.5em;
     background-color: #fff;
     height: 9.4em;
+    overflow-y: auto;
 }
 
 .order-cards {

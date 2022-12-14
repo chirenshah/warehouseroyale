@@ -12,6 +12,7 @@ import {
     Recruitmentroom,
 } from "./components/views/Manager/dashboard/pages";
 import Messenger from "./components/views/Manager/dashboard/pages/Messenger";
+import GameLayout from "./components/views/Manager/game/GameLayout";
 
 function App() {
     const [user, setUser] = useState(null);
@@ -37,7 +38,7 @@ function App() {
                                 {/* dashboard  */}
                                 <Route
                                     path="/"
-                                    element={isManager ? null : <Game />}
+                                    element={isManager ? null : <GameLayout />}
                                 />
                                 <Route
                                     path="/performancemetric"
