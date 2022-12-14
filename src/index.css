@@ -1,11 +1,59 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
 
-body{
-    margin: 0;
-    padding:0;
-    font-family: "Open Sans", sans-serif;
+/* All colors has hsl values */
+:root {
+  --primaryFont: 'Open Sans', sans-sarif;
+
+  --topbarHeight: 70px;
+  --sidebarWidth: 300px;
+
+  --accentColor: 264, 17%, 23%;
+
+  --primaryBg: 0, 0%, 100%;
+  --secondaryBg: 180, 11%, 98%;
+
+  --primaryTextColor: 0, 0%, 100%;
+  --secondaryTextColor: 0, 0%, 0%;
+
+  --borderColor: 0, 0%, 83%;
+
+  --boxShadow: hsla(0, 0%, 0%, 0.1) 0px 4px 12px;
+
+  --transition: all ease-in-out 300ms;
 }
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities; 
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--primaryFont);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Reset styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
+
+/* Global styles */
+.inputError {
+  color: #ea1010;
+  font-size: 0.8rem;
+}

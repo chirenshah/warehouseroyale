@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useDrag } from "react-dnd";
 export default function Sku({ id, parent, setSku, expiretime }) {
-    const [timer, settimer] = useState(expiretime);
+    const [timer, settimer] = useState("00:01");
     const [{ isDragging }, drag] = useDrag(
         () => ({
             type: "sku",
-            item: { id, parent, timer },
+            item: { id, parent, expiretime },
             collect: (monitor) => ({
                 isDragging: !!monitor.isDragging(),
             }),
@@ -14,22 +14,29 @@ export default function Sku({ id, parent, setSku, expiretime }) {
     );
     //settimer(() => timeObject.getSeconds().toString());
     useEffect(() => {
-        if (parent !== "Inventory") {
-            const timeout = setTimeout(() => {
-                const timeObject = new Date("1970-01-01 00:" + timer);
-                if (timer !== "00:00" && timer !== "Expired") {
-                    timeObject.setSeconds(timeObject.getSeconds() - 1);
-                    var minute = timeObject.getMinutes();
-                    var seconds = timeObject.getSeconds();
-                    if (minute < 10) minute = "0" + minute;
+        const timeout = setTimeout(() => {
+            const timeObject = new Date();
+            if (
+                timer !== "00:00" &&
+                timer !== "Expired" &&
+                expiretime !== "Expired"
+            ) {
+                let diff = (timeObject.getTime() - expiretime.toDate()) / 1000;
+                let minuteInt = 4 - parseInt(diff / 60, 10);
+                let seconds = diff % 60;
+                if (minuteInt < 0) {
+                    settimer(() => "Expired");
+                } else {
+                    seconds = 59 - parseInt(seconds, 10);
+                    if (minuteInt < 10) var minute = "0" + minuteInt;
                     if (seconds < 10) seconds = "0" + seconds;
                     settimer(minute + ":" + seconds);
-                } else {
-                    settimer(() => "Expired");
                 }
-            }, 1000);
-            return () => clearTimeout(timeout);
-        }
+            } else {
+                settimer(() => "Expired");
+            }
+        }, 1000);
+        return () => clearTimeout(timeout);
     }, [timer, parent]);
     return (
         <div
@@ -38,13 +45,14 @@ export default function Sku({ id, parent, setSku, expiretime }) {
             style={{
                 opacity: isDragging ? 0.5 : 1,
                 color: timer === "Expired" ? "red" : "black",
-                justifyContent:
-                    parent === "Inventory" ? "center" : "space-around",
+                justifyContent: "space-around",
             }}
             onClick={() => setSku(id)}
         >
-            <p>{id}</p>
-            <div>{parent !== "Inventory" ? <p>{timer}</p> : null}</div>
+            <p id={id}></p>
+            <div>
+                <p>{timer}</p>
+            </div>
         </div>
     );
 }

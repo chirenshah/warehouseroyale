@@ -1,0 +1,34 @@
+.newUser__items {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.newUser__item {
+  width: 45%;
+  font-size: 1em;
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  margin-right: 20px;
+  padding: 5px;
+}
+
+.newUser__item > label {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: hsla(var(--secondaryTextColor), 0.4);
+}
+
+.newUser__item > input {
+  height: 20px;
+  padding: 10px;
+  border: 1px solid gray;
+  border-radius: 5px;
+}
+
+.newUser__item select {
+  height: 40px;
+  border-radius: 5px;
+}
