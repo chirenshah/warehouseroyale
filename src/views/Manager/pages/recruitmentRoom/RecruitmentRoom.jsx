@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useCollection } from '../../../../hooks/useCollection';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -34,6 +35,8 @@ import './RecruitmentRoom.css';
 
 export default function RecruitmentRoom() {
   const { user: manager } = useAuthContext();
+
+  const { response, callFirebaseService } = useFirestore();
 
   const [shareOffered, setShareOffered] = useState(null);
 
@@ -88,33 +91,44 @@ export default function RecruitmentRoom() {
   const handleMakeAnOffer = async () => {
     // TODO: Put validations
 
-    await makeAnOffer(employeeToBeHired, manager.teamId, {
-      share: shareOffered,
-      teamId: manager.teamId,
-    });
+    await callFirebaseService(
+      makeAnOffer(employeeToBeHired, manager.teamId, {
+        share: shareOffered,
+        teamId: manager.teamId,
+      })
+    );
   };
 
   const handleDeactivate = async (employeeId, currentTeamOffer) => {
-    await deactivateAnOffer(employeeId, manager.teamId, currentTeamOffer);
+    await callFirebaseService(
+      deactivateAnOffer(employeeId, manager.teamId, currentTeamOffer)
+    );
   };
 
   const handleFireEmployee = async () => {
-    await fireAnEmployee(
-      employeeToBeFired,
-      manager.teamId,
-      manager.email,
-      selectedFireDetails.share
+    await callFirebaseService(
+      fireAnEmployee(
+        employeeToBeFired,
+        manager.teamId,
+        manager.email,
+        selectedFireDetails.share
+      )
     );
   };
 
   return (
     <div className="recruitmentRoom">
+      {(allEmployeesError || response.error || teamError) && (
+        <WarehouseSnackbar
+          text={allEmployeesError || response.error || teamError}
+        />
+      )}
+
       {/* ------------------------------ Hire employee ------------------------------ */}
       <WarehouseHeader title="Hire employee" />
       <Box sx={{ display: 'flex', gap: '1rem' }}>
         <WarehouseCard className="recruitmentRoom__hireEmployee">
           {areAllEmployeesPending && <WarehouseLoader />}
-          {allEmployeesError && <WarehouseSnackbar text={allEmployeesError} />}
           {otherEmployees?.length && (
             <FormControl sx={{ m: 1, minWidth: 200 }}>
               <InputLabel>Select Employee</InputLabel>
@@ -136,7 +150,11 @@ export default function RecruitmentRoom() {
             value={shareOffered}
             type="number"
           />
-          <WarehouseButton onClick={handleMakeAnOffer} text="Make an Offer" />
+          <WarehouseButton
+            onClick={handleMakeAnOffer}
+            text="Make an Offer"
+            loading={response.isPending}
+          />
         </WarehouseCard>
         {employeeToBeHired && (
           <WarehouseCard>
@@ -154,26 +172,35 @@ export default function RecruitmentRoom() {
       {/* ------------------------------ Active offers ------------------------------ */}
       <WarehouseHeader title="Active offers" my />
       <WarehouseCard>
-        {team?.offers?.map((employee) => (
-          <div key={employee.email} className="recruitmentRoom__activeOffer">
-            <h4>{getEmployeeDetails(allEmployees, employee.email).fullName}</h4>
-            <WarehouseButton
-              onClick={() =>
-                handleDeactivate(
-                  employee.email,
-                  getCurrentTeamOffer(
-                    allEmployees,
+        {isTeamPending ? (
+          <WarehouseLoader />
+        ) : !team?.offers?.length ? (
+          <h4>No active offers</h4>
+        ) : (
+          team?.offers?.map((employee) => (
+            <div key={employee.email} className="recruitmentRoom__activeOffer">
+              <h4>
+                {getEmployeeDetails(allEmployees, employee.email).fullName}
+              </h4>
+              <WarehouseButton
+                onClick={() =>
+                  handleDeactivate(
                     employee.email,
-                    manager.teamId
+                    getCurrentTeamOffer(
+                      allEmployees,
+                      employee.email,
+                      manager.teamId
+                    )
                   )
-                )
-              }
-              text="Deactivate"
-              warning
-              sm
-            />
-          </div>
-        ))}
+                }
+                text="Deactivate"
+                warning
+                sm
+                loading={response.isPending}
+              />
+            </div>
+          ))
+        )}
       </WarehouseCard>
 
       {/* ------------------------------ Downsize the team ------------------------------ */}
@@ -197,6 +224,7 @@ export default function RecruitmentRoom() {
           <WarehouseButton
             onClick={handleFireEmployee}
             text="Fire an employee"
+            loading={response.isPending}
           />
         </WarehouseCard>
         {employeeToBeFired && (
