@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
 import { useCollection } from '../../../../hooks/useCollection';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -26,11 +27,14 @@ import { COLLECTION_USERS } from '../../../../utils/constants';
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
 import myTeamStackedChartData from '../../../../mockData/my-team-stacked-chart-data.json';
+import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 
 const roundItems = [1, 2, 3, 4];
 
 export default function MyTeam() {
   const { user: currentUser } = useAuthContext();
+
+  const { response, callFirebaseService } = useFirestore();
 
   // Manager
   const [managerShare, setManagerShare] = useState({});
@@ -129,18 +133,24 @@ export default function MyTeam() {
       return;
     }
 
-    await updateShares({
-      ...managerShare,
-      ...sharesOfEmployees,
-    });
+    await callFirebaseService(
+      updateShares({
+        ...managerShare,
+        ...sharesOfEmployees,
+      })
+    );
 
     setIsProceededToShare(false);
   };
 
   return (
     <div className="myTeam">
+      {teamMembersError ||
+        (response.error && (
+          <WarehouseSnackbar text={error || response.error} />
+        ))}
       <WarehouseHeader title={`Team ${currentUser.teamId}`} />
-      {loading && <WarehouseLoader />}
+      {areTeamMembersPending || (loading && <WarehouseLoader />)}
       {!isProceededToShare && newlyAddedEmployees?.length ? (
         <WarehouseCard>
           <List sx={{ width: '100%' }}>
@@ -173,6 +183,7 @@ export default function MyTeam() {
               employeesShare={{ ...newEmployeesShare, ...employeesShare }}
               handleOnChangeShare={(e) => handleOnChangeShare(e, 'new')}
               handleShareUpdate={handleShareUpdate}
+              response={response}
               error={error}
             />
           </WarehouseCard>
@@ -182,7 +193,7 @@ export default function MyTeam() {
       <Box sx={{ display: 'flex', gap: '1rem' }}>
         <Box sx={{ flex: 2 }}>
           <WarehouseCard>
-            {loading || !teamMembers ? (
+            {areTeamMembersPending || loading ? (
               <WarehouseLoader />
             ) : (
               <Chart
@@ -196,7 +207,7 @@ export default function MyTeam() {
         </Box>
         <Box sx={{ flex: 1.5, height: '100%' }}>
           <WarehouseCard>
-            {loading || !teamMembers ? (
+            {areTeamMembersPending || loading ? (
               <WarehouseLoader />
             ) : (
               <ShareList
@@ -206,6 +217,7 @@ export default function MyTeam() {
                 employeesShare={employeesShare}
                 handleOnChangeShare={(e) => handleOnChangeShare(e, 'existing')}
                 handleShareUpdate={handleShareUpdate}
+                response={response}
                 error={error}
               />
             )}
@@ -257,6 +269,7 @@ function ShareList({
   employeesShare,
   handleOnChangeShare,
   handleShareUpdate,
+  response,
   error,
 }) {
   return (
@@ -302,7 +315,11 @@ function ShareList({
           </ListItem>
         ))}
       </List>
-      <WarehouseButton onClick={handleShareUpdate} text="Update" />
+      <WarehouseButton
+        onClick={handleShareUpdate}
+        text="Update"
+        loading={response.isPending}
+      />
       {error && <span className="inputError">{error}</span>}
     </>
   );
