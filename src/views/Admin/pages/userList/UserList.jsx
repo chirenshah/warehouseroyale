@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
 import Popover from '@mui/material/Popover';
@@ -39,6 +40,8 @@ export default function UserList() {
     ['role', 'desc']
   );
 
+  const { response, callFirebaseService } = useFirestore();
+
   const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
@@ -52,7 +55,9 @@ export default function UserList() {
 
   const handleDelete = async (userDetails) => {
     if (userDetails.role === 'employee') {
-      await deleteEmployee(userDetails);
+      await callFirebaseService(deleteEmployee(userDetails));
+
+      handleClosePopup();
     } else {
       handleOpenModal();
     }
@@ -81,7 +86,7 @@ export default function UserList() {
     setUserDetails(userDetails);
   };
 
-  const handleClose = () => {
+  const handleClosePopup = () => {
     setAnchorEl(null);
   };
 
@@ -139,7 +144,7 @@ export default function UserList() {
               id={id}
               open={open}
               anchorEl={anchorEl}
-              onClose={handleClose}
+              onClose={handleClosePopup}
               anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'center',
@@ -164,9 +169,10 @@ export default function UserList() {
                     text="Yes"
                     warning
                     sm
+                    loading={response.isPending}
                   />
                   <WarehouseButton
-                    onClick={handleClose}
+                    onClick={handleClosePopup}
                     text="Cancel"
                     success
                     sm
@@ -186,6 +192,10 @@ export default function UserList() {
 
   return (
     <div className="userList">
+      {error ||
+        (response.error && (
+          <WarehouseSnackbar text={error || response.error} />
+        ))}
       <WarehouseHeader>
         <Link to="/new-user">
           <WarehouseButton text="Create new user" />
@@ -194,7 +204,6 @@ export default function UserList() {
       <WarehouseCard>
         <Box sx={{ height: 450, width: '100%' }}>
           {isPending && <WarehouseLoader />}
-          {error && <WarehouseSnackbar text={error} />}
           {users && (
             <DataGrid
               rows={users}
@@ -228,7 +237,10 @@ export default function UserList() {
         <DeleteManagerModal
           isModalOpen={isModalOpen}
           handleCloseModal={handleCloseModal}
+          handleClosePopup={handleClosePopup}
           manager={userDetails}
+          response={response}
+          callFirebaseService={callFirebaseService}
         />
       )}
     </div>
@@ -242,7 +254,14 @@ const style = {
   transform: 'translate(-50%, -50%)',
   bgcolor: 'background.paper',
 };
-function DeleteManagerModal({ isModalOpen, handleCloseModal, manager }) {
+function DeleteManagerModal({
+  isModalOpen,
+  handleCloseModal,
+  handleClosePopup,
+  manager,
+  response,
+  callFirebaseService,
+}) {
   const {
     documents: teamMembers,
     isPending: areTeamMembersPending,
@@ -255,63 +274,85 @@ function DeleteManagerModal({ isModalOpen, handleCloseModal, manager }) {
     if (teamMembers.length > 1 && selectedEmployee === '') return;
 
     if (selectedEmployee === '' && teamMembers.length === 1) {
-      await deleteManager(manager);
+      await callFirebaseService(deleteManager(manager));
+
+      handleCloseModal();
+    } else {
+      const employee = teamMembers.find(
+        (member) => member.fullName === selectedEmployee
+      );
+
+      await callFirebaseService(
+        deleteManagerAndPromoteEmployee(manager, employee)
+      );
+
+      handleCloseModal();
     }
-
-    const employee = teamMembers.find(
-      (member) => member.fullName === selectedEmployee
-    );
-
-    await deleteManagerAndPromoteEmployee(manager, employee);
 
     handleCloseModal();
   };
 
-  return (
-    <Modal
-      open={isModalOpen}
-      onClose={handleCloseModal}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      {areTeamMembersPending ? (
-        <WarehouseLoader />
-      ) : (
-        <Box sx={style}>
-          <WarehouseCard>
-            {teamMembers.length === 1 ? (
-              <Typography id="modal-modal-title" variant="h6" component="h2">
-                Manager has no employees in his team. You can submit to delete.
-              </Typography>
-            ) : (
-              <Typography id="modal-modal-title" variant="h6" component="h2">
-                Choose one of the employees to promote before you delete the
-                manager.
-              </Typography>
-            )}
-            {teamMembers.length > 1 && (
-              <select
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-                value={selectedEmployee}
-                required
-              >
-                <option value="" disabled selected>
-                  Select an employee
-                </option>
-                {teamMembers
-                  ?.filter((member) => member.role === 'employee')
-                  .map((member) => (
-                    <option key={member.email} value={member.fullName}>
-                      {member.fullName}
-                    </option>
-                  ))}
-              </select>
-            )}
+  useEffect(() => {
+    // Close popup as soon as modal opens
+    handleClosePopup();
+  }, []);
 
-            <WarehouseButton text="Submit" onClick={handleSubmit} />
-          </WarehouseCard>
-        </Box>
-      )}
-    </Modal>
+  return (
+    <>
+      {teamMembersError ||
+        (response.error && (
+          <WarehouseSnackbar text={error || response.error} />
+        ))}
+      <Modal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        {areTeamMembersPending ? (
+          <WarehouseLoader />
+        ) : (
+          <Box sx={style}>
+            <WarehouseCard>
+              {teamMembers.length === 1 || teamMembers.length === 0 ? (
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Manager has no employees in his team. You can submit to
+                  delete.
+                </Typography>
+              ) : (
+                <Typography id="modal-modal-title" variant="h6" component="h2">
+                  Choose one of the employees to promote before you delete the
+                  manager.
+                </Typography>
+              )}
+              {teamMembers.length > 1 && (
+                <select
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                  value={selectedEmployee}
+                  required
+                >
+                  <option value="" disabled selected>
+                    Select an employee
+                  </option>
+                  {teamMembers
+                    ?.filter((member) => member.role === 'employee')
+                    .map((member) => (
+                      <option key={member.email} value={member.fullName}>
+                        {member.fullName}
+                      </option>
+                    ))}
+                </select>
+              )}
+
+              <WarehouseButton
+                text="Submit"
+                onClick={handleSubmit}
+                loading={response.isPending}
+              />
+            </WarehouseCard>
+          </Box>
+        )}
+      </Modal>
+    </>
   );
 }

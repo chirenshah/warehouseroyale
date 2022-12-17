@@ -13,6 +13,7 @@ const ADD_DOCUMENT = 'ADD_DOCUMENT';
 const UPDATE_DOCUMENT = 'UPDATE_DOCUMENT';
 const DELETE_DOCUMENT = 'DELETE_DOCUMENT';
 const ERROR = 'ERROR';
+const FIREBASE_SERVICE = 'FIREBASE_SERVICE';
 
 const firestoreReducer = (state, action) => {
   switch (action.type) {
@@ -45,6 +46,13 @@ const firestoreReducer = (state, action) => {
         isPending: false,
         success: false,
         error: action.payload,
+      };
+    case FIREBASE_SERVICE:
+      return {
+        document: null,
+        isPending: false,
+        success: true,
+        error: null,
       };
 
     default:
@@ -108,5 +116,25 @@ export function useFirestore() {
     }
   };
 
-  return { response, dispatch, addDocument, updateDocument, deleteDocument };
+  const callFirebaseService = async (firebaseService) => {
+    dispatch({ type: IS_PENDING });
+
+    try {
+      await firebaseService;
+
+      dispatch({ type: FIREBASE_SERVICE });
+    } catch (error) {
+      dispatch({ type: ERROR, payload: error.message });
+      console.error('Error: ', error);
+    }
+  };
+
+  return {
+    response,
+    dispatch,
+    addDocument,
+    updateDocument,
+    deleteDocument,
+    callFirebaseService,
+  };
 }

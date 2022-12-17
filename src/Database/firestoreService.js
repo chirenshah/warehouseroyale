@@ -18,20 +18,6 @@ import { hashPassword } from '../utils/functions/hashPassword';
 import { matchPassword } from '../utils/functions/matchPassword';
 import { COLLECTION_TEAMS, COLLECTION_USERS } from '../utils/constants';
 
-const successResponse = (message) => {
-  return {
-    success: true,
-    message,
-  };
-};
-
-const failedResponse = (error) => {
-  return {
-    success: false,
-    message: error,
-  };
-};
-
 export const addAdmin = async (admin) => {
   try {
     const adminRef = doc(db, COLLECTION_USERS, admin.email);
@@ -43,6 +29,7 @@ export const addAdmin = async (admin) => {
     console.log('Admin successfully added!');
   } catch (error) {
     console.error('Error: ', error);
+    throw error;
   }
 };
 
@@ -75,7 +62,7 @@ export const fetchCOllection = async (
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -128,11 +115,10 @@ export const createNewUser = async (user) => {
       }
 
       console.log('Transaction successfully committed!');
-      return successResponse('User successfully created');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -163,7 +149,7 @@ export const loginUser = async (email, password) => {
     };
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -217,11 +203,10 @@ export const deleteEmployee = async (employee) => {
       });
 
       console.log('Transaction successfully committed!');
-      return successResponse('User successfully deleted');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -247,10 +232,9 @@ export const deleteManager = async (manager) => {
     await batch.commit();
 
     console.log('Batch successfully commited!');
-    return successResponse('Manage successfully deleted');
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -293,10 +277,9 @@ export const deleteManagerAndPromoteEmployee = async (manager, employee) => {
     await batch.commit();
 
     console.log('Batch successfully commited!');
-    return successResponse('Manage successfully deleted');
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -319,10 +302,9 @@ export const updateShares = async (data) => {
     await batch.commit();
 
     console.log('Batch successfully commited!');
-    return successResponse('Shares successfully updated');
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -352,11 +334,10 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
       });
 
       console.log('Transaction successfully committed!');
-      return successResponse('Offer successfully made');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -408,11 +389,10 @@ export const fireAnEmployee = async (
       });
 
       console.log('Transaction successfully committed!');
-      return successResponse('Team successfully downsized');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -441,11 +421,10 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
         }),
       });
       console.log('Transaction successfully committed!');
-      return successResponse('Offer successfully deactivated');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -548,11 +527,10 @@ export const acceptOffer = async (employee, offer) => {
       });
 
       console.log('Transaction successfully committed!');
-      return successResponse('Offer successfully accepted');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
 
@@ -582,10 +560,9 @@ export const declineOffer = async (employeeId, teamId, offer) => {
       });
 
       console.log('Transaction successfully committed!');
-      return successResponse('Offer successfully declined');
     });
   } catch (error) {
     console.error('Error: ', error);
-    return failedResponse(error.message);
+    throw error;
   }
 };
