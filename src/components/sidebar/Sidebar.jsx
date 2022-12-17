@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import Badge from '@mui/material/Badge';
 // Components
 import WarehouseLogo from '../ui/WarehouseLogo';
-import SwitchUser from '../SwitchUser';
+// import SwitchUser from '../SwitchUser';
 // Css
 import './Sidebar.css';
 

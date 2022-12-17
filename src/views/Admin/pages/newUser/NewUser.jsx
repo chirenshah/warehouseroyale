@@ -79,6 +79,10 @@ export default function NewUser() {
 
   return (
     <div className="newUser">
+      {createUserError ||
+        (teamsError && (
+          <WarehouseSnackbar text={createUserError || teamsError} />
+        ))}
       <WarehouseHeader title="New User" />
       <WarehouseCard>
         <form className="newUser__form" onSubmit={handleSubmit}>
@@ -183,7 +187,6 @@ export default function NewUser() {
               />
             </div>
           </div>
-          {createUserError && <WarehouseSnackbar text={createUserError} />}
           <WarehouseButton
             text="Create"
             success

@@ -47,32 +47,35 @@ export default function Topbar() {
 
   return (
     <div className="topbar">
+      {error || (userError && <WarehouseSnackbar text={error || userError} />)}
       <Link to="/">
         <span className="topbar__title">Dashboard</span>
       </Link>
-      <div onClick={() => setShowUserProfile(true)} className="topbar__user">
-        <img
-          src={user?.avatar || '/assets/anonymous.png'}
-          alt={user?.fullName}
-          className="topbar__userImage"
-        />{' '}
-        <span className="topbar__username">
-          Hi, {currentUser?.role === 'admin' ? 'Professor' : user?.fullName}
-        </span>
-        {showUserProfile && (
-          <UserProfile
-            ref={userProfileRef}
-            user={user}
-            avatar={user?.avatar || '/assets/anonymous.png'}
-            handleLogout={handleLogout}
-            setFile={setFile}
-            file={file}
-            currentUser={currentUser}
-          />
-        )}
-        {(isPending || isPendingUser) && <WarehouseLoader />}
-        {error && <WarehouseSnackbar text={error} />}
-      </div>
+      {isPending || isPendingUser ? (
+        <WarehouseLoader />
+      ) : (
+        <div onClick={() => setShowUserProfile(true)} className="topbar__user">
+          <img
+            src={user?.avatar || '/assets/anonymous.png'}
+            alt={user?.fullName}
+            className="topbar__userImage"
+          />{' '}
+          <span className="topbar__username">
+            Hi, {currentUser?.role === 'admin' ? 'Professor' : user?.fullName}
+          </span>
+          {showUserProfile && (
+            <UserProfile
+              ref={userProfileRef}
+              user={user}
+              avatar={user?.avatar || '/assets/anonymous.png'}
+              handleLogout={handleLogout}
+              setFile={setFile}
+              file={file}
+              currentUser={currentUser}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }

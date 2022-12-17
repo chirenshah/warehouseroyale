@@ -97,7 +97,7 @@ export default function MyTeam() {
 
       setLoading(false);
     })();
-  }, [teamMembers]);
+  }, [teamMembers, currentUser.email]);
 
   const handleOnChangeShare = (e, type) => {
     if (type === 'new') {

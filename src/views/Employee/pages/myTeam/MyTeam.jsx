@@ -10,6 +10,7 @@ import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
 import './MyTeam.css';
+import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 
 export default function MyTeam() {
   const { user: currentUser } = useAuthContext();
@@ -21,6 +22,7 @@ export default function MyTeam() {
 
   return (
     <div className="myTeam">
+      {teamMembersError && <WarehouseSnackbar text={teamMembersError} />}
       <WarehouseHeader title="Compensation structure" />
       <WarehouseCard>
         {areTeamMembersPending || !teamMembers ? (
