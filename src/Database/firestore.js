@@ -15,6 +15,7 @@ import {
   query,
   orderBy,
   limit,
+  increment
 } from 'firebase/firestore';
 
 import app from './config';
@@ -185,15 +186,16 @@ export async function writeInventory() {
   }).catch((err) => console.log(err));
 }
 
-export async function updateOrderList(selectData, label) {
-  let temp = {
-    orders: arrayRemove(selectData),
-  };
-  temp[label] = selectData;
-  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
-    console.log(err)
-  );
-}
+// export async function updateOrderList(selectData, label) {
+//   let temp = {
+//     orders: arrayRemove(selectData),
+//   };
+//   temp[label] = selectData;
+//   updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
+//     console.log(err)
+//   );
+// }
+
 export async function calculateLogs() {
   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
 
