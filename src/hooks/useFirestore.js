@@ -49,7 +49,7 @@ const firestoreReducer = (state, action) => {
       };
     case FIREBASE_SERVICE:
       return {
-        document: null,
+        document: action.payload,
         isPending: false,
         success: true,
         error: null,
@@ -120,9 +120,9 @@ export function useFirestore() {
     dispatch({ type: IS_PENDING });
 
     try {
-      await firebaseService;
+      const res = await firebaseService;
 
-      dispatch({ type: FIREBASE_SERVICE });
+      dispatch({ type: FIREBASE_SERVICE, payload: res });
     } catch (error) {
       dispatch({ type: ERROR, payload: error.message });
       console.error('Error: ', error);
