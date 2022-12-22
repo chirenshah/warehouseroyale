@@ -6,7 +6,7 @@ export const questions = [
   },
   {
     id: 2,
-    question: "Do individual is allowed to see other team's score ?",
+    question: "Are individuals allowed to see other team's score ?",
     answers: ['Yes', 'No'],
   },
   {
@@ -16,7 +16,7 @@ export const questions = [
   },
   {
     id: 4,
-    question: "Can employees message other team'ss manager",
+    question: "Can employees message other team's manager",
     answers: ['Yes', 'No'],
   },
   {

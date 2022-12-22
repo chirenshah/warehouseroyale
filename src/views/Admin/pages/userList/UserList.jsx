@@ -300,9 +300,7 @@ function DeleteManagerModal({
   return (
     <>
       {teamMembersError ||
-        (response.error && (
-          <WarehouseSnackbar text={error || response.error} />
-        ))}
+        (response.error && <WarehouseSnackbar text={response.error} />)}
       <Modal
         open={isModalOpen}
         onClose={handleCloseModal}
