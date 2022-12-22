@@ -565,11 +565,13 @@ export async function orderListListerner(setorderList) {
   });
 }
 
-export async function updateOrderList(orderList) {
-  updateDoc(doc(db, 'instance1', 'Room 1'), {
-    orders: orderList,
-  });
-}
+// Commenting out it right now since it's breaking the app. (Same name function already declared on line 198.)
+
+// export async function updateOrderList(orderList) {
+//   updateDoc(doc(db, 'instance1', 'Room 1'), {
+//     orders: orderList,
+//   });
+// }
 
 export async function chat_sendMessage(message) {
   if (message !== '') {
