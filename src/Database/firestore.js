@@ -23,38 +23,38 @@ import {
 import app from './config';
 
 export const db = getFirestore(app);
-export default function unsub(setcoord) {
-  onSnapshot(collection(db, 'instance1', 'Teams', 'Members'), (doc) => {
-    var ans = {};
-    doc.forEach((doc) => {
-      if (doc.id !== window.localStorage.admin) {
-        ans[doc.id] = doc.data();
-      }
-    });
-    setcoord(ans);
-  });
-}
+// export default function unsub(setcoord) {
+//   onSnapshot(collection(db, 'instance1', 'Teams', 'Members'), (doc) => {
+//     var ans = {};
+//     doc.forEach((doc) => {
+//       if (doc.id !== window.localStorage.admin) {
+//         ans[doc.id] = doc.data();
+//       }
+//     });
+//     setcoord(ans);
+//   });
+// }
 
-export async function updateCursor(x, y) {
-  try {
-    await setDoc(
-      doc(db, 'instance1', 'Teams', 'Members', window.localStorage.admin),
-      {
-        Cursor: [x, y],
-      }
-    );
-  } catch (e) {
-    console.error('Error adding document: ', e);
-  }
-}
+// export async function updateCursor(x, y) {
+//   try {
+//     await setDoc(
+//       doc(db, 'instance1', 'Teams', 'Members', window.localStorage.admin),
+//       {
+//         Cursor: [x, y],
+//       }
+//     );
+//   } catch (e) {
+//     console.error('Error adding document: ', e);
+//   }
+// }
 
-export async function writeConfig(roomWithOffer, connection) {
-  let something = {};
-  something[connection] = roomWithOffer;
-  updateDoc(doc(db, 'instance1', 'Room 1'), something).catch((error) => {
-    console.log(error.code);
-  });
-}
+// export async function writeConfig(roomWithOffer, connection) {
+//   let something = {};
+//   something[connection] = roomWithOffer;
+//   updateDoc(doc(db, 'instance1', 'Room 1'), something).catch((error) => {
+//     console.log(error.code);
+//   });
+// }
 
 export async function makeOffer(offer) {
   setDoc(
@@ -151,9 +151,30 @@ export async function flushbins(tmp) {
   updateDoc(sfDocRef, { Bins: tmp });
 }
 
-export async function writeInventory() {
+export async function createInstance(config) {
+  const batch = writeBatch(db);
+  let { bins, logs } = await writeInventory(config['Number Of SKU']);
+  let temp = {
+    Bins: { Receiving: bins },
+    Points: 0,
+    O1: {},
+    O2: {},
+    Logs: [],
+    userLogs: logs,
+  };
+  for (let i = 0; i < config['Total no. of teams']; i++) {
+    const teamRef = doc(db, config['Class Number'], 'Team ' + (i + 1));
+    batch.set(teamRef, temp);
+  }
+  batch.set(doc(db, config['Class Number'], 'Configuration'), config);
+  batch.commit().catch((error) => {
+    console.log(error.code);
+  });
+}
+
+export async function writeInventory(UniqueSku) {
   const data = Array.from(
-    { length: 20 },
+    { length: UniqueSku },
     () =>
       String.fromCharCode(65 + Math.floor(Math.random() * 26)) +
       '123' +
@@ -174,18 +195,7 @@ export async function writeInventory() {
       };
     fin_data.push(temp);
   }
-
-  updateDoc(doc(db, 'instance1', 'Logs'), {
-    Bins: logs,
-  });
-  updateDoc(doc(db, 'instance1', 'Room 1'), {
-    Bins: { Receiving: fin_data },
-    Points: 0,
-    O1: {},
-    O2: {},
-    Logs: [],
-    start_time: new Date(),
-  }).catch((err) => console.log(err));
+  return { bins: fin_data, logs: logs };
 }
 
 export async function updateOrderList(selectData, label) {
@@ -199,7 +209,6 @@ export async function updateOrderList(selectData, label) {
 }
 export async function calculateLogs() {
   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
-
   physicalLogs =
     physicalLogs.data()[localStorage.warehouse_user_email.replace('.', ',')];
   let actualLogs = await getDoc(doc(db, 'instance1', 'Room 1'));
@@ -383,7 +392,11 @@ export async function calculateScore(data, bins_val, bin_label) {
 // }
 
 export async function binUpdate(from, to, id, set_data, timer) {
-  const sfDocRef = doc(db, 'instance1', 'Room 1');
+  const sfDocRef = doc(
+    db,
+    'Class 1',
+    'Team ' + localStorage.getItem('warehouse_user').teamId
+  );
   try {
     await runTransaction(db, async (transaction) => {
       const sfDoc = await transaction.get(sfDocRef);
@@ -409,11 +422,11 @@ export async function binUpdate(from, to, id, set_data, timer) {
             from_var.push(data[from][j]);
           }
         }
-        // if (data[from].includes(id)) {
-        //     data[from] = data[from].filter((val) => val !== id);
-        // } else {
-        //     throw "Exception";
-        // }
+        if (data[from].includes(id)) {
+          data[from] = data[from].filter((val) => val !== id);
+        } else {
+          throw 'Exception';
+        }
       }
       if (count === 0) {
         throw 'Exception';
@@ -445,15 +458,19 @@ export async function binListener(
   setStartTime,
   setselectedOrders
 ) {
-  onSnapshot(doc(db, 'instance1', 'Room 1'), async (snapshot) => {
-    set_data(snapshot.data()['Bins']);
-    setorderList(snapshot.data()['orders']);
-    setStartTime(snapshot.data()['start_time'].toDate());
-    setselectedOrders({
-      O1: snapshot.data()['O1'],
-      O2: snapshot.data()['O2'],
-    });
-  });
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  onSnapshot(
+    doc(db, 'instance1', 'Room ' + user_info.teamId),
+    async (snapshot) => {
+      set_data(snapshot.data()['Bins']);
+      setorderList(snapshot.data()['orders']);
+      setStartTime(snapshot.data()['start_time'].toDate());
+      setselectedOrders({
+        O1: snapshot.data()['O1'],
+        O2: snapshot.data()['O2'],
+      });
+    }
+  );
 }
 
 export async function chat_sendMessage(message) {
@@ -467,56 +484,58 @@ export async function chat_sendMessage(message) {
   }
 }
 
-export async function readConfig() {
-  const docRef = doc(db, 'instance1', 'Room 1');
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return docSnap.data();
-  } else {
-    // doc.data() will be undefined in this case
-    console.log('No such document!');
-  }
-}
-export async function answerlistener(peerConnection, connection) {
-  onSnapshot(doc(db, 'instance1', 'Room 1'), async (snapshot) => {
-    if (
-      snapshot.data()[connection]['answer'] &&
-      !peerConnection.currentRemoteDescription
-    ) {
-      await peerConnection.setRemoteDescription(
-        new RTCSessionDescription(snapshot.data()[connection]['answer'])
-      );
-    }
-    if (
-      snapshot.data()['iceCandidates'] &&
-      !!peerConnection.currentRemoteDescription
-    ) {
-      peerConnection.addIceCandidate(snapshot.data()['iceCandidates']);
-    }
-  });
-}
+// export async function readConfig() {
+//   const docRef = doc(db, 'instance1', 'Room 1');
+//   const docSnap = await getDoc(docRef);
+//   if (docSnap.exists()) {
+//     return docSnap.data();
+//   } else {
+//     // doc.data() will be undefined in this case
+//     console.log('No such document!');
+//   }
+// }
 
-export async function addIceCandidate(json) {
-  await updateDoc(doc(db, 'instance1', 'Room 1'), {
-    iceCandidates: json,
-  });
-}
 export async function skuFinder(skuId) {
   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
   let records = physicalLogs.data()['Bins'][skuId];
   return records;
 }
-export async function icelistners(peerConnection) {
-  onSnapshot(
-    collection(db, 'instance1', 'Room 1', 'iceCandidates'),
-    (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const candidate = new RTCIceCandidate(change.doc.data());
-          peerConnection.addIceCandidate(candidate);
-        }
-      });
-    }
-  );
-}
-export async function createInstance() {}
+
+// export async function addIceCandidate(json) {
+//   await updateDoc(doc(db, 'instance1', 'Room 1'), {
+//     iceCandidates: json,
+//   });
+// }
+
+// export async function icelistners(peerConnection) {
+//   onSnapshot(
+//     collection(db, 'instance1', 'Room 1', 'iceCandidates'),
+//     (snapshot) => {
+//       snapshot.docChanges().forEach((change) => {
+//         if (change.type === 'added') {
+//           const candidate = new RTCIceCandidate(change.doc.data());
+//           peerConnection.addIceCandidate(candidate);
+//         }
+//       });
+//     }
+//   );
+// }
+
+// export async function answerlistener(peerConnection, connection) {
+//   onSnapshot(doc(db, 'instance1', 'Room 1'), async (snapshot) => {
+//     if (
+//       snapshot.data()[connection]['answer'] &&
+//       !peerConnection.currentRemoteDescription
+//     ) {
+//       await peerConnection.setRemoteDescription(
+//         new RTCSessionDescription(snapshot.data()[connection]['answer'])
+//       );
+//     }
+//     if (
+//       snapshot.data()['iceCandidates'] &&
+//       !!peerConnection.currentRemoteDescription
+//     ) {
+//       peerConnection.addIceCandidate(snapshot.data()['iceCandidates']);
+//     }
+//   });
+// }
