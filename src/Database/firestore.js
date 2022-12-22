@@ -15,9 +15,6 @@ import {
   query,
   orderBy,
   limit,
-  increment,
-  arrayRemove,
-  arrayUnion,
 } from 'firebase/firestore';
 
 import app from './config';
@@ -266,17 +263,107 @@ export async function getPerformanceData() {
   return physicalLogs;
 }
 
-export async function updateOrderListManager(selectData) {
-  let order = {};
-  for (let i = 0; i < selectData['data-items'].length; i++) {
-    order[selectData['data-items'][i]] = selectData['data-values'][i];
+// Standard Normal variate using Box-Muller transform.
+function gaussianRandom(mean = 0, stdev = 1) {
+  let u = 1 - Math.random(); //Converting [0,1) to (0,1)
+  let v = Math.random();
+  let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  // Transform to the desired mean and standard deviation:
+  return z * stdev + mean;
+}
+export async function creatOrderOptions(range) {
+  let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
+  let max_sku = 15;
+  let min_sku = 5;
+  let OrderedList = [];
+  // console.log(physicalLogs.data());
+  let sku_ids = Object.keys(physicalLogs.data()['Bins']);
+  for (let i = 0; i < range; i++) {
+    let order = {};
+    let amount = 0;
+    for (let j = 0; j < sku_ids.length; j++) {
+      if (Math.random() < 0.2) {
+        const quantity = Math.floor(
+          Math.random() * (max_sku - min_sku) + min_sku
+        );
+        order[sku_ids[j]] = quantity;
+        let val = Math.floor(quantity * gaussianRandom(1, 0.3));
+        amount += val;
+      }
+    }
+    order['Points'] = amount;
+    order['title'] = 'Order #' + Math.floor(Math.random() * (9999 - 999) + 999);
+    order['status'] = false;
+    if (amount > 0) OrderedList.push(order);
   }
-  let temp = {
-    orders: arrayUnion(order),
-  };
-  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
-    console.log(err)
-  );
+  return OrderedList;
+  // console.log(OrderedList);
+}
+
+export async function createOrders(setOrder, bins_val, bin_label) {
+  getDoc(doc(db, 'instance1', 'Room 1')).then((val) => {
+    let data = val.data()['Bins']['Inventory'];
+    let freq = {};
+    for (let z = 0; z < data.length; z++) {
+      if (Object.keys(data[z])[0] in freq) {
+        freq[Object.keys(data[z])[0]] += 1;
+      } else {
+        freq[Object.keys(data[z])[0]] = 1;
+      }
+    }
+    let orders1 = [];
+    let orders2 = [];
+    //let orderSize;
+    for (var keys in freq) {
+      let temp = {};
+      temp[keys] = Math.ceil(freq[keys] * Math.random());
+      let ran_val = Math.random();
+      if ((ran_val > 0.3) & (ran_val < 0.5)) {
+        orders1.push(temp);
+      } else if ((ran_val > 0.9) & (ran_val < 1)) {
+        orders2.push(temp);
+      }
+    }
+    let dict = { O1: orders1, O2: orders2 };
+    let points = 0;
+    setOrder((prev) => {
+      //console.log(bins_val[bin_label]);
+
+      for (let i = 0; i < prev[bin_label].length; i++) {
+        for (let j = 0; j < bins_val[bin_label].length; j++) {
+          if (
+            Object.keys(bins_val[bin_label][j])[0] ===
+            Object.keys(prev[bin_label][i])[0]
+          ) {
+            points += 1;
+
+            prev[bin_label][j][Object.keys(prev[bin_label][j])[0]] -= 1;
+
+            if (prev[bin_label][j][Object.keys(prev[bin_label][j])[0]] <= 0) {
+              delete prev[bin_label][j];
+            }
+          }
+        }
+      }
+      dict = prev;
+      dict[bin_label] = orders1;
+      getDoc(doc(db, 'instance1', 'Room 1')).then((val) => {
+        if (val.data()['Points']) {
+          points += val.data()['Points'];
+        }
+        updateDoc(doc(db, 'instance1', 'Room 1'), {
+          Points: points,
+        });
+      });
+      return dict;
+    });
+    bins_val[bin_label] = [];
+    // console.log(bin_label, bins_val);
+    if ('O1' in bins_val) {
+      updateDoc(doc(db, 'instance1', 'Room 1'), { Bins: bins_val });
+    }
+    updateDoc(doc(db, 'instance1', 'Room 1'), dict);
+  });
 }
 
 export async function calculateScore(data, bins_val, bin_label) {
@@ -471,6 +558,17 @@ export async function binListener(
       });
     }
   );
+}
+export async function orderListListerner(setorderList) {
+  onSnapshot(doc(db, 'instance1', 'Room 1'), async (snapshot) => {
+    setorderList(snapshot.data()['orders']);
+  });
+}
+
+export async function updateOrderList(orderList) {
+  updateDoc(doc(db, 'instance1', 'Room 1'), {
+    orders: orderList,
+  });
 }
 
 export async function chat_sendMessage(message) {

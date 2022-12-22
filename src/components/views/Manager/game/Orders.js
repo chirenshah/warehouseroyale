@@ -1,39 +1,37 @@
-import { Box } from '@mui/material';
-import React, { useState } from 'react';
-import { useRef, useEffect } from 'react';
+import { Box } from "@mui/material";
+import React, { useState } from "react";
 import "./../../../../style/ManagerGameLayout.css";
 
 function Orders(props) {
-    let itemList=[];
-    props["data-values"].forEach((item, index)=>{
-        itemList.push(
-            <Box id={props["data-id"] + "-item-super-class-" + index} className="cards-sub-content" key={index}>
-                <Box id={props["data-id"] + "-" + index + "-item"} className="cards-sub-content-key">Item {props["data-items"][index]}</Box>
-                <Box id={props["data-id"] + "-" + index + "-value"} className="cards-sub-content-value">{item}</Box>
-            </Box>
-        )
-    });
-
+    // console.log(props.data);
+    let title = props["data"]["title"];
+    let status = props["data"]["status"];
+    let itemList = { ...props.data };
+    delete itemList["title"];
+    delete itemList["status"];
     return (
-        <Box 
-            id={props["data-id"]}
-            data-offer-name={props["data-offer-name"]} 
-            data-number-of-offers-items={props["data-number-of-offers-items"]} 
-            data-values={props["data-values"]} 
-            data-items={props["data-items"]} 
-            className="order-cards"
-        >
-            <Box id={props["data-id"] + "-card-heading"} className="order-card-heading">
-                <Box className='order-card-heading-text'>
-                    {props["data-offer-name"]}
-                </Box>
-                <Box className='offer-status-div'>
-                    <Box className='offer-status'></Box>
+        <Box className="order-cards">
+            <Box className="order-card-heading">
+                <Box className="order-card-heading-text">{title}</Box>
+                <Box className="offer-status-div">
+                    <Box
+                        className="offer-status"
+                        style={{ backgroundColor: status ? "green" : null }}
+                    >
+                        {}
+                    </Box>
                 </Box>
             </Box>
-            {itemList}
+            {Object.keys(itemList).map((item, index) => (
+                <Box className="cards-sub-content" key={index}>
+                    <Box className="cards-sub-content-key">{item}</Box>
+                    <Box className="cards-sub-content-value">
+                        {itemList[item]}
+                    </Box>
+                </Box>
+            ))}
         </Box>
-    )
+    );
 }
 
-export default Orders
+export default Orders;
