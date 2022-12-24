@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 // Hooks
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { useCollection } from '../../hooks/useCollection';
@@ -14,8 +14,11 @@ import WarehouseCard from '../ui/WarehouseCard';
 import { COLLECTION_CHATS } from '../../utils/constants';
 // Css
 import './WarehouseChat.css';
+import { useEffect } from 'react';
 
 export default function WarehouseChat() {
+  const lastMessageRef = useRef(null);
+
   const { user: currentUser } = useAuthContext();
 
   const { response, addDocument } = useFirestore();
@@ -56,6 +59,11 @@ export default function WarehouseChat() {
 
     setText('');
   };
+
+  useEffect(() => {
+    // Scroll to latest message
+    lastMessageRef.current?.scrollIntoView();
+  }, [conversations]);
 
   return (
     <WarehouseCard className="warehouseChat__warehouseCard">
@@ -105,6 +113,7 @@ export default function WarehouseChat() {
                     currentUser={currentUser}
                   />
                 ))}
+                <div ref={lastMessageRef}></div>
               </div>
             )}
           </div>
