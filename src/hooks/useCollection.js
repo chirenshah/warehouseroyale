@@ -11,7 +11,8 @@ import { db } from '../Database/firestore';
 export function useCollection(
   collectionName,
   _whereQuery,
-  _orderQuery = ['createdAt', 'desc']
+  _orderQuery = ['createdAt', 'desc'],
+  isSubCollection
 ) {
   // if we don't use a ref to avoid infinite loop in useEffect
   // _whereQuery and _orderQuery are arrays and are "different" on every function call
@@ -38,6 +39,10 @@ export function useCollection(
         if (!whereQuery) {
           q = query(collection(db, collectionName));
         }
+        if (isSubCollection) {
+          q = query(collection(db, collectionName), orderBy(...orderQuery));
+        }
+
         const unsub = onSnapshot(q, (querySnapshot) => {
           const docs = [];
 

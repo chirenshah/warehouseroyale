@@ -5,6 +5,7 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
+  collection,
 } from 'firebase/firestore';
 import { db } from '../Database/firestore';
 
@@ -68,17 +69,24 @@ export function useFirestore() {
     success: null,
   });
 
-  const addDocument = async (collectionName, documentId, document) => {
+  const addDocument = async (
+    collectionName,
+    documentId,
+    document,
+    isSubCollection
+  ) => {
     dispatch({ type: IS_PENDING });
 
     try {
       document.createdAt = serverTimestamp(Date.now());
 
-      const addedDocument = await setDoc(
-        doc(db, collectionName, documentId),
-        document,
-        { merge: true }
-      );
+      const documentRef = isSubCollection
+        ? doc(collection(db, collectionName, documentId))
+        : doc(db, collectionName, documentId);
+
+      const addedDocument = await setDoc(documentRef, document, {
+        merge: true,
+      });
 
       dispatch({ type: ADD_DOCUMENT, payload: addedDocument });
     } catch (error) {

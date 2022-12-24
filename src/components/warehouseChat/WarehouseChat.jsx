@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { useCollection } from '../../hooks/useCollection';
+import { useFirestore } from '../../hooks/useFirestore';
 // Components
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 import WarehouseLoader from '../ui/WarehouseLoader';
@@ -17,6 +18,8 @@ import './WarehouseChat.css';
 export default function WarehouseChat() {
   const { user: currentUser } = useAuthContext();
 
+  const { response, addDocument } = useFirestore();
+
   const [activeChatMember, setActiveChatMember] = useState(null);
   const [text, setText] = useState('');
 
@@ -31,12 +34,27 @@ export default function WarehouseChat() {
     isPending: conversationsPending,
     error: conversationsError,
   } = useCollection(
-    `${COLLECTION_CHATS}/${currentUser.email}/members/${activeChatMember}/conversations`
+    `${COLLECTION_CHATS}/${currentUser.email}/members/${activeChatMember}/conversations`,
+    null,
+    ['createdAt', 'asc'],
+    true
   );
 
   const handleSubmit = async () => {
     // TODO: Perform db operations
-    console.log(text);
+    if (!text.length) return;
+
+    await addDocument(
+      COLLECTION_CHATS,
+      `${currentUser.email}/members/${activeChatMember}/conversations`,
+      {
+        sender: currentUser.email,
+        text,
+      },
+      true
+    );
+
+    setText('');
   };
 
   return (
@@ -91,7 +109,11 @@ export default function WarehouseChat() {
             )}
           </div>
           <div className="warehouseChat__input">
-            <input onChange={(e) => setText(e.target.value)} type="text" />
+            <input
+              onChange={(e) => setText(e.target.value)}
+              value={text}
+              type="text"
+            />
             <WarehouseButton text="Send" onClick={handleSubmit} />
           </div>
         </div>

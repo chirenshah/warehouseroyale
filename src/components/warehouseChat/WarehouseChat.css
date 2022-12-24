@@ -95,13 +95,12 @@
   top: 0;
   width: 100%;
   background-color: hsla(var(--accentColor));
+  z-index: 99;
 }
 
 .warehouseChat__rightChat {
-  overflow-y: scroll;
   display: flex;
   flex-direction: column;
-  height: 90%;
 }
 
 .warehouseChat__welcomeText {
@@ -110,9 +109,11 @@
 }
 
 .warehouseChat__messages {
+  overflow-y: scroll;
   position: absolute;
   bottom: 3rem;
   width: 100%;
+  height: 100%;
 }
 
 .warehouseChat__message {
