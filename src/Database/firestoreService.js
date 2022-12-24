@@ -603,22 +603,3 @@ export const initiateChat = async (senderId, receivereId) => {
     throw error;
   }
 };
-
-export const fetchChatMembers = async (senderId) => {
-  try {
-    const q = query(collection(db, COLLECTION_CHATS, senderId, 'members'));
-
-    const docs = [];
-
-    onSnapshot(q, (querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        docs.push({ ...doc.data(), id: doc.id });
-      });
-    });
-
-    return docs;
-  } catch (error) {
-    console.error('Error: ', error);
-    throw error;
-  }
-};

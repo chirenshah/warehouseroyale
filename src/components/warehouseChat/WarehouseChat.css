@@ -11,8 +11,8 @@
 .warehouseChat__left {
   height: 100%;
   width: 25%;
-  background-color: hsl(var(--primaryBg));
-  border: 1px solid hsl(var(--borderColor));
+  background-color: hsl(var(--accentColor));
+  color: hsl(var(--primaryTextColor));
 }
 
 .warehouseChat__selectTitle {
@@ -70,20 +70,24 @@
 
 .warehouseChat__user.active {
   color: hsl(var(--primaryTextColor));
-  background-color: hsla(var(--accentColor), 0.7);
+  background-color: hsla(var(--primaryBg), 0.3);
 }
 
 .warehouseChat__user:hover {
   color: hsl(var(--primaryTextColor));
-  background-color: hsla(var(--accentColor), 0.2);
+  background-color: hsla(var(--primaryBg), 0.1);
   transition: var(--transition);
+}
+
+.warehouseChat__right .warehouseChat__user {
+  background-color: unset;
+  cursor: unset;
 }
 
 .warehouseChat__right {
   position: relative;
   height: 100%;
   width: 75%;
-  border: 1px solid hsl(var(--borderColor));
 }
 
 .warehouseChat__rightHeader {
@@ -100,11 +104,23 @@
   height: 90%;
 }
 
+.warehouseChat__welcomeText {
+  margin: auto;
+  text-align: center;
+}
+
+.warehouseChat__messages {
+  position: absolute;
+  bottom: 3rem;
+  width: 100%;
+}
+
 .warehouseChat__message {
   background-color: hsla(var(--accentColor), 0.2);
   margin: 1rem;
   padding: 0.3rem 1rem;
   width: fit-content;
+  margin-left: auto;
   border-radius: 10px;
 }
 

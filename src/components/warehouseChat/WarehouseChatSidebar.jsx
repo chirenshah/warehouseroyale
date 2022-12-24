@@ -5,6 +5,7 @@ import { useCollection } from '../../hooks/useCollection';
 import { useFirestore } from '../../hooks/useFirestore';
 // Components
 import WarehouseLoader from '../ui/WarehouseLoader';
+import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 // Material icons
 import { MdModeEdit } from 'react-icons/md';
 import { MdOutlineArrowBackIos } from 'react-icons/md';
@@ -18,11 +19,13 @@ import { COLLECTION_TEAMS } from '../../utils/constants';
 export default function WarehouseChatSidebar({
   chatMembers,
   chatMembersPending,
+  activeChatMember,
+  setActiveChatMember,
 }) {
+  // TODO: Fix chat members list not updating after initiating chat with new member
   const { user: currentUser } = useAuthContext();
   const { response, callFirebaseService } = useFirestore();
 
-  const [activeChatMember, setActiveChatMember] = useState(null);
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showChatMembersList, setShowChatMembersList] = useState(true);
   const [showTeamList, setShowTeamList] = useState(false);
@@ -77,6 +80,10 @@ export default function WarehouseChatSidebar({
 
   return (
     <div className="warehouseChat__left">
+      {response.error ||
+        (teamsError && (
+          <WarehouseSnackbar text={response.error || teamsError} />
+        ))}
       <div className="warehouseChat__leftHeader">
         <h3>Chats</h3>
         <MdModeEdit
@@ -88,10 +95,13 @@ export default function WarehouseChatSidebar({
         />
       </div>
       {showChatMembersList &&
-        (chatMembersPending || !chatMembers ? (
+        (chatMembersPending || !chatMembers || response.isPending ? (
           <WarehouseLoader />
-        ) : !chatMembers?.length ? (
-          <h6>No chats to show</h6>
+        ) : !chatMembers.length ? (
+          <h6 style={{ marginTop: '10rem', textAlign: 'center' }}>
+            No chats to show. Please initiate a chat by clicking a pencil icon
+            above.
+          </h6>
         ) : (
           <ChatMembersList
             chatMembers={chatMembers}
