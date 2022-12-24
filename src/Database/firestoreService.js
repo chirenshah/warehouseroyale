@@ -16,7 +16,11 @@ import {
 import { db } from './firestore';
 import { hashPassword } from '../utils/functions/hashPassword';
 import { matchPassword } from '../utils/functions/matchPassword';
-import { COLLECTION_TEAMS, COLLECTION_USERS } from '../utils/constants';
+import {
+  COLLECTION_CHATS,
+  COLLECTION_TEAMS,
+  COLLECTION_USERS,
+} from '../utils/constants';
 
 export const addAdmin = async (admin) => {
   try {
@@ -561,6 +565,58 @@ export const declineOffer = async (employeeId, teamId, offer) => {
 
       console.log('Transaction successfully committed!');
     });
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const initiateChat = async (senderId, receivereId) => {
+  try {
+    const receiverRef = doc(db, COLLECTION_USERS, receivereId);
+    const senderChatRef = doc(
+      db,
+      COLLECTION_CHATS,
+      senderId,
+      'members',
+      receivereId
+    );
+
+    await runTransaction(db, async (transaction) => {
+      const foundReceiver = await transaction.get(receiverRef);
+
+      if (!foundReceiver.exists) {
+        throw new Error(`No user found with email ${receivereId}`);
+      }
+
+      const receiver = foundReceiver.data();
+
+      transaction.set(senderChatRef, {
+        typing: false,
+        fullName: receiver.fullName,
+      });
+
+      console.log('Transaction successfully committed!');
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const fetchChatMembers = async (senderId) => {
+  try {
+    const q = query(collection(db, COLLECTION_CHATS, senderId, 'members'));
+
+    const docs = [];
+
+    onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        docs.push({ ...doc.data(), id: doc.id });
+      });
+    });
+
+    return docs;
   } catch (error) {
     console.error('Error: ', error);
     throw error;

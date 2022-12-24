@@ -1,20 +1,30 @@
-.chat__warehouseCard {
+.warehouseChat__warehouseCard {
   padding: 0 !important;
   overflow: hidden;
 }
 
-.chat {
+.warehouseChat {
   display: flex;
 }
 
-.chat__left {
+.warehouseChat__left {
   height: 100%;
   width: 25%;
   background-color: hsl(var(--primaryBg));
   border: 1px solid hsl(var(--borderColor));
 }
 
-.chat__leftHeader {
+.warehouseChat__selectTitle {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-top: 1px solid hsl(var(--borderColor));
+  border-bottom: 1px solid hsl(var(--borderColor));
+  padding: 0.3rem;
+}
+
+.warehouseChat__leftHeader {
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -26,7 +36,7 @@
   height: 3rem;
 }
 
-.chat__leftList {
+.warehouseChat__leftList {
   display: flex;
   flex-direction: column;
   padding: 1rem;
@@ -36,7 +46,7 @@
   ); /* - leftHeader height - 1rem padding - 1rem padding*/
 }
 
-.chat__user {
+.warehouseChat__user {
   display: flex;
   align-items: center;
   position: relative;
@@ -46,50 +56,50 @@
   margin: 0.2rem 0;
 }
 
-.chat__userImage {
+.warehouseChat__userImage {
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
   margin-right: 5px;
 }
 
-.chat__right .chat__user span {
+.warehouseChat__right .warehouseChat__user span {
   color: hsl(var(--primaryTextColor));
 }
 
-.chat__user.active {
+.warehouseChat__user.active {
   color: hsl(var(--primaryTextColor));
   background-color: hsla(var(--accentColor), 0.7);
 }
 
-.chat__user:hover {
+.warehouseChat__user:hover {
   color: hsl(var(--primaryTextColor));
   background-color: hsla(var(--accentColor), 0.2);
   transition: var(--transition);
 }
 
-.chat__right {
+.warehouseChat__right {
   position: relative;
   height: 100%;
   width: 75%;
   border: 1px solid hsl(var(--borderColor));
 }
 
-.chat__rightHeader {
+.warehouseChat__rightHeader {
   position: absolute;
   top: 0;
   width: 100%;
   background-color: hsla(var(--accentColor));
 }
 
-.chat__rightChat {
+.warehouseChat__rightChat {
   overflow-y: scroll;
   display: flex;
   flex-direction: column;
   height: 90%;
 }
 
-.chat__message {
+.warehouseChat__message {
   background-color: hsla(var(--accentColor), 0.2);
   margin: 1rem;
   padding: 0.3rem 1rem;
@@ -97,13 +107,13 @@
   border-radius: 10px;
 }
 
-.chat__message.right {
+.warehouseChat__message.right {
   background-color: hsla(var(--accentColor), 0.5);
   align-self: flex-end;
   color: hsl(var(--primaryTextColor));
 }
 
-.chat__input {
+.warehouseChat__input {
   position: absolute;
   display: flex;
   align-items: center;
@@ -112,7 +122,7 @@
   background-color: hsla(var(--accentColor), 0.2);
 }
 
-.chat__input input {
+.warehouseChat__input input {
   flex: 1;
   padding: 0.5rem;
   border: none;
@@ -120,18 +130,18 @@
   font-size: 1rem;
 }
 
-.chat__leftList::-webkit-scrollbar {
+.warehouseChat__leftList::-webkit-scrollbar {
   width: 5px;
 }
 
-.chat__leftList::-webkit-scrollbar-thumb {
+.warehouseChat__leftList::-webkit-scrollbar-thumb {
   background-color: hsla(var(--accentColor), 0.2);
 }
 
-.chat__rightChat::-webkit-scrollbar {
+.warehouseChat__rightChat::-webkit-scrollbar {
   width: 5px;
 }
 
-.chat__rightChat::-webkit-scrollbar-thumb {
+.warehouseChat__rightChat::-webkit-scrollbar-thumb {
   background-color: hsla(var(--accentColor), 0.2);
 }
