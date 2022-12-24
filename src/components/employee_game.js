@@ -437,30 +437,6 @@ export default function Game() {
               {chat ? 'Chat' : 'x'}
             </button>
             <ChatBox expand={chat} />
-            {!chat ? (
-              <div
-                style={{
-                  display: 'flex',
-                }}
-              >
-                <input
-                  onChange={(e) => {
-                    setMessage(e.target.value);
-                  }}
-                  value={message}
-                  placeholder="say something nice"
-                />
-                <AiOutlineSend
-                  width={10}
-                  fontSize={30}
-                  color="#6649b8"
-                  onClick={() => {
-                    chat_sendMessage(message);
-                    setMessage('');
-                  }}
-                ></AiOutlineSend>
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

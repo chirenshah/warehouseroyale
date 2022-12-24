@@ -5,7 +5,6 @@
 
 .chat {
   display: flex;
-  height: 80vh;
 }
 
 .chat__left {

@@ -14,6 +14,7 @@ import {
   serverTimestamp,
   query,
   orderBy,
+  increment,
   limit,
 } from 'firebase/firestore';
 
@@ -157,8 +158,11 @@ export async function createInstance(config) {
     O1: {},
     O2: {},
     Logs: [],
+    start_time: config['start_time'],
+    orders: [],
     userLogs: logs,
   };
+  batch.set(doc(db, 'Class List', config['Class Number']), {});
   for (let i = 0; i < config['Total no. of teams']; i++) {
     const teamRef = doc(db, config['Class Number'], 'Team ' + (i + 1));
     batch.set(teamRef, temp);
@@ -195,15 +199,15 @@ export async function writeInventory(UniqueSku) {
   return { bins: fin_data, logs: logs };
 }
 
-export async function updateOrderList(selectData, label) {
-  let temp = {
-    orders: arrayRemove(selectData),
-  };
-  temp[label] = selectData;
-  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
-    console.log(err)
-  );
-}
+// export async function updateOrderList(selectData, label) {
+//   let temp = {
+//     orders: arrayRemove(selectData),
+//   };
+//   temp[label] = selectData;
+//   updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
+//     console.log(err)
+//   );
+// }
 export async function calculateLogs() {
   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
   physicalLogs =
@@ -484,6 +488,7 @@ export async function binUpdate(from, to, id, set_data, timer) {
     'Class 1',
     'Team ' + localStorage.getItem('warehouse_user').teamId
   );
+  console.log('Team ' + localStorage.getItem('warehouse_user').teamId);
   try {
     await runTransaction(db, async (transaction) => {
       const sfDoc = await transaction.get(sfDocRef);
@@ -547,7 +552,7 @@ export async function binListener(
 ) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   onSnapshot(
-    doc(db, 'instance1', 'Room ' + user_info.teamId),
+    doc(db, 'Class 1', 'Team ' + user_info.teamId),
     async (snapshot) => {
       set_data(snapshot.data()['Bins']);
       setorderList(snapshot.data()['orders']);
@@ -571,13 +576,16 @@ export async function updateOrderList(orderList) {
   });
 }
 
-export async function chat_sendMessage(message) {
+export async function chat_sendMessage(message, to) {
   if (message !== '') {
     const messagesRef = collection(db, 'instance1', 'Room 1', 'Chats');
+    let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+    console.log(message, user_info.email);
     addDoc(messagesRef, {
       text: message,
       createdAt: serverTimestamp(),
-      user: localStorage.warehouse_user_email,
+      sender: user_info.email,
+      receiver: to,
     });
   }
 }
