@@ -199,15 +199,15 @@ export async function writeInventory(UniqueSku) {
   return { bins: fin_data, logs: logs };
 }
 
-// export async function updateOrderList(selectData, label) {
-//   let temp = {
-//     orders: arrayRemove(selectData),
-//   };
-//   temp[label] = selectData;
-//   updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
-//     console.log(err)
-//   );
-// }
+export async function updateOrderList(selectData, label) {
+  let temp = {
+    orders: arrayRemove(selectData),
+  };
+  temp[label] = selectData;
+  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
+    console.log(err)
+  );
+}
 export async function calculateLogs() {
   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
   physicalLogs =

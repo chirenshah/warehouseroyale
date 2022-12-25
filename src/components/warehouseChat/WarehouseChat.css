@@ -5,6 +5,7 @@
 
 .warehouseChat {
   display: flex;
+  height: 80vh;
 }
 
 .warehouseChat__left {
