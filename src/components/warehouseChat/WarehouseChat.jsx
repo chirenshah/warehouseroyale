@@ -106,18 +106,20 @@ export default function WarehouseChat() {
             ) : conversationsPending ? (
               <WarehouseLoader />
             ) : (
-              <div className="warehouseChat__messages">
-                {conversations?.map(({ id, text, createdAt, sender }) => (
-                  <Message
-                    key={id}
-                    id={id}
-                    text={text}
-                    createdAt={createdAt}
-                    sender={sender}
-                    currentUser={currentUser}
-                  />
-                ))}
-                <div ref={lastMessageRef}></div>
+              <div className="warehouseChat__messagesWrapper">
+                <div className="warehouseChat__messages">
+                  {conversations?.map(({ id, text, createdAt, sender }) => (
+                    <Message
+                      key={id}
+                      id={id}
+                      text={text}
+                      createdAt={createdAt}
+                      sender={sender}
+                      currentUser={currentUser}
+                    />
+                  ))}
+                  <div ref={lastMessageRef}></div>
+                </div>
               </div>
             )}
           </div>
