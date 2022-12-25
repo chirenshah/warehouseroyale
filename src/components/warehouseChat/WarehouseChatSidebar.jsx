@@ -21,8 +21,8 @@ export default function WarehouseChatSidebar({
   chatMembersPending,
   activeChatMember,
   setActiveChatMember,
+  loadNewChatMember,
 }) {
-  // TODO: Fix chat members list not updating after initiating chat with new member
   const { user: currentUser } = useAuthContext();
   const { response, callFirebaseService } = useFirestore();
 
@@ -72,7 +72,7 @@ export default function WarehouseChatSidebar({
       setActiveChatMember(receiverId);
       handleShowList('chatMemberList');
     } else {
-      await callFirebaseService(initiateChat(currentUser.email, receiverId));
+      loadNewChatMember({ id: receiverId });
       setActiveChatMember(receiverId);
       handleShowList('chatMemberList');
     }

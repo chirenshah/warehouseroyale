@@ -571,33 +571,59 @@ export const declineOffer = async (employeeId, teamId, offer) => {
   }
 };
 
-export const initiateChat = async (senderId, receivereId) => {
+export const addChat = async (senderId, receiverId, chat) => {
   try {
-    const receiverRef = doc(db, COLLECTION_USERS, receivereId);
-    const senderChatRef = doc(
+    chat.createdAt = serverTimestamp(Date.now());
+
+    const senderRef = doc(
       db,
       COLLECTION_CHATS,
       senderId,
       'members',
-      receivereId
+      receiverId
     );
 
-    await runTransaction(db, async (transaction) => {
-      const foundReceiver = await transaction.get(receiverRef);
+    const receiverRef = doc(
+      db,
+      COLLECTION_CHATS,
+      receiverId,
+      'members',
+      senderId
+    );
 
-      if (!foundReceiver.exists) {
-        throw new Error(`No user found with email ${receivereId}`);
-      }
+    const senderConversationsRef = doc(
+      collection(
+        db,
+        COLLECTION_CHATS,
+        senderId,
+        'members',
+        receiverId,
+        'conversations'
+      )
+    );
 
-      const receiver = foundReceiver.data();
+    const receiverConversationsRef = doc(
+      collection(
+        db,
+        COLLECTION_CHATS,
+        receiverId,
+        'members',
+        senderId,
+        'conversations'
+      )
+    );
 
-      transaction.set(senderChatRef, {
-        typing: false,
-        fullName: receiver.fullName,
-      });
+    const batch = writeBatch(db);
 
-      console.log('Transaction successfully committed!');
-    });
+    batch.set(senderRef, { typing: false });
+    batch.set(receiverRef, { typing: false });
+
+    batch.set(senderConversationsRef, chat);
+    batch.set(receiverConversationsRef, chat);
+
+    await batch.commit();
+
+    console.log('Batch successfully commited!');
   } catch (error) {
     console.error('Error: ', error);
     throw error;

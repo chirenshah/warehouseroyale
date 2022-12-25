@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 // Hooks
 import { useAuthContext } from '../../hooks/useAuthContext';
 import { useCollection } from '../../hooks/useCollection';
@@ -10,18 +10,19 @@ import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseChatSidebar from './WarehouseChatSidebar';
 import WarehouseButton from '../ui/WarehouseButton';
 import WarehouseCard from '../ui/WarehouseCard';
+// Firebase services
+import { addChat } from '../../Database/firestoreService';
 // Constants
 import { COLLECTION_CHATS } from '../../utils/constants';
 // Css
 import './WarehouseChat.css';
-import { useEffect } from 'react';
 
 export default function WarehouseChat() {
   const lastMessageRef = useRef(null);
 
   const { user: currentUser } = useAuthContext();
 
-  const { response, addDocument } = useFirestore();
+  const { response, callFirebaseService } = useFirestore();
 
   const [activeChatMember, setActiveChatMember] = useState(null);
   const [text, setText] = useState('');
@@ -47,14 +48,11 @@ export default function WarehouseChat() {
     // TODO: Perform db operations
     if (!text.length) return;
 
-    await addDocument(
-      COLLECTION_CHATS,
-      `${currentUser.email}/members/${activeChatMember}/conversations`,
-      {
+    await callFirebaseService(
+      addChat(currentUser.email, activeChatMember, {
         sender: currentUser.email,
         text,
-      },
-      true
+      })
     );
 
     setText('');
@@ -65,19 +63,25 @@ export default function WarehouseChat() {
     lastMessageRef.current?.scrollIntoView();
   }, [conversations]);
 
+  const loadNewChatMember = (newChatMember) => {
+    chatMembers.unshift(newChatMember);
+  };
+
   return (
     <WarehouseCard className="warehouseChat__warehouseCard">
       <div className="warehouseChat">
-        {chatMembersError ||
-          (conversationsError && (
-            <WarehouseSnackbar text={chatMembersError || conversationsError} />
-          ))}
+        {(chatMembersError || conversationsError || response.error) && (
+          <WarehouseSnackbar
+            text={chatMembersError || conversationsError || response.error}
+          />
+        )}
         {/* ------------------------------ Chat sidebar ------------------------------ */}
         <WarehouseChatSidebar
           chatMembers={chatMembers}
           chatMembersPending={chatMembersPending}
           activeChatMember={activeChatMember}
           setActiveChatMember={setActiveChatMember}
+          loadNewChatMember={loadNewChatMember}
         />
         {/* ------------------------------ Chat box ------------------------------ */}
         <div className="warehouseChat__right">
