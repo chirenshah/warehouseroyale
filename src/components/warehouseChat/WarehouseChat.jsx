@@ -60,7 +60,11 @@ export default function WarehouseChat() {
 
   useEffect(() => {
     // Scroll to latest message
-    lastMessageRef.current?.scrollIntoView();
+    lastMessageRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'start',
+    });
   }, [conversations]);
 
   const loadNewChatMember = (newChatMember) => {
