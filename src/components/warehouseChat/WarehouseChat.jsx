@@ -128,6 +128,11 @@ export default function WarehouseChat() {
               onChange={(e) => setText(e.target.value)}
               value={text}
               type="text"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  handleSubmit(event);
+                }
+              }}
             />
             <WarehouseButton text="Send" onClick={handleSubmit} />
           </div>
