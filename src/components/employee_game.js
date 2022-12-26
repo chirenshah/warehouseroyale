@@ -7,14 +7,8 @@ import {
   binListener,
   calculateLogs,
   calculateScore,
-  chat_sendMessage,
-  createOrders,
-
-  // flushbins,
-  // updateCursor,
   updateLogs,
   updateOrderList,
-  writeInventory,
 } from '../Database/firestore';
 // import { room, sendMessage, cursorListner } from "./webRTC";
 import { Outlet, useNavigate } from 'react-router-dom';
@@ -77,10 +71,6 @@ export default function Game() {
 
   useEffect(() => {
     binListener(setSku_data, setorderList, setStartTime, setselectedOrders);
-    //npm writeInventory();
-    //createOrders(setorderList, sku_data);
-    //cursorListner(setcoord);
-    //room();
   }, []);
 
   useEffect(() => {
@@ -119,13 +109,6 @@ export default function Game() {
     }, 1000);
     return () => clearTimeout(timeout);
   }, [timer]);
-  // const handleWindowMouseMove = (event) => {
-  //     var now = Date.now();
-  //     if (now % 20 === 0) {
-  //         sendMessage(event.clientX, event.clientY);
-  //     }
-  // };
-  //window.addEventListener("mousemove", handleWindowMouseMove);
 
   function chooseSelected(reference) {
     if (selected) {
@@ -141,7 +124,6 @@ export default function Game() {
       } else if (label === 'O2') {
         label = 'Order 2';
       }
-      console.log(selected);
       selected.childNodes[1].value = label;
       selected.classList = '';
     }
@@ -172,18 +154,7 @@ export default function Game() {
     );
   });
   return (
-    <div>
-      {/* <div
-          style={{
-            position: "absolute",
-            top: coord["y"],
-            left: coord["x"],
-            backgroundColor: "red",
-            color: "red",
-          }}
-        >
-          x
-        </div> */}
+    <div style={{ overflowX: 'hidden' }}>
       <section className="inventory">
         <div className="barcode">
           <img
@@ -226,12 +197,12 @@ export default function Game() {
                     if (Object.keys(selectedOrders['O1']).length === 0) {
                       let temp = selectedOrders;
                       temp['O1'] = element;
-                      setselectedOrders(temp);
+                      // setselectedOrders(temp);
                       updateOrderList(element, 'O1');
                     } else if (Object.keys(selectedOrders['O2']).length === 0) {
                       let temp = selectedOrders;
                       temp['O2'] = element;
-                      setselectedOrders(temp);
+                      // setselectedOrders(temp);
                       updateOrderList(element, 'O2');
                     } else {
                       alert("Previous order's need to be completed");
@@ -298,6 +269,7 @@ export default function Game() {
                     </div>
                   );
                 }
+                return null;
               })}
             </div>
           </div>
@@ -330,6 +302,7 @@ export default function Game() {
                     </div>
                   );
                 }
+                return null;
               })}
             </div>
           </div>
