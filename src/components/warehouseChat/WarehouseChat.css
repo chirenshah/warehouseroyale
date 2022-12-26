@@ -5,13 +5,14 @@
 
 .warehouseChat {
   display: flex;
+  height: 80vh;
 }
 
 .warehouseChat__left {
   height: 100%;
   width: 25%;
-  background-color: hsl(var(--primaryBg));
-  border: 1px solid hsl(var(--borderColor));
+  background-color: hsl(var(--accentColor));
+  color: hsl(var(--primaryTextColor));
 }
 
 .warehouseChat__selectTitle {
@@ -69,20 +70,24 @@
 
 .warehouseChat__user.active {
   color: hsl(var(--primaryTextColor));
-  background-color: hsla(var(--accentColor), 0.7);
+  background-color: hsla(var(--primaryBg), 0.3);
 }
 
 .warehouseChat__user:hover {
   color: hsl(var(--primaryTextColor));
-  background-color: hsla(var(--accentColor), 0.2);
+  background-color: hsla(var(--primaryBg), 0.1);
   transition: var(--transition);
+}
+
+.warehouseChat__right .warehouseChat__user {
+  background-color: unset;
+  cursor: unset;
 }
 
 .warehouseChat__right {
   position: relative;
   height: 100%;
   width: 75%;
-  border: 1px solid hsl(var(--borderColor));
 }
 
 .warehouseChat__rightHeader {
@@ -90,13 +95,35 @@
   top: 0;
   width: 100%;
   background-color: hsla(var(--accentColor));
+  z-index: 99;
 }
 
 .warehouseChat__rightChat {
-  overflow-y: scroll;
+  width: 100%;
+  height: 100%;
+  position: absolute;
   display: flex;
   flex-direction: column;
-  height: 90%;
+  justify-content: center;
+}
+
+.warehouseChat__welcomeText {
+  text-align: center;
+}
+
+.warehouseChat__messagesWrapper {
+  height: 100%;
+  /* position: relative; */
+  overflow-y: auto;
+}
+
+.warehouseChat__messages {
+  margin-top: 5rem;
+  margin-bottom: 4rem;
+  width: 100%;
+  /* height: auto;
+  position: absolute; */
+  bottom: 3rem;
 }
 
 .warehouseChat__message {
@@ -108,6 +135,7 @@
 }
 
 .warehouseChat__message.right {
+  margin-left: auto;
   background-color: hsla(var(--accentColor), 0.5);
   align-self: flex-end;
   color: hsl(var(--primaryTextColor));

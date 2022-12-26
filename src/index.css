@@ -7,15 +7,15 @@
   --topbarHeight: 70px;
   --sidebarWidth: 300px;
 
-  --accentColor: 264, 17%, 23%;
+  --accentColor: 264, 17%, 23%; /* Purple */
 
-  --primaryBg: 0, 0%, 100%;
-  --secondaryBg: 180, 11%, 98%;
+  --primaryBg: 0, 0%, 100%; /* White */
+  --secondaryBg: 180, 11%, 98%; /* Light gray */
 
-  --primaryTextColor: 0, 0%, 100%;
-  --secondaryTextColor: 0, 0%, 0%;
+  --primaryTextColor: 0, 0%, 100%; /* White */
+  --secondaryTextColor: 0, 0%, 0%; /* Black */
 
-  --borderColor: 0, 0%, 83%;
+  --borderColor: 0, 0%, 83%; /* Gray */
 
   --boxShadow: hsla(0, 0%, 0%, 0.1) 0px 4px 12px;
 
