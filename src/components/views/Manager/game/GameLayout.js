@@ -65,17 +65,17 @@ function GameLayout() {
     object['data-items'] = [];
 
     let count = 0;
-    if (itemXValue != 0) {
+    if (itemXValue !== 0) {
       object['data-items'].push('X');
       object['data-values'].push(itemXValue);
       count += 1;
     }
-    if (itemYValue != 0) {
+    if (itemYValue !== 0) {
       object['data-items'].push('Y');
       object['data-values'].push(itemYValue);
       count += 1;
     }
-    if (itemZValue != 0) {
+    if (itemZValue !== 0) {
       object['data-items'].push('Z');
       object['data-values'].push(itemZValue);
       count += 1;

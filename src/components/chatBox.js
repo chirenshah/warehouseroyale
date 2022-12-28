@@ -13,10 +13,10 @@ import '../style/chatBox.css';
 
 import { useCollectionData } from 'react-firebase-hooks/firestore';
 import app from '../Database/config';
-import { chat_sendMessage } from '../Database/firestore';
-import { useState } from 'react';
+import { chat_sendMessage, unsub } from '../Database/firestore';
+import { useEffect, useState } from 'react';
 import { AiOutlineSend } from 'react-icons/ai';
-import { azAZ } from '@mui/material/locale';
+
 export function ChatBox({ expand }) {
   const [message, setMessage] = useState('');
   const db = getFirestore(app);
@@ -32,6 +32,12 @@ export function ChatBox({ expand }) {
     orderBy('createdAt', 'desc'),
     limit(100)
   );
+
+  useEffect(() => {
+    unsub();
+  });
+  // let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  // let list = getDocs(doc(db, user_info.classId, 'Team ' + user_info.teamId)).get("userList");
 
   let [messages] = useCollectionData(q, { idField: 'id' });
   return (
@@ -60,7 +66,7 @@ export function ChatBox({ expand }) {
             fontSize={30}
             color="#6649b8"
             onClick={() => {
-              chat_sendMessage(message, 'Everyone');
+              chat_sendMessage(message, 'hetmandapara@asu.edu');
               setMessage('');
             }}
           ></AiOutlineSend>

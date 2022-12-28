@@ -16,22 +16,47 @@ import {
   orderBy,
   increment,
   limit,
+  arrayRemove,
 } from 'firebase/firestore';
+import { messages } from '../components/warehouseChat/helpers';
 
 import app from './config';
 
 export const db = getFirestore(app);
-// export default function unsub(setcoord) {
-//   onSnapshot(collection(db, 'instance1', 'Teams', 'Members'), (doc) => {
-//     var ans = {};
-//     doc.forEach((doc) => {
-//       if (doc.id !== window.localStorage.admin) {
-//         ans[doc.id] = doc.data();
-//       }
-//     });
-//     setcoord(ans);
-//   });
-// }
+export async function unsub() {
+  let individualQueries = [];
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let list = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  list = list.data()['userList'];
+  for (let i = 0; i < list.length; i++) {
+    let chatName = [user_info.email, list[i]].sort().join('-');
+    console.log(chatName);
+    individualQueries.push(
+      query(
+        collection(db, user_info.classId, 'Team ' + user_info.teamId, chatName),
+        orderBy('createdAt', 'desc'),
+        limit(100)
+      )
+    );
+  }
+  for (let j = 0; j < list.length; j++) {
+    let messages = [];
+    onSnapshot(individualQueries[j], (snapshot) => {
+      console.log(snapshot.docs.map((doc) => messages.push(doc.data())));
+    });
+  }
+  // onSnapshot(collection(db, 'instance1', 'Teams', 'Members'), (doc) => {
+  //   var ans = {};
+  //   doc.forEach((doc) => {
+  //     if (doc.id !== window.localStorage.admin) {
+  //       ans[doc.id] = doc.data();
+  //     }
+  //   });
+  //   setcoord(ans);
+  // });
+}
 
 // export async function updateCursor(x, y) {
 //   try {
@@ -93,13 +118,15 @@ export async function deleteOffer(item) {
     });
 }
 export async function returnSku(setskuList) {
-  getDoc(doc(db, 'instance1', 'Logs')).then((val) => {
-    setskuList(Object.keys(val.data()['Bins']));
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  getDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId)).then((val) => {
+    setskuList(Object.keys(val.data()['userLogs']));
   });
 }
 
 export async function updateLogs(from, to, id, quant) {
-  let sfDocRef = doc(db, 'instance1', 'Logs');
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
   if (to === 'Order 1') {
     to = 'O1';
   }
@@ -114,8 +141,8 @@ export async function updateLogs(from, to, id, quant) {
           throw Error('Document does not exist!');
         }
         let data = sfDoc.data();
-        let bins = data['Bins'];
-        let bin_id = data['Bins'][id];
+        let bins = data['userLogs'];
+        let bin_id = data['userLogs'][id];
         if (!(from in bin_id)) bin_id[from] = 0;
         if (!(to in bin_id)) bin_id[to] = 0;
         bin_id[from] -= quant;
@@ -125,7 +152,7 @@ export async function updateLogs(from, to, id, quant) {
         if (bin_id[from] === 0) delete bin_id[from];
         if (bin_id[to] === 0) delete bin_id[to];
 
-        let email = localStorage.warehouse_user_email.replace('.', ',');
+        let email = user_info.email.replace('.', ',');
         let personal = data[email];
         if (personal === undefined) personal = [];
         for (let i = 0; i < quant; i++) {
@@ -133,8 +160,7 @@ export async function updateLogs(from, to, id, quant) {
         }
         let file = {};
         file[email] = personal;
-
-        file['Bins'] = bins;
+        file['userLogs'] = bins;
         transaction.update(sfDocRef, file);
       });
       console.log('Transaction successfully committed!');
@@ -144,10 +170,10 @@ export async function updateLogs(from, to, id, quant) {
   }
 }
 
-export async function flushbins(tmp) {
-  const sfDocRef = doc(db, 'instance1', 'Room 1');
-  updateDoc(sfDocRef, { Bins: tmp });
-}
+// export async function flushbins(tmp) {
+//   const sfDocRef = doc(db, 'instance1', 'Room 1');
+//   updateDoc(sfDocRef, { Bins: tmp });
+// }
 
 export async function createInstance(config) {
   const batch = writeBatch(db);
@@ -304,85 +330,30 @@ export async function creatOrderOptions(range) {
   // console.log(OrderedList);
 }
 
-export async function createOrders(setOrder, bins_val, bin_label) {
-  getDoc(doc(db, 'instance1', 'Room 1')).then((val) => {
-    let data = val.data()['Bins']['Inventory'];
-    let freq = {};
-    for (let z = 0; z < data.length; z++) {
-      if (Object.keys(data[z])[0] in freq) {
-        freq[Object.keys(data[z])[0]] += 1;
-      } else {
-        freq[Object.keys(data[z])[0]] = 1;
-      }
-    }
-    let orders1 = [];
-    let orders2 = [];
-    //let orderSize;
-    for (var keys in freq) {
-      let temp = {};
-      temp[keys] = Math.ceil(freq[keys] * Math.random());
-      let ran_val = Math.random();
-      if ((ran_val > 0.3) & (ran_val < 0.5)) {
-        orders1.push(temp);
-      } else if ((ran_val > 0.9) & (ran_val < 1)) {
-        orders2.push(temp);
-      }
-    }
-    let dict = { O1: orders1, O2: orders2 };
-    let points = 0;
-    setOrder((prev) => {
-      //console.log(bins_val[bin_label]);
-
-      for (let i = 0; i < prev[bin_label].length; i++) {
-        for (let j = 0; j < bins_val[bin_label].length; j++) {
-          if (
-            Object.keys(bins_val[bin_label][j])[0] ===
-            Object.keys(prev[bin_label][i])[0]
-          ) {
-            points += 1;
-
-            prev[bin_label][j][Object.keys(prev[bin_label][j])[0]] -= 1;
-
-            if (prev[bin_label][j][Object.keys(prev[bin_label][j])[0]] <= 0) {
-              delete prev[bin_label][j];
-            }
-          }
-        }
-      }
-      dict = prev;
-      dict[bin_label] = orders1;
-      getDoc(doc(db, 'instance1', 'Room 1')).then((val) => {
-        if (val.data()['Points']) {
-          points += val.data()['Points'];
-        }
-        updateDoc(doc(db, 'instance1', 'Room 1'), {
-          Points: points,
-        });
-      });
-      return dict;
-    });
-    bins_val[bin_label] = [];
-    // console.log(bin_label, bins_val);
-    if ('O1' in bins_val) {
-      updateDoc(doc(db, 'instance1', 'Room 1'), { Bins: bins_val });
-    }
-    updateDoc(doc(db, 'instance1', 'Room 1'), dict);
-  });
-}
-
 export async function calculateScore(data, bins_val, bin_label) {
+  console.log('CALCULATE SCORE', data, bins_val, bin_label);
   // check how many bin_vals are present in data
   // errors are counted by units of absence of what should be and the presence of what shouldnt be.
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   if (!bins_val || bins_val.length < 1) {
     let temp = {};
     temp[bin_label] = {};
-    updateDoc(doc(db, 'instance1', 'Room 1'), temp);
+    updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
+    return;
+  }
+  if (!data['amount']) {
+    let temp = {};
+    temp[bin_label] = {};
+    temp['Bins.' + bin_label] = [];
+    // updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
+    //   'Bins.O1': [],
+    // });
+    updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
     return;
   }
   const timeObject = new Date();
   for (let i = 0; i < bins_val.length; i++) {
     const id = Object.keys(bins_val[i])[0];
-
     if (
       4 - (timeObject.getTime() - bins_val[i][id].toDate()) / (1000 * 60) >
       0
@@ -401,12 +372,12 @@ export async function calculateScore(data, bins_val, bin_label) {
     extra += data[val];
   });
   amount = parseInt(amount / Math.pow(2, extra));
-
   let temp = {
     Points: increment(amount),
   };
   temp[bin_label] = {};
-  updateDoc(doc(db, 'instance1', 'Room 1'), temp);
+  temp['Bins.' + bin_label] = [];
+  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
 }
 
 // export async function createOrders(setOrder, bins_val, bin_label) {
@@ -483,12 +454,9 @@ export async function calculateScore(data, bins_val, bin_label) {
 // }
 
 export async function binUpdate(from, to, id, set_data, timer) {
-  const sfDocRef = doc(
-    db,
-    'Class 1',
-    'Team ' + localStorage.getItem('warehouse_user').teamId
-  );
-  console.log('Team ' + localStorage.getItem('warehouse_user').teamId);
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  const sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
+  console.log('Team ' + user_info.teamId);
   try {
     await runTransaction(db, async (transaction) => {
       const sfDoc = await transaction.get(sfDocRef);
@@ -505,6 +473,7 @@ export async function binUpdate(from, to, id, set_data, timer) {
       );
       let from_var = [];
       let count = 0;
+
       for (let j = 0; j < data[from].length; j++) {
         if (Object.keys(data[from][j])[0] !== id) {
           from_var.push(data[from][j]);
@@ -514,11 +483,11 @@ export async function binUpdate(from, to, id, set_data, timer) {
             from_var.push(data[from][j]);
           }
         }
-        if (data[from].includes(id)) {
-          data[from] = data[from].filter((val) => val !== id);
-        } else {
-          throw 'Exception';
-        }
+        // if (data[from].includes(id)) {
+        //   data[from] = data[from].filter((val) => val !== id);
+        // } else {
+        //   throw 'Exception';
+        // }
       }
       if (count === 0) {
         throw 'Exception';
@@ -534,7 +503,6 @@ export async function binUpdate(from, to, id, set_data, timer) {
           data[to].push(temp);
         }
       }
-
       transaction.update(sfDocRef, { Bins: data, Logs: logs });
       set_data(data);
     });
@@ -552,7 +520,7 @@ export async function binListener(
 ) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   onSnapshot(
-    doc(db, 'Class 1', 'Team ' + user_info.teamId),
+    doc(db, user_info.classId, 'Team ' + user_info.teamId),
     async (snapshot) => {
       set_data(snapshot.data()['Bins']);
       setorderList(snapshot.data()['orders']);
@@ -565,24 +533,39 @@ export async function binListener(
   );
 }
 export async function orderListListerner(setorderList) {
-  onSnapshot(doc(db, 'instance1', 'Room 1'), async (snapshot) => {
-    setorderList(snapshot.data()['orders']);
-  });
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  onSnapshot(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId),
+    async (snapshot) => {
+      setorderList(snapshot.data()['orders']);
+    }
+  );
 }
 
-// Commenting out it right now since it's breaking the app. (Same name function already declared on line 198.)
-
-// export async function updateOrderList(orderList) {
-//   updateDoc(doc(db, 'instance1', 'Room 1'), {
-//     orders: orderList,
-//   });
-// }
+export async function updateOrderList(orderList, label) {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let temp = {
+    orders: arrayRemove(orderList),
+  };
+  temp[label] = orderList;
+  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
+}
 
 export async function chat_sendMessage(message, to) {
   if (message !== '') {
-    const messagesRef = collection(db, 'instance1', 'Room 1', 'Chats');
     let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-    console.log(message, user_info.email);
+    let emailDestination = '';
+    if (to != 'Everyone') {
+      emailDestination = [user_info.email, to].sort().join('-');
+    } else {
+      emailDestination = to;
+    }
+    const messagesRef = collection(
+      db,
+      user_info.classId,
+      'Team ' + user_info.teamId,
+      emailDestination
+    );
     addDoc(messagesRef, {
       text: message,
       createdAt: serverTimestamp(),
@@ -604,9 +587,11 @@ export async function chat_sendMessage(message, to) {
 // }
 
 export async function skuFinder(skuId) {
-  let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
-  let records = physicalLogs.data()['Bins'][skuId];
-  return records;
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let physicalLogs = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  return physicalLogs.data()['userLogs'][skuId];
 }
 
 // export async function addIceCandidate(json) {
