@@ -1,8 +1,8 @@
-// Css
-import { Link, useNavigate } from "react-router-dom";
-import "./OperationRoom.css";
+import { useAuthContext } from '../../../../hooks/useAuthContext';
+import OperationRoomComp from '../../../../components/OperationRoom/OperationRoomComp';
 
 export default function OperationRoom() {
-    let nav = useNavigate();
-    return <Link to="/game">click</Link>;
+  const { user } = useAuthContext();
+
+  return <OperationRoomComp currentUser={user} />;
 }

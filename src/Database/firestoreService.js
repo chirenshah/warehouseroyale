@@ -22,6 +22,21 @@ import {
   COLLECTION_USERS,
 } from '../utils/constants';
 
+export const getDocument = async (collectionName, documentId) => {
+  try {
+    const docSnap = await getDoc(doc(db, collectionName, documentId));
+
+    if (!docSnap.exists()) {
+      throw new Error('No such document exists');
+    }
+
+    return docSnap.data();
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
 export const addAdmin = async (admin) => {
   try {
     const adminRef = doc(db, COLLECTION_USERS, admin.email);

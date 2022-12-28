@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom';
-// Css
-import './OperationRoom.css';
+import { useAuthContext } from '../../../../hooks/useAuthContext';
+import OperationRoomComp from '../../../../components/OperationRoom/OperationRoomComp';
 
 export default function OperationRoom() {
-  return <Link to="/game">Game</Link>;
+  const { user } = useAuthContext();
+
+  return <OperationRoomComp currentUser={user} />;
 }
