@@ -87,7 +87,7 @@ export default function UserList() {
     await callCreateNewUsers(createNewUsers(usersJson));
   };
 
-  // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
+  // Popover-----------------------------------------------------------
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (e, userDetails) => {
@@ -148,48 +148,13 @@ export default function UserList() {
               className="userList__delete"
               onClick={(e) => handleClick(e, params.row)}
             />
-            {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
-            <Popover
-              id={id}
-              open={open}
+            <WarehouseConfirmationPopup
               anchorEl={anchorEl}
-              onClose={handleClosePopup}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'center',
-              }}
-              transformOrigin={{
-                vertical: 'center',
-                horizontal: 'right',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '0.5rem',
-                }}
-              >
-                <span>Are you sure?</span>
-                <div style={{ display: 'flex' }}>
-                  <WarehouseButton
-                    onClick={() => handleDelete(userDetails)}
-                    text="Yes"
-                    warning
-                    sm
-                    loading={response.isPending}
-                  />
-                  <WarehouseButton
-                    onClick={handleClosePopup}
-                    text="Cancel"
-                    success
-                    sm
-                  />
-                </div>
-              </div>
-            </Popover>
-            {/* Popover----------------------------------------------------------- */}
+              userDetails={userDetails}
+              handleDelete={handleDelete}
+              handleClosePopup={handleClosePopup}
+              response={response}
+            />
           </>
         );
       },
