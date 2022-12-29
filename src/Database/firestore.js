@@ -18,7 +18,6 @@ import {
   limit,
   arrayRemove,
 } from 'firebase/firestore';
-import { messages } from '../components/warehouseChat/helpers';
 
 import app from './config';
 
@@ -542,14 +541,14 @@ export async function orderListListerner(setorderList) {
   );
 }
 
-export async function updateOrderList(orderList, label) {
-  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-  let temp = {
-    orders: arrayRemove(orderList),
-  };
-  temp[label] = orderList;
-  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
-}
+// export async function updateOrderList(orderList, label) {
+//   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+//   let temp = {
+//     orders: arrayRemove(orderList),
+//   };
+//   temp[label] = orderList;
+//   updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
+// }
 
 export async function chat_sendMessage(message, to) {
   if (message !== '') {
