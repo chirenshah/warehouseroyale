@@ -48,6 +48,10 @@ export default function NewUser() {
 
   const classIds = classes?.map((elm) => elm.id);
 
+  useEffect(() => {
+    classes?.length && setClassId(classes[0].id);
+  }, [classes]);
+
   const isTeamIdAvailable = (teamId, teamIds) => {
     return teamIds?.includes(teamId);
   };
