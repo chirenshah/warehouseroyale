@@ -5,7 +5,6 @@ import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
-import Popover from '@mui/material/Popover';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 import { DataGrid } from '@mui/x-data-grid';
