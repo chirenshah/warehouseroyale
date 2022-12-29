@@ -17,13 +17,17 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
 // Firestore services
 import {
+  createNewUsers,
   deleteEmployee,
   deleteManager,
   deleteManagerAndPromoteEmployee,
 } from '../../../../Database/firestoreService';
+// Utils
+import { parseExcel } from '../../../../utils/functions/parseExcel';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -41,6 +45,10 @@ export default function UserList() {
   );
 
   const { response, callFirebaseService } = useFirestore();
+  const {
+    response: newUsersResponse,
+    callFirebaseService: callCreateNewUsers,
+  } = useFirestore();
 
   const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
@@ -74,8 +82,9 @@ export default function UserList() {
     }
   };
 
-  const handleFileUpload = () => {
-    console.log(file);
+  const handleFileUpload = async () => {
+    const usersJson = await parseExcel(file);
+    await callCreateNewUsers(createNewUsers(usersJson));
   };
 
   // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
@@ -218,6 +227,9 @@ export default function UserList() {
       </WarehouseCard>
       <WarehouseHeader title="Upload an Excel Sheet instead!" my />
       <WarehouseCard>
+        {newUsersResponse.error && (
+          <WarehouseAlert text={newUsersResponse.error} severity="error" />
+        )}
         <div className="userList__upload">
           <label>
             <input type="file" onChange={handleOnFileChange} />
@@ -228,6 +240,7 @@ export default function UserList() {
           {fileError && <p style={{ color: 'red' }}>{fileError}</p>}
           <WarehouseButton
             onClick={handleFileUpload}
+            loading={newUsersResponse.isPending}
             disabled={!file}
             text="Upload file"
           />

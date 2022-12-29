@@ -95,10 +95,10 @@ export const fetchCOllection = async (
  */
 export const createNewUser = async (user) => {
   try {
-    const userRef = doc(db, COLLECTION_USERS, user.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
-
     await runTransaction(db, async (transaction) => {
+      const userRef = doc(db, COLLECTION_USERS, user.email);
+      const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
+
       const docSnap = await transaction.get(userRef);
 
       if (docSnap.exists()) {
@@ -135,6 +135,71 @@ export const createNewUser = async (user) => {
 
       console.log('Transaction successfully committed!');
     });
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const createNewUsers = async (users) => {
+  try {
+    const batch = writeBatch(db);
+
+    users.forEach((user) => {
+      user.password = hashPassword(user.password.toString());
+      user.phone = user.phone.toString();
+      user.teamId = user.teamId.toString();
+      user.phone = user.phone.toString();
+
+      user.createdAt = serverTimestamp(Date.now());
+
+      const userRef = doc(db, COLLECTION_USERS, user.email);
+      const teamRef = doc(db, COLLECTION_TEAMS, user.teamId.toString());
+
+      batch.set(userRef, user);
+
+      if (user.role === 'manager') {
+        batch.set(
+          teamRef,
+          {
+            manager: {
+              email: user.email,
+            },
+          },
+          { merge: true }
+        );
+      } else {
+        batch.set(
+          teamRef,
+          {
+            employees: arrayUnion({
+              email: user.email,
+            }),
+          },
+          { merge: true }
+        );
+      }
+    });
+
+    // Check if the user with email already exists
+    const foundUsers = await Promise.all(
+      users.map((user) => getDoc(doc(db, COLLECTION_USERS, user.email)))
+    );
+
+    let existingUser = null;
+
+    foundUsers.some((user) => {
+      if (user.exists()) {
+        existingUser = user.data();
+      }
+    });
+    if (existingUser) {
+      throw new Error(`User with email ${existingUser.email} already exists`);
+    }
+
+    await batch.commit();
+
+    console.log('Batch successfully commited!');
   } catch (error) {
     console.error('Error: ', error);
     throw error;
