@@ -29,6 +29,7 @@ import { getCurrentTeamOffer, getEmployeeDetails } from './helpers';
 import {
   COLLECTION_TEAMS,
   COLLECTION_USERS,
+  DOC_TEAMS,
 } from '../../../../utils/constants';
 // Css
 import './RecruitmentRoom.css';
@@ -52,7 +53,10 @@ export default function RecruitmentRoom() {
     document: team,
     isPending: isTeamPending,
     error: teamError,
-  } = useDocument(COLLECTION_TEAMS, manager.teamId);
+  } = useDocument(
+    `${manager.classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`,
+    manager.teamId
+  );
 
   const {
     documents: allEmployees,
@@ -99,9 +103,9 @@ export default function RecruitmentRoom() {
     );
   };
 
-  const handleDeactivate = async (employeeId, currentTeamOffer) => {
+  const handleDeactivate = async (employee, currentTeamOffer) => {
     await callFirebaseService(
-      deactivateAnOffer(employeeId, manager.teamId, currentTeamOffer)
+      deactivateAnOffer(employee, manager.teamId, currentTeamOffer)
     );
   };
 
@@ -185,7 +189,7 @@ export default function RecruitmentRoom() {
               <WarehouseButton
                 onClick={() =>
                   handleDeactivate(
-                    employee.email,
+                    employee,
                     getCurrentTeamOffer(
                       allEmployees,
                       employee.email,

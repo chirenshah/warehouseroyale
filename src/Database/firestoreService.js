@@ -20,6 +20,7 @@ import {
   COLLECTION_CHATS,
   COLLECTION_TEAMS,
   COLLECTION_USERS,
+  DOC_TEAMS,
 } from '../utils/constants';
 
 export const getDocument = async (collectionName, documentId) => {
@@ -97,7 +98,13 @@ export const createNewUser = async (user) => {
   try {
     await runTransaction(db, async (transaction) => {
       const userRef = doc(db, COLLECTION_USERS, user.email);
-      const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
+      const teamRef = doc(
+        db,
+        user.classId,
+        DOC_TEAMS,
+        COLLECTION_TEAMS,
+        user.teamId
+      );
 
       const docSnap = await transaction.get(userRef);
 
@@ -154,7 +161,13 @@ export const createNewUsers = async (users) => {
       user.createdAt = serverTimestamp(Date.now());
 
       const userRef = doc(db, COLLECTION_USERS, user.email);
-      const teamRef = doc(db, COLLECTION_TEAMS, user.teamId.toString());
+      const teamRef = doc(
+        db,
+        user.classId,
+        DOC_TEAMS,
+        COLLECTION_TEAMS,
+        user.teamId.toString()
+      );
 
       batch.set(userRef, user);
 
@@ -249,11 +262,17 @@ export const loginUser = async (email, password) => {
 export const deleteEmployee = async (employee) => {
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      employee.teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       const foundTeam = await transaction.get(
-        doc(db, COLLECTION_TEAMS, employee.teamId)
+        doc(db, employee.classId, DOC_TEAMS, COLLECTION_TEAMS, employee.teamId)
       );
       if (!foundTeam.exists()) {
         throw new Error('No team found');
@@ -305,7 +324,13 @@ export const deleteEmployee = async (employee) => {
 export const deleteManager = async (manager) => {
   try {
     const managerRef = doc(db, COLLECTION_USERS, manager.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+    const teamRef = doc(
+      db,
+      manager.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      manager.teamId
+    );
 
     const batch = writeBatch(db);
 
@@ -337,7 +362,13 @@ export const deleteManagerAndPromoteEmployee = async (manager, employee) => {
   try {
     const managerRef = doc(db, COLLECTION_USERS, manager.email);
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+    const teamRef = doc(
+      db,
+      manager.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      manager.teamId
+    );
 
     const batch = writeBatch(db);
 
@@ -404,7 +435,13 @@ export const updateShares = async (data) => {
 export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const teamRef = doc(
+      db,
+      employeeToBeHired.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -446,7 +483,13 @@ export const fireAnEmployee = async (
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired);
     const managerRef = doc(db, COLLECTION_USERS, managerId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const teamRef = doc(
+      db,
+      employeeToBeFired.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       const foundManager = await transaction.get(managerRef);
@@ -485,14 +528,20 @@ export const fireAnEmployee = async (
  * @operations      REMOVE offer from employee offers
  *                  REMOVE employee from team offers
  *
- * @param {String} employeeId
+ * @param {String} employee
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const deactivateAnOffer = async (employeeId, teamId, offer) => {
+export const deactivateAnOffer = async (employee, teamId, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -501,7 +550,7 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          email: employeeId,
+          email: employee.email,
         }),
       });
       console.log('Transaction successfully committed!');
@@ -528,8 +577,20 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 export const acceptOffer = async (employee, offer) => {
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const currentTeamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
-    const newTeamRef = doc(db, COLLECTION_TEAMS, offer.teamId);
+    const currentTeamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      employee.teamId
+    );
+    const newTeamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      offer.teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       // Find current manager
@@ -623,14 +684,20 @@ export const acceptOffer = async (employee, offer) => {
  * @operations      REMOVE offer from employee offers
  *                  REMOVE offer from team offers
  *
- * @param {String} employeeId
+ * @param {String} employee
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const declineOffer = async (employeeId, teamId, offer) => {
+export const declineOffer = async (employee, teamId, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -639,7 +706,7 @@ export const declineOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          email: employeeId,
+          email: employee.email,
         }),
       });
 

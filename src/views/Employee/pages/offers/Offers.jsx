@@ -36,9 +36,7 @@ export default function Offers() {
   };
 
   const handleDeclineOffer = async (offer) => {
-    await callFirebaseService(
-      declineOffer(employee.email, offer.teamId, offer)
-    );
+    await callFirebaseService(declineOffer(employee, offer.teamId, offer));
   };
 
   return (
