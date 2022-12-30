@@ -429,13 +429,14 @@ export const updateShares = async (data) => {
  * @operations      UPDATE employee offers arr
  *                  ADD employee to team offers
  *
- * @param {String} employeeToBeHired (id)
+ * @param {String} employeeToBeHired (object)
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
 export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
+  console.log(employeeToBeHired);
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired);
+    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired.email);
     const teamRef = doc(
       db,
       employeeToBeHired.classId,
@@ -451,7 +452,7 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayUnion({
-          email: employeeToBeHired,
+          email: employeeToBeHired.email,
         }),
       });
 

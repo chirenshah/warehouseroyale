@@ -95,8 +95,12 @@ export default function RecruitmentRoom() {
   const handleMakeAnOffer = async () => {
     // TODO: Put validations
 
+    const employeeToBeHiredDetails = otherEmployees.find(
+      (employee) => employee.email === employeeToBeHired
+    );
+
     await callFirebaseService(
-      makeAnOffer(employeeToBeHired, manager.teamId, {
+      makeAnOffer(employeeToBeHiredDetails, manager.teamId, {
         share: shareOffered,
         teamId: manager.teamId,
       })
@@ -133,7 +137,7 @@ export default function RecruitmentRoom() {
       <Box sx={{ display: 'flex', gap: '1rem' }}>
         <WarehouseCard className="recruitmentRoom__hireEmployee">
           {areAllEmployeesPending && <WarehouseLoader />}
-          {otherEmployees?.length && (
+          {otherEmployees?.length ? (
             <FormControl sx={{ m: 1, minWidth: 200 }}>
               <InputLabel>Select Employee</InputLabel>
               <Select
@@ -148,6 +152,8 @@ export default function RecruitmentRoom() {
                 ))}
               </Select>
             </FormControl>
+          ) : (
+            <h4>No Employees</h4>
           )}
           <TextField
             onChange={(e) => setShareOffered(e.target.value)}
