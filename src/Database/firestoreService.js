@@ -471,7 +471,7 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
  *                  UPDATE manager with {share: share + employeeShare}
  *                  REMOVE employee from the team
  *
- * @param {String} employeeToBeFired (id)
+ * @param {String} employeeToBeFired (object)
  * @param {String} teamId
  * @param {String} managerId
  * @param {Number} employeeShare
@@ -483,7 +483,7 @@ export const fireAnEmployee = async (
   employeeShare
 ) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired);
+    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired.email);
     const managerRef = doc(db, COLLECTION_USERS, managerId);
     const teamRef = doc(
       db,
@@ -513,7 +513,7 @@ export const fireAnEmployee = async (
 
       transaction.update(teamRef, {
         employees: arrayRemove({
-          email: employeeToBeFired,
+          email: employeeToBeFired.email,
         }),
       });
 

@@ -114,9 +114,12 @@ export default function RecruitmentRoom() {
   };
 
   const handleFireEmployee = async () => {
+    const employeeToBeFiredDetails = currentTeamEmployees.find(
+      (employee) => employee.email === employeeToBeFired
+    );
     await callFirebaseService(
       fireAnEmployee(
-        employeeToBeFired,
+        employeeToBeFiredDetails,
         manager.teamId,
         manager.email,
         selectedFireDetails.share
