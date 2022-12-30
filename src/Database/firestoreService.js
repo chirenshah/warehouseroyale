@@ -535,6 +535,7 @@ export const fireAnEmployee = async (
  * @param {Object} offer {teamId: '', share: ''}
  */
 export const deactivateAnOffer = async (employee, teamId, offer) => {
+  console.log(employee);
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
     const teamRef = doc(

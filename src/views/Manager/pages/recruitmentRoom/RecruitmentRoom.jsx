@@ -195,7 +195,7 @@ export default function RecruitmentRoom() {
               <WarehouseButton
                 onClick={() =>
                   handleDeactivate(
-                    employee,
+                    getEmployeeDetails(allEmployees, employee.email),
                     getCurrentTeamOffer(
                       allEmployees,
                       employee.email,
