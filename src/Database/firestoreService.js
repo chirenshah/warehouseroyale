@@ -375,6 +375,7 @@ export const deleteManagerAndPromoteEmployee = async (manager, employee) => {
     batch.update(employeeRef, {
       role: 'manager',
       share: Number(manager.share) + Number(employee.share),
+      isNew: false,
     });
 
     batch.delete(managerRef);

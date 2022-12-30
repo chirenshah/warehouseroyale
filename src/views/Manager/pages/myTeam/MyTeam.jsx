@@ -86,7 +86,9 @@ export default function MyTeam() {
       setEmployeesShare(employeesShare);
 
       // Update new employees' states
-      const newlyAddedEmployees = teamMembers?.filter((member) => member.isNew);
+      const newlyAddedEmployees = teamMembers?.filter(
+        (member) => member.role !== 'manager' && member.isNew
+      );
       setNewlyAddedEmployees(newlyAddedEmployees);
 
       let newlyAddedEmployeesShare = {};
