@@ -7,6 +7,7 @@ import {
   FcApproval,
   FcApprove,
 } from 'react-icons/fc';
+import { GiGamepadCross } from 'react-icons/gi';
 import { MdSettingsSuggest } from 'react-icons/md';
 
 import { TiMessages } from 'react-icons/ti';
@@ -22,6 +23,11 @@ export const aDashboardSidebarConfig = [
     item: 'Manage Users',
     icon: <FcConferenceCall className="sidebar__icon" />,
     path: '/users',
+  },
+  {
+    item: 'Round Management',
+    icon: <GiGamepadCross className="sidebar__icon" />,
+    path: '/round-management',
   },
   {
     item: 'Game Setup',

@@ -20,6 +20,7 @@ export default function GameSetup() {
     configuration['Number Of rounds'] = event.target['Number Of rounds'].value;
     configuration['Max members in a team'] =
       event.target['Max members in a team'].value;
+    configuration[`current_round`] = 1;
     configuration['start_time'] = new Date(event.target['start_time'].value);
     configuration['Total no. of teams'] =
       event.target['Total no. of teams'].value;

@@ -6,14 +6,9 @@ import WarehouseButton from '../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../components/ui/WarehouseLoader';
 // Firebase services
 import { getDocument } from '../../Database/firestoreService';
-
-const convertFirebaseTimestampToLocaleTime = (firebaseTimestamp) => {
-  return firebaseTimestamp?.toDate().toLocaleString();
-};
-
-const convertFirebaseTimestampToMilliseconds = (firebaseTimestamp) => {
-  return new Date(firebaseTimestamp?.seconds * 1000).getTime();
-};
+// Utils
+import { convertFirebaseTimestampToLocaleTime } from '../../utils/functions/convertFirebaseTimestampToLocaleTime';
+import { convertFirebaseTimestampToMilliseconds } from '../../utils/functions/convertFirebaseTimestampToMilliseconds';
 
 const isGameStarted = (startTime) => {
   return startTime < Date.now();
