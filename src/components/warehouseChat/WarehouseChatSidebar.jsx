@@ -10,9 +10,10 @@ import { MdOutlineArrowBackIos } from 'react-icons/md';
 // Helpers
 import { getUsersList } from './helpers/getUsersList';
 // Constants
-import { COLLECTION_TEAMS } from '../../utils/constants';
+import { COLLECTION_TEAMS, DOC_TEAMS } from '../../utils/constants';
 
 export default function WarehouseChatSidebar({
+  classId,
   chatMembers,
   chatMembersPending,
   activeChatMember,
@@ -28,7 +29,7 @@ export default function WarehouseChatSidebar({
     documents: teams,
     isPending: teamsPending,
     error: teamsError,
-  } = useCollection(COLLECTION_TEAMS);
+  } = useCollection(`${classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`);
 
   const showList = (list) => {
     switch (list) {

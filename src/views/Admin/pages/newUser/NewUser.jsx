@@ -14,6 +14,7 @@ import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import {
   COLLECTION_CLASSES,
   COLLECTION_TEAMS,
+  DOC_TEAMS,
 } from '../../../../utils/constants';
 // Css
 import './NewUser.css';
@@ -35,7 +36,7 @@ export default function NewUser() {
     documents: teams,
     isPending: areteamsPending,
     error: teamsError,
-  } = useCollection(COLLECTION_TEAMS);
+  } = useCollection(`${classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`);
 
   const teamIds = teams?.map((team) => team.id);
 
@@ -46,6 +47,10 @@ export default function NewUser() {
   } = useCollection(COLLECTION_CLASSES);
 
   const classIds = classes?.map((elm) => elm.id);
+
+  useEffect(() => {
+    classes?.length && setClassId(classes[0].id);
+  }, [classes]);
 
   const isTeamIdAvailable = (teamId, teamIds) => {
     return teamIds?.includes(teamId);

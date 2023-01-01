@@ -29,6 +29,7 @@ import { getCurrentTeamOffer, getEmployeeDetails } from './helpers';
 import {
   COLLECTION_TEAMS,
   COLLECTION_USERS,
+  DOC_TEAMS,
 } from '../../../../utils/constants';
 // Css
 import './RecruitmentRoom.css';
@@ -52,7 +53,10 @@ export default function RecruitmentRoom() {
     document: team,
     isPending: isTeamPending,
     error: teamError,
-  } = useDocument(COLLECTION_TEAMS, manager.teamId);
+  } = useDocument(
+    `${manager.classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`,
+    manager.teamId
+  );
 
   const {
     documents: allEmployees,
@@ -91,24 +95,31 @@ export default function RecruitmentRoom() {
   const handleMakeAnOffer = async () => {
     // TODO: Put validations
 
+    const employeeToBeHiredDetails = otherEmployees.find(
+      (employee) => employee.email === employeeToBeHired
+    );
+
     await callFirebaseService(
-      makeAnOffer(employeeToBeHired, manager.teamId, {
+      makeAnOffer(employeeToBeHiredDetails, manager.teamId, {
         share: shareOffered,
         teamId: manager.teamId,
       })
     );
   };
 
-  const handleDeactivate = async (employeeId, currentTeamOffer) => {
+  const handleDeactivate = async (employee, currentTeamOffer) => {
     await callFirebaseService(
-      deactivateAnOffer(employeeId, manager.teamId, currentTeamOffer)
+      deactivateAnOffer(employee, manager.teamId, currentTeamOffer)
     );
   };
 
   const handleFireEmployee = async () => {
+    const employeeToBeFiredDetails = currentTeamEmployees.find(
+      (employee) => employee.email === employeeToBeFired
+    );
     await callFirebaseService(
       fireAnEmployee(
-        employeeToBeFired,
+        employeeToBeFiredDetails,
         manager.teamId,
         manager.email,
         selectedFireDetails.share
@@ -129,7 +140,7 @@ export default function RecruitmentRoom() {
       <Box sx={{ display: 'flex', gap: '1rem' }}>
         <WarehouseCard className="recruitmentRoom__hireEmployee">
           {areAllEmployeesPending && <WarehouseLoader />}
-          {otherEmployees?.length && (
+          {otherEmployees?.length ? (
             <FormControl sx={{ m: 1, minWidth: 200 }}>
               <InputLabel>Select Employee</InputLabel>
               <Select
@@ -144,6 +155,8 @@ export default function RecruitmentRoom() {
                 ))}
               </Select>
             </FormControl>
+          ) : (
+            <h4>No Employees</h4>
           )}
           <TextField
             onChange={(e) => setShareOffered(e.target.value)}
@@ -185,7 +198,7 @@ export default function RecruitmentRoom() {
               <WarehouseButton
                 onClick={() =>
                   handleDeactivate(
-                    employee.email,
+                    getEmployeeDetails(allEmployees, employee.email),
                     getCurrentTeamOffer(
                       allEmployees,
                       employee.email,

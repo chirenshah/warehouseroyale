@@ -81,6 +81,7 @@ export default function WarehouseChat() {
         )}
         {/* ------------------------------ Chat sidebar ------------------------------ */}
         <WarehouseChatSidebar
+          classId={currentUser.classId}
           chatMembers={chatMembers}
           chatMembersPending={chatMembersPending}
           activeChatMember={activeChatMember}
