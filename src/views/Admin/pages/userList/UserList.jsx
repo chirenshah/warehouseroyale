@@ -165,30 +165,34 @@ export default function UserList() {
 
   return (
     <div className="userList">
-      {error ||
-        (response.error && (
-          <WarehouseSnackbar text={error || response.error} />
-        ))}
-      <WarehouseHeader>
-        <Link to="/new-user">
-          <WarehouseButton text="Create new user" />
-        </Link>{' '}
-      </WarehouseHeader>
-      <WarehouseCard>
-        <Box sx={{ height: 450, width: '100%' }}>
-          {isPending && <WarehouseLoader />}
-          {users && (
-            <DataGrid
-              rows={users}
-              columns={columns}
-              pageSize={6}
-              rowsPerPageOptions={[6]}
-              checkboxSelection
-              disableSelectionOnClick
-            />
-          )}
-        </Box>
-      </WarehouseCard>
+      {isPending ? (
+        <WarehouseLoader />
+      ) : error ? (
+        <WarehouseAlert text={error} />
+      ) : (
+        <>
+          <WarehouseHeader>
+            <Link to="/new-user">
+              <WarehouseButton text="Create new user" />
+            </Link>{' '}
+          </WarehouseHeader>
+          <WarehouseCard>
+            <Box sx={{ height: 450, width: '100%' }}>
+              {
+                <DataGrid
+                  rows={users}
+                  columns={columns}
+                  pageSize={6}
+                  rowsPerPageOptions={[6]}
+                  checkboxSelection
+                  disableSelectionOnClick
+                />
+              }
+            </Box>
+          </WarehouseCard>
+        </>
+      )}
+
       <WarehouseHeader title="Upload an Excel Sheet instead!" my />
       <WarehouseCard>
         {newUsersResponse.error && (
@@ -276,8 +280,9 @@ function DeleteManagerModal({
 
   return (
     <>
-      {teamMembersError ||
-        (response.error && <WarehouseSnackbar text={response.error} />)}
+      {(teamMembersError || response.error) && (
+        <WarehouseSnackbar text={response.error} />
+      )}
       <Modal
         open={isModalOpen}
         onClose={handleCloseModal}
@@ -289,7 +294,7 @@ function DeleteManagerModal({
         ) : (
           <Box sx={style}>
             <WarehouseCard>
-              {teamMembers.length === 1 || teamMembers.length === 0 ? (
+              {teamMembers?.length === 1 || teamMembers?.length === 0 ? (
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                   Manager has no employees in his team. You can submit to
                   delete.
@@ -300,7 +305,7 @@ function DeleteManagerModal({
                   manager.
                 </Typography>
               )}
-              {teamMembers.length > 1 && (
+              {teamMembers?.length > 1 && (
                 <select
                   onChange={(e) => setSelectedEmployee(e.target.value)}
                   value={selectedEmployee}

@@ -6,11 +6,11 @@ import Chart from '../../../../components/chart/Chart';
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
 import './MyTeam.css';
-import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 
 export default function MyTeam() {
   const { user: currentUser } = useAuthContext();
@@ -22,7 +22,9 @@ export default function MyTeam() {
 
   return (
     <div className="myTeam">
-      {teamMembersError && <WarehouseSnackbar text={teamMembersError} />}
+      {teamMembersError && (
+        <WarehouseAlert text={teamMembersError} severity="error" />
+      )}
       <WarehouseHeader title="Compensation structure" />
       <WarehouseCard>
         {areTeamMembersPending || !teamMembers ? (

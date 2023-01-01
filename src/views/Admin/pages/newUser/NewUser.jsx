@@ -93,11 +93,9 @@ export default function NewUser() {
 
   return (
     <div className="newUser">
-      {(createUserError || teamsError || classesError) && (
-        <WarehouseSnackbar
-          text={createUserError || teamsError || classesError}
-        />
-      )}
+      {classesError && <WarehouseAlert text={classesError} severity="error" />}
+      {teamsError && <WarehouseAlert text={teamsError} severity="error" />}
+      {createUserError && <WarehouseSnackbar text={createUserError} />}
       <WarehouseHeader title="New User" />
       {classesPending ? (
         <WarehouseLoader />

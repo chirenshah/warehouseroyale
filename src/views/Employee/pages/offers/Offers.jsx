@@ -8,6 +8,7 @@ import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 // Firestore services
 import {
   acceptOffer,
@@ -43,7 +44,10 @@ export default function Offers() {
 
   return (
     <div className="offers">
-      {(employeeError || response.error) && (
+      {employeeError && (
+        <WarehouseAlert text={employeeError} severity="error" />
+      )}
+      {response.error && (
         <WarehouseSnackbar text={employeeError || response.error} />
       )}
       {/* ------------------------------ Active offers ------------------------------ */}

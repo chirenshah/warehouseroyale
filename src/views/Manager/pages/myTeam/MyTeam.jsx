@@ -18,6 +18,8 @@ import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
+import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import Chart from '../../../../components/chart/Chart';
 // Firebase services
 import { updateShares } from '../../../../Database/firestoreService';
@@ -27,7 +29,6 @@ import { COLLECTION_USERS } from '../../../../utils/constants';
 import './MyTeam.css';
 import myTeamChartData from '../../../../mockData/my-team-pie-chart-data.json';
 import myTeamStackedChartData from '../../../../mockData/my-team-stacked-chart-data.json';
-import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 
 const roundItems = [1, 2, 3, 4];
 
@@ -145,12 +146,12 @@ export default function MyTeam() {
 
   return (
     <div className="myTeam">
-      {teamMembersError ||
-        (response.error && (
-          <WarehouseSnackbar text={error || response.error} />
-        ))}
+      {response.error && <WarehouseSnackbar text={error || response.error} />}
       <WarehouseHeader title={`Team ${currentUser.teamId}`} />
       {areTeamMembersPending || (loading && <WarehouseLoader />)}
+      {teamMembersError && (
+        <WarehouseAlert text={teamMembersError} severity="error" />
+      )}
       {!isProceededToShare && newlyAddedEmployees?.length ? (
         <WarehouseCard>
           <List sx={{ width: '100%' }}>
