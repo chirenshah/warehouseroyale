@@ -1,31 +1,21 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { useAuthContext } from './hooks/useAuthContext';
 import LoginForm from './components/LoginForm';
-import Game from './components/employee_game';
-// import { HTML5Backend } from "react-dnd-html5-backend";
-// import { DndProvider } from "react-dnd";
-// import { ContextProvider } from "./components/views/Manager/dashboard/contexts/ContextProvider";
-// import { BrowserRouter, Route, Routes } from "react-router-dom";
-// import {
-//     Myteam,
-//     Performancemetric,
-//     Recruitmentroom,
-// } from "./components/views/Manager/dashboard/pages";
-// import Messenger from "./components/views/Manager/dashboard/pages/Messenger";
-// Views
-import ADashboard from './views/Admin/ADashboard';
-import MDashboard from './views/Manager/MDashboard';
-import EDashboard from './views/Employee/EDashboard';
+import WarehouseLoader from './components/ui/WarehouseLoader';
+
+const ADashboard = lazy(() => import('./views/Admin/ADashboard'));
+const MDashboard = lazy(() => import('./views/Manager/MDashboard'));
+const EDashboard = lazy(() => import('./views/Employee/EDashboard'));
 
 function App() {
   const { user } = useAuthContext();
 
-  return user && user.role === 'admin' ? (
-    <ADashboard />
-  ) : user && user.role === 'manager' ? (
-    <MDashboard />
-  ) : user && user.role === 'employee' ? (
-    <EDashboard />
+  return user ? (
+    <Suspense fallback={<WarehouseLoader />}>
+      {user.role === 'admin' && <ADashboard />}
+      {user.role === 'manager' && <MDashboard />}
+      {user.role === 'employee' && <EDashboard />}
+    </Suspense>
   ) : (
     <LoginForm />
   );
