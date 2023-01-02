@@ -56,7 +56,10 @@ export default function MyTeam() {
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, ['teamId', '==', currentUser.teamId]);
+  } = useCollection(COLLECTION_USERS, [
+    { fieldPath: 'teamId', queryOperator: '==', value: currentUser.teamId },
+    { fieldPath: 'classId', queryOperator: '==', value: currentUser.classId },
+  ]);
 
   useEffect(() => {
     if (!teamMembers?.length) {

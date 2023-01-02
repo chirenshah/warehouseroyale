@@ -62,7 +62,9 @@ export default function RecruitmentRoom() {
     documents: allEmployees,
     isPending: areAllEmployeesPending,
     error: allEmployeesError,
-  } = useCollection(COLLECTION_USERS, ['role', '==', 'employee']);
+  } = useCollection(COLLECTION_USERS, [
+    { fieldPath: 'role', queryOperator: '==', value: 'employee' },
+  ]);
 
   useEffect(() => {
     if (!allEmployees?.length) {

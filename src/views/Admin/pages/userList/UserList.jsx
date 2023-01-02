@@ -39,7 +39,7 @@ export default function UserList() {
     error,
   } = useCollection(
     COLLECTION_USERS,
-    ['role', '!=', 'admin'],
+    [{ fieldPath: 'role', queryOperator: '!=', value: 'admin' }],
     ['role', 'desc']
   );
 
