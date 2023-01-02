@@ -20,7 +20,23 @@ import {
   COLLECTION_CHATS,
   COLLECTION_TEAMS,
   COLLECTION_USERS,
+  DOC_TEAMS,
 } from '../utils/constants';
+
+export const getDocument = async (collectionName, documentId) => {
+  try {
+    const docSnap = await getDoc(doc(db, collectionName, documentId));
+
+    if (!docSnap.exists()) {
+      throw new Error('No such document exists');
+    }
+
+    return docSnap.data();
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
 
 export const addAdmin = async (admin) => {
   try {
@@ -80,10 +96,16 @@ export const fetchCOllection = async (
  */
 export const createNewUser = async (user) => {
   try {
-    const userRef = doc(db, COLLECTION_USERS, user.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, user.teamId);
-
     await runTransaction(db, async (transaction) => {
+      const userRef = doc(db, COLLECTION_USERS, user.email);
+      const teamRef = doc(
+        db,
+        user.classId,
+        DOC_TEAMS,
+        COLLECTION_TEAMS,
+        user.teamId
+      );
+
       const docSnap = await transaction.get(userRef);
 
       if (docSnap.exists()) {
@@ -120,6 +142,77 @@ export const createNewUser = async (user) => {
 
       console.log('Transaction successfully committed!');
     });
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const createNewUsers = async (users) => {
+  try {
+    const batch = writeBatch(db);
+
+    users.forEach((user) => {
+      user.password = hashPassword(user.password.toString());
+      user.phone = user.phone.toString();
+      user.teamId = user.teamId.toString();
+      user.phone = user.phone.toString();
+
+      user.createdAt = serverTimestamp(Date.now());
+
+      const userRef = doc(db, COLLECTION_USERS, user.email);
+      const teamRef = doc(
+        db,
+        user.classId,
+        DOC_TEAMS,
+        COLLECTION_TEAMS,
+        user.teamId.toString()
+      );
+
+      batch.set(userRef, user);
+
+      if (user.role === 'manager') {
+        batch.set(
+          teamRef,
+          {
+            manager: {
+              email: user.email,
+            },
+          },
+          { merge: true }
+        );
+      } else {
+        batch.set(
+          teamRef,
+          {
+            employees: arrayUnion({
+              email: user.email,
+            }),
+          },
+          { merge: true }
+        );
+      }
+    });
+
+    // Check if the user with email already exists
+    const foundUsers = await Promise.all(
+      users.map((user) => getDoc(doc(db, COLLECTION_USERS, user.email)))
+    );
+
+    let existingUser = null;
+
+    foundUsers.some((user) => {
+      if (user.exists()) {
+        existingUser = user.data();
+      }
+    });
+    if (existingUser) {
+      throw new Error(`User with email ${existingUser.email} already exists`);
+    }
+
+    await batch.commit();
+
+    console.log('Batch successfully commited!');
   } catch (error) {
     console.error('Error: ', error);
     throw error;
@@ -169,11 +262,17 @@ export const loginUser = async (email, password) => {
 export const deleteEmployee = async (employee) => {
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      employee.teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       const foundTeam = await transaction.get(
-        doc(db, COLLECTION_TEAMS, employee.teamId)
+        doc(db, employee.classId, DOC_TEAMS, COLLECTION_TEAMS, employee.teamId)
       );
       if (!foundTeam.exists()) {
         throw new Error('No team found');
@@ -225,7 +324,13 @@ export const deleteEmployee = async (employee) => {
 export const deleteManager = async (manager) => {
   try {
     const managerRef = doc(db, COLLECTION_USERS, manager.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+    const teamRef = doc(
+      db,
+      manager.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      manager.teamId
+    );
 
     const batch = writeBatch(db);
 
@@ -257,13 +362,20 @@ export const deleteManagerAndPromoteEmployee = async (manager, employee) => {
   try {
     const managerRef = doc(db, COLLECTION_USERS, manager.email);
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const teamRef = doc(db, COLLECTION_TEAMS, manager.teamId);
+    const teamRef = doc(
+      db,
+      manager.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      manager.teamId
+    );
 
     const batch = writeBatch(db);
 
     batch.update(employeeRef, {
       role: 'manager',
       share: Number(manager.share) + Number(employee.share),
+      isNew: false,
     });
 
     batch.delete(managerRef);
@@ -317,14 +429,21 @@ export const updateShares = async (data) => {
  * @operations      UPDATE employee offers arr
  *                  ADD employee to team offers
  *
- * @param {String} employeeToBeHired (id)
+ * @param {String} employeeToBeHired (object)
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
 export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
+  console.log(employeeToBeHired);
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired.email);
+    const teamRef = doc(
+      db,
+      employeeToBeHired.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -333,7 +452,7 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayUnion({
-          email: employeeToBeHired,
+          email: employeeToBeHired.email,
         }),
       });
 
@@ -352,7 +471,7 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
  *                  UPDATE manager with {share: share + employeeShare}
  *                  REMOVE employee from the team
  *
- * @param {String} employeeToBeFired (id)
+ * @param {String} employeeToBeFired (object)
  * @param {String} teamId
  * @param {String} managerId
  * @param {Number} employeeShare
@@ -364,9 +483,15 @@ export const fireAnEmployee = async (
   employeeShare
 ) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired);
+    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeFired.email);
     const managerRef = doc(db, COLLECTION_USERS, managerId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const teamRef = doc(
+      db,
+      employeeToBeFired.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       const foundManager = await transaction.get(managerRef);
@@ -388,7 +513,7 @@ export const fireAnEmployee = async (
 
       transaction.update(teamRef, {
         employees: arrayRemove({
-          email: employeeToBeFired,
+          email: employeeToBeFired.email,
         }),
       });
 
@@ -405,14 +530,21 @@ export const fireAnEmployee = async (
  * @operations      REMOVE offer from employee offers
  *                  REMOVE employee from team offers
  *
- * @param {String} employeeId
+ * @param {String} employee
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const deactivateAnOffer = async (employeeId, teamId, offer) => {
+export const deactivateAnOffer = async (employee, teamId, offer) => {
+  console.log(employee);
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -421,7 +553,7 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          email: employeeId,
+          email: employee.email,
         }),
       });
       console.log('Transaction successfully committed!');
@@ -448,8 +580,20 @@ export const deactivateAnOffer = async (employeeId, teamId, offer) => {
 export const acceptOffer = async (employee, offer) => {
   try {
     const employeeRef = doc(db, COLLECTION_USERS, employee.email);
-    const currentTeamRef = doc(db, COLLECTION_TEAMS, employee.teamId);
-    const newTeamRef = doc(db, COLLECTION_TEAMS, offer.teamId);
+    const currentTeamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      employee.teamId
+    );
+    const newTeamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      offer.teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       // Find current manager
@@ -543,14 +687,20 @@ export const acceptOffer = async (employee, offer) => {
  * @operations      REMOVE offer from employee offers
  *                  REMOVE offer from team offers
  *
- * @param {String} employeeId
+ * @param {String} employee
  * @param {String} teamId
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const declineOffer = async (employeeId, teamId, offer) => {
+export const declineOffer = async (employee, teamId, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeId);
-    const teamRef = doc(db, COLLECTION_TEAMS, teamId);
+    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const teamRef = doc(
+      db,
+      employee.classId,
+      DOC_TEAMS,
+      COLLECTION_TEAMS,
+      teamId
+    );
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRef, {
@@ -559,7 +709,7 @@ export const declineOffer = async (employeeId, teamId, offer) => {
 
       transaction.update(teamRef, {
         offers: arrayRemove({
-          email: employeeId,
+          email: employee.email,
         }),
       });
 

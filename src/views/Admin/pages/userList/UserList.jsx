@@ -5,7 +5,6 @@ import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Material components
 import Box from '@mui/material/Box';
-import Popover from '@mui/material/Popover';
 import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 import { DataGrid } from '@mui/x-data-grid';
@@ -17,13 +16,17 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import WarehouseConfirmationPopup from '../../../../components/ui/WarehouseConfirmationPopup';
 // Firestore services
 import {
+  createNewUsers,
   deleteEmployee,
   deleteManager,
   deleteManagerAndPromoteEmployee,
 } from '../../../../Database/firestoreService';
+// Utils
+import { parseExcel } from '../../../../utils/functions/parseExcel';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -36,11 +39,15 @@ export default function UserList() {
     error,
   } = useCollection(
     COLLECTION_USERS,
-    ['role', '!=', 'admin'],
+    [{ fieldPath: 'role', queryOperator: '!=', value: 'admin' }],
     ['role', 'desc']
   );
 
   const { response, callFirebaseService } = useFirestore();
+  const {
+    response: newUsersResponse,
+    callFirebaseService: callCreateNewUsers,
+  } = useFirestore();
 
   const [userDetails, setUserDetails] = useState(null);
   const [file, setFile] = useState(null);
@@ -74,11 +81,12 @@ export default function UserList() {
     }
   };
 
-  const handleFileUpload = () => {
-    console.log(file);
+  const handleFileUpload = async () => {
+    const usersJson = await parseExcel(file);
+    await callCreateNewUsers(createNewUsers(usersJson));
   };
 
-  // Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component
+  // Popover-----------------------------------------------------------
   const [anchorEl, setAnchorEl] = useState(null);
 
   const handleClick = (e, userDetails) => {
@@ -99,7 +107,7 @@ export default function UserList() {
     {
       field: 'username',
       headerName: 'User',
-      width: 200,
+      width: 180,
       renderCell: (params) => {
         return (
           <div className="userList__user">
@@ -115,14 +123,19 @@ export default function UserList() {
     },
     { field: 'email', headerName: 'Email', width: 200 },
     {
+      field: 'classId',
+      headerName: 'Class ID',
+      width: 120,
+    },
+    {
       field: 'teamId',
       headerName: 'Team ID',
-      width: 140,
+      width: 120,
     },
     {
       field: 'role',
       headerName: 'Employee Type',
-      width: 200,
+      width: 170,
     },
     {
       field: 'action',
@@ -139,48 +152,13 @@ export default function UserList() {
               className="userList__delete"
               onClick={(e) => handleClick(e, params.row)}
             />
-            {/* Popover----------------------------------------------------------- // TODO: Refactor this component -> Make it separate ui component */}
-            <Popover
-              id={id}
-              open={open}
+            <WarehouseConfirmationPopup
               anchorEl={anchorEl}
-              onClose={handleClosePopup}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'center',
-              }}
-              transformOrigin={{
-                vertical: 'center',
-                horizontal: 'right',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  padding: '0.5rem',
-                }}
-              >
-                <span>Are you sure?</span>
-                <div style={{ display: 'flex' }}>
-                  <WarehouseButton
-                    onClick={() => handleDelete(userDetails)}
-                    text="Yes"
-                    warning
-                    sm
-                    loading={response.isPending}
-                  />
-                  <WarehouseButton
-                    onClick={handleClosePopup}
-                    text="Cancel"
-                    success
-                    sm
-                  />
-                </div>
-              </div>
-            </Popover>
-            {/* Popover----------------------------------------------------------- */}
+              userDetails={userDetails}
+              handleDelete={handleDelete}
+              handleClosePopup={handleClosePopup}
+              response={response}
+            />
           </>
         );
       },
@@ -192,32 +170,39 @@ export default function UserList() {
 
   return (
     <div className="userList">
-      {error ||
-        (response.error && (
-          <WarehouseSnackbar text={error || response.error} />
-        ))}
-      <WarehouseHeader>
-        <Link to="/new-user">
-          <WarehouseButton text="Create new user" />
-        </Link>{' '}
-      </WarehouseHeader>
-      <WarehouseCard>
-        <Box sx={{ height: 450, width: '100%' }}>
-          {isPending && <WarehouseLoader />}
-          {users && (
-            <DataGrid
-              rows={users}
-              columns={columns}
-              pageSize={6}
-              rowsPerPageOptions={[6]}
-              checkboxSelection
-              disableSelectionOnClick
-            />
-          )}
-        </Box>
-      </WarehouseCard>
+      {isPending ? (
+        <WarehouseLoader />
+      ) : error ? (
+        <WarehouseAlert text={error} />
+      ) : (
+        <>
+          <WarehouseHeader>
+            <Link to="/new-user">
+              <WarehouseButton text="Create new user" />
+            </Link>{' '}
+          </WarehouseHeader>
+          <WarehouseCard>
+            <Box sx={{ height: 450, width: '100%' }}>
+              {
+                <DataGrid
+                  rows={users}
+                  columns={columns}
+                  pageSize={6}
+                  rowsPerPageOptions={[6]}
+                  checkboxSelection
+                  disableSelectionOnClick
+                />
+              }
+            </Box>
+          </WarehouseCard>
+        </>
+      )}
+
       <WarehouseHeader title="Upload an Excel Sheet instead!" my />
       <WarehouseCard>
+        {newUsersResponse.error && (
+          <WarehouseAlert text={newUsersResponse.error} severity="error" />
+        )}
         <div className="userList__upload">
           <label>
             <input type="file" onChange={handleOnFileChange} />
@@ -228,6 +213,7 @@ export default function UserList() {
           {fileError && <p style={{ color: 'red' }}>{fileError}</p>}
           <WarehouseButton
             onClick={handleFileUpload}
+            loading={newUsersResponse.isPending}
             disabled={!file}
             text="Upload file"
           />
@@ -299,8 +285,9 @@ function DeleteManagerModal({
 
   return (
     <>
-      {teamMembersError ||
-        (response.error && <WarehouseSnackbar text={response.error} />)}
+      {(teamMembersError || response.error) && (
+        <WarehouseSnackbar text={response.error} />
+      )}
       <Modal
         open={isModalOpen}
         onClose={handleCloseModal}
@@ -312,7 +299,7 @@ function DeleteManagerModal({
         ) : (
           <Box sx={style}>
             <WarehouseCard>
-              {teamMembers.length === 1 || teamMembers.length === 0 ? (
+              {teamMembers?.length === 1 || teamMembers?.length === 0 ? (
                 <Typography id="modal-modal-title" variant="h6" component="h2">
                   Manager has no employees in his team. You can submit to
                   delete.
@@ -323,7 +310,7 @@ function DeleteManagerModal({
                   manager.
                 </Typography>
               )}
-              {teamMembers.length > 1 && (
+              {teamMembers?.length > 1 && (
                 <select
                   onChange={(e) => setSelectedEmployee(e.target.value)}
                   value={selectedEmployee}

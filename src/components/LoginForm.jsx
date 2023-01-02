@@ -4,8 +4,8 @@ import { useLogin } from '../hooks/useLogin';
 // Material components
 import Container from '@mui/system/Container';
 // Components
-import WarehouseSnackbar from './ui/WarehouseSnackbar';
 import WarehouseButton from './ui/WarehouseButton';
+import WarehouseAlert from './ui/WarehouseAlert';
 // Css
 import './../style/LoginForm.css';
 
@@ -57,7 +57,7 @@ function LoginForm() {
                   value={password}
                 />
               </div>
-              {error && <WarehouseSnackbar text={error} />}
+              {error && <WarehouseAlert text={error} severity="error" />}
               <WarehouseButton
                 className="loginForm__button"
                 type="submit"

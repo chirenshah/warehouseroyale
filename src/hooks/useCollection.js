@@ -33,7 +33,9 @@ export function useCollection(
           q = query(
             collection(db, collectionName),
             orderBy(...orderQuery),
-            where(...whereQuery)
+            ...whereQuery.map((filter) =>
+              where(filter.fieldPath, filter.queryOperator, filter.value)
+            )
           );
         }
         if (!whereQuery) {

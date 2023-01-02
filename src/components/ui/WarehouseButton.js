@@ -9,6 +9,7 @@ export default function WarehouseButton({
   success,
   warning,
   loading,
+  disabled,
   ...rest
 }) {
   const warehouseButtonStyle = {
@@ -24,7 +25,11 @@ export default function WarehouseButton({
 
   return (
     <Box sx={{ m: 1, position: 'relative', width: 'fit-content' }}>
-      <button {...rest} style={warehouseButtonStyle} disabled={loading}>
+      <button
+        {...rest}
+        style={warehouseButtonStyle}
+        disabled={disabled || loading}
+      >
         {text}
       </button>
       {loading && (

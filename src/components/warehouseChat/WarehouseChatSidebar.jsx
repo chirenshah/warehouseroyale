@@ -1,31 +1,25 @@
 import { useState } from 'react';
 // Hooks
-import { useAuthContext } from '../../hooks/useAuthContext';
 import { useCollection } from '../../hooks/useCollection';
-import { useFirestore } from '../../hooks/useFirestore';
 // Components
 import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 // Material icons
 import { MdModeEdit } from 'react-icons/md';
 import { MdOutlineArrowBackIos } from 'react-icons/md';
-// Firebase services
-import { initiateChat } from '../../Database/firestoreService';
 // Helpers
 import { getUsersList } from './helpers/getUsersList';
 // Constants
-import { COLLECTION_TEAMS } from '../../utils/constants';
+import { COLLECTION_TEAMS, DOC_TEAMS } from '../../utils/constants';
 
 export default function WarehouseChatSidebar({
+  classId,
   chatMembers,
   chatMembersPending,
   activeChatMember,
   setActiveChatMember,
   loadNewChatMember,
 }) {
-  const { user: currentUser } = useAuthContext();
-  const { response, callFirebaseService } = useFirestore();
-
   const [selectedTeam, setSelectedTeam] = useState(null);
   const [showChatMembersList, setShowChatMembersList] = useState(true);
   const [showTeamList, setShowTeamList] = useState(false);
@@ -35,31 +29,33 @@ export default function WarehouseChatSidebar({
     documents: teams,
     isPending: teamsPending,
     error: teamsError,
-  } = useCollection(COLLECTION_TEAMS);
+  } = useCollection(`${classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`);
 
-  const handleShowList = (list) => {
+  const showList = (list) => {
     switch (list) {
       case 'chatMemberList':
         setShowChatMembersList(true);
-        setShowTeamList(false);
-        setShowUsersList(false);
         break;
       case 'teamList':
-        setShowChatMembersList(false);
         setShowTeamList(true);
-        setShowUsersList(false);
         break;
       case 'usersList':
-        setShowChatMembersList(false);
-        setShowTeamList(false);
         setShowUsersList(true);
         break;
       default:
-        setShowChatMembersList(true);
-        setShowTeamList(false);
-        setShowUsersList(false);
         break;
     }
+  };
+
+  const hideLists = () => {
+    setShowChatMembersList(false);
+    setShowTeamList(false);
+    setShowUsersList(false);
+  };
+
+  const handleShowList = (list) => {
+    hideLists();
+    showList(list);
   };
 
   const handleInitiateChat = async (receiverId) => {
@@ -80,10 +76,7 @@ export default function WarehouseChatSidebar({
 
   return (
     <div className="warehouseChat__left">
-      {response.error ||
-        (teamsError && (
-          <WarehouseSnackbar text={response.error || teamsError} />
-        ))}
+      {teamsError && <WarehouseSnackbar text={teamsError} />}
       <div className="warehouseChat__leftHeader">
         <h3>Chats</h3>
         <MdModeEdit
@@ -95,7 +88,7 @@ export default function WarehouseChatSidebar({
         />
       </div>
       {showChatMembersList &&
-        (chatMembersPending || !chatMembers || response.isPending ? (
+        (chatMembersPending || !chatMembers ? (
           <WarehouseLoader />
         ) : !chatMembers.length ? (
           <h6 style={{ marginTop: '10rem', textAlign: 'center' }}>
