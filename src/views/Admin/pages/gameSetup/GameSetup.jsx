@@ -6,6 +6,8 @@ import { FormControlLabel } from '@mui/material';
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
+// Utils
+import { getCurrentTime } from '../../../../utils/functions/getCurrentTime';
 // Helpers
 import { questions } from './helpers';
 // Css
@@ -15,7 +17,9 @@ import { createInstance } from '../../../../Database/firestore';
 export default function GameSetup() {
   const handleSubmit = async (event) => {
     event.preventDefault();
+
     let configuration = {};
+
     configuration['Class Number'] = event.target['Class Number'].value;
     configuration['Number Of rounds'] = event.target['Number Of rounds'].value;
     configuration['Max members in a team'] =
@@ -31,13 +35,15 @@ export default function GameSetup() {
         event.target[element.id + '-radio'].value;
     }
     await createInstance(configuration);
+
     alert('Game Created Sucessfully');
   };
 
   return (
     <div className="gameSetup">
-      <form onSubmit={handleSubmit} className="gameSetup__questions">
-        <WarehouseHeader>
+      <WarehouseHeader title="Configure a game" />
+      <WarehouseCard>
+        <form onSubmit={handleSubmit}>
           <div className="gameSetup__inputs">
             <TextField
               label="Class Number"
@@ -69,46 +75,47 @@ export default function GameSetup() {
               defaultValue={12}
               size="medium"
             />
+            <TextField
+              id="start_time"
+              label="start_time"
+              type="datetime-local"
+              defaultValue={getCurrentTime()}
+              sx={{ width: 250 }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
           </div>
-        </WarehouseHeader>
-        <WarehouseCard>
-          {questions.map(({ id, question, answers }) => (
-            <FormControl key={id}>
-              <FormLabel
-                style={{ color: '#393145', fontSize: '1.25rem' }}
-                id="radio-buttons-group"
-              >
-                {question}
-              </FormLabel>
-              <RadioGroup
-                aria-labelledby="radio-buttons-group"
-                defaultValue={answers[0]}
-                name={id + '-radio'}
-              >
-                {answers.map((answer) => (
-                  <FormControlLabel
-                    key={answer}
-                    value={answer}
-                    control={<Radio />}
-                    label={answer}
-                  />
-                ))}
-              </RadioGroup>
-            </FormControl>
-          ))}
-          <TextField
-            id="start_time"
-            label="start_time"
-            type="datetime-local"
-            defaultValue="2017-05-24T10:30"
-            sx={{ width: 250 }}
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
+          <div className="gameSetup__questions">
+            {questions.map(({ id, question, answers }) => (
+              <FormControl sx={{ m: 1 }} key={id}>
+                <FormLabel
+                  style={{ color: '#393145', fontSize: '1.25rem' }}
+                  id="radio-buttons-group"
+                >
+                  {question}
+                </FormLabel>
+                <RadioGroup
+                  aria-labelledby="radio-buttons-group"
+                  defaultValue={answers[0]}
+                  name={id + '-radio'}
+                >
+                  {answers.map((answer) => (
+                    <FormControlLabel
+                      key={answer}
+                      value={answer}
+                      control={<Radio />}
+                      label={answer}
+                    />
+                  ))}
+                </RadioGroup>
+              </FormControl>
+            ))}
+          </div>
+
           <WarehouseButton text="Submit" />
-        </WarehouseCard>
-      </form>
+        </form>
+      </WarehouseCard>
     </div>
   );
 }

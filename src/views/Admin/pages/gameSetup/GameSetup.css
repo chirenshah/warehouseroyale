@@ -1,10 +1,10 @@
 .gameSetup__inputs {
   display: flex;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .gameSetup__questions {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
 }
