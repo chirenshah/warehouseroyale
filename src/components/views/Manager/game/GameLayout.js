@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import { Autocomplete, Box } from '@mui/material';
 import React from 'react';
 import { useState, useEffect } from 'react';
 import './../../../../style/ManagerGameLayout.css';
@@ -10,6 +10,8 @@ import TextField from '@mui/material/TextField';
 import {
   creatOrderOptions,
   orderListListerner,
+  purchaseInventory,
+  returnSku,
   updateOrderList,
 } from '../../../../Database/firestore';
 
@@ -30,12 +32,13 @@ function GameLayout() {
   const [selectedOffer, setSelectedOffer] = useState(null);
   const [orderList, setOrderList] = useState([]);
   const [offerList, setOfferList] = useState([]);
-  const [itemXValue, setItemXValue] = useState(0);
-  const [itemYValue, setItemYValue] = useState(0);
-  const [itemZValue, setItemZValue] = useState(0);
-  const [inventoryBtnDisabled, setInventoryBtnDisabled] = useState(true);
+  const [sku_list, setskuList] = useState([]);
+  const [inventoryQuant, setInventoryQuant] = useState(0);
+  const [inventorySku, setInventorySku] = useState('');
+
   useEffect(() => {
     orderListListerner(setOrderList);
+    returnSku(setskuList);
     creatOrderOptions(3).then((data) => {
       setOfferList(data);
     });
@@ -59,90 +62,9 @@ function GameLayout() {
   }
 
   function purchaseBtnClickHandler(e) {
-    let object = {};
-    object['data-offer-name'] = `Order ${orderList.length + 1}`;
-    object['data-values'] = [];
-    object['data-items'] = [];
-
-    let count = 0;
-    if (itemXValue !== 0) {
-      object['data-items'].push('X');
-      object['data-values'].push(itemXValue);
-      count += 1;
-    }
-    if (itemYValue !== 0) {
-      object['data-items'].push('Y');
-      object['data-values'].push(itemYValue);
-      count += 1;
-    }
-    if (itemZValue !== 0) {
-      object['data-items'].push('Z');
-      object['data-values'].push(itemZValue);
-      count += 1;
-    }
-    object['data-number-of-offers-items'] = count;
-
-    setOrderList([
-      ...orderList,
-      <Orders
-        key={orderList.length}
-        data-id={'order-' + Date.now()}
-        data-offer-name={object['data-offer-name']}
-        data-number-of-offers-items={object['data-number-of-offers-items']}
-        data-values={object['data-values']}
-        data-items={object['data-items']}
-      />,
-    ]);
-  }
-
-  function checkForPositiveValue(value, item) {
-    if (value.trim().length != 0) {
-      let val = parseInt(value);
-      if (val <= 0) {
-        if (item === 'X') {
-          setItemXValue(0);
-          if (itemYValue === 0 && itemZValue === 0) {
-            setInventoryBtnDisabled(true);
-          }
-        } else if (item === 'Y') {
-          setItemYValue(0);
-          if (itemXValue === 0 && itemZValue === 0) {
-            setInventoryBtnDisabled(true);
-          }
-        } else if (item === 'Z') {
-          setItemZValue(0);
-          if (itemXValue === 0 && itemYValue === 0) {
-            setInventoryBtnDisabled(true);
-          }
-        }
-      } else {
-        if (item === 'X') {
-          setItemXValue(val);
-        } else if (item === 'Y') {
-          setItemYValue(val);
-        } else if (item === 'Z') {
-          setItemZValue(val);
-        }
-        setInventoryBtnDisabled(false);
-      }
-    } else {
-      if (item === 'X') {
-        setItemXValue('');
-        if (itemYValue === 0 && itemZValue === 0) {
-          setInventoryBtnDisabled(true);
-        }
-      } else if (item === 'Y') {
-        setItemYValue('');
-        if (itemXValue === 0 && itemZValue === 0) {
-          setInventoryBtnDisabled(true);
-        }
-      } else if (item === 'Z') {
-        setItemZValue('');
-        if (itemXValue === 0 && itemYValue === 0) {
-          setInventoryBtnDisabled(true);
-        }
-      }
-    }
+    purchaseInventory(inventorySku, inventoryQuant);
+    setInventoryQuant(0);
+    setInventorySku('');
   }
 
   return (
@@ -168,15 +90,6 @@ function GameLayout() {
                       getSelectedOffer={setSelectedOffer}
                     />
                   ))}
-                  {/* <Offer
-                                        data-id={"Offer-9-" + Date.now()}
-                                        data-offer-name="Offer 8"
-                                        data-number-of-offers-items="3"
-                                        data-values={[15, 10, 5]}
-                                        data-items={["X", "Y", "Z"]}
-                                        disableDataFetch={false}
-                                        getOfferData={getSelectedOffer}
-                                    /> */}
                 </Box>
               </Box>
               <Box
@@ -237,65 +150,34 @@ function GameLayout() {
                   >
                     INVENTORY PURCHASE
                   </Box>
-                  {/* {displaySelectedOffer()} */}
                   <Box
                     id="inventory-purchase"
                     className="inventory-purchase-box"
                   >
-                    <Box id="" className="cards-sub-content">
-                      <Box id="" className="cards-sub-content-key">
-                        Item X
-                      </Box>
-                      <TextField
-                        className="inventory-text-field"
-                        variant="standard"
-                        size="small"
-                        type="number"
-                        value={itemXValue}
-                        InputProps={{
-                          inputProps: { min: 1 },
-                        }}
-                        onChange={(e) => {
-                          checkForPositiveValue(e.target.value, 'X');
-                        }}
-                      />
-                    </Box>
-                    <Box id="" className="cards-sub-content">
-                      <Box id="" className="cards-sub-content-key">
-                        Item Y
-                      </Box>
-                      <TextField
-                        className="inventory-text-field"
-                        variant="standard"
-                        size="small"
-                        type="number"
-                        value={itemYValue}
-                        InputProps={{
-                          inputProps: { min: 1 },
-                        }}
-                        onChange={(e) => {
-                          checkForPositiveValue(e.target.value, 'Y');
-                        }}
-                      />
-                    </Box>
-                    <Box id="" className="cards-sub-content">
-                      <Box id="" className="cards-sub-content-key">
-                        Item Z
-                      </Box>
-                      <TextField
-                        className="inventory-text-field"
-                        variant="standard"
-                        size="small"
-                        type="number"
-                        value={itemZValue}
-                        InputProps={{
-                          inputProps: { min: 1 },
-                        }}
-                        onChange={(e) => {
-                          checkForPositiveValue(e.target.value, 'Z');
-                        }}
-                      />
-                    </Box>
+                    <Autocomplete
+                      sx={{ width: 150, margin: 1 }}
+                      options={sku_list}
+                      value={inventorySku}
+                      renderInput={(params) => (
+                        <TextField {...params} label="SkuID"></TextField>
+                      )}
+                      onChange={(event, val) => {
+                        setInventorySku(val);
+                      }}
+                    ></Autocomplete>
+                    <TextField
+                      label="Quantity"
+                      type="number"
+                      sx={{ width: 80, margin: 1 }}
+                      value={inventoryQuant}
+                      onChange={(event) => {
+                        if (event.target.value >= 0) {
+                          setInventoryQuant(event.target.value);
+                        } else {
+                          setInventoryQuant(0);
+                        }
+                      }}
+                    />
                   </Box>
                   <Box className="inventory-purchase-btn-box">
                     <Button
@@ -304,7 +186,11 @@ function GameLayout() {
                       variant="outlined"
                       size="medium"
                       onClick={purchaseBtnClickHandler}
-                      disabled={inventoryBtnDisabled}
+                      disabled={
+                        inventorySku === '' || inventoryQuant === 0
+                          ? true
+                          : false
+                      }
                     >
                       Purchase
                     </Button>

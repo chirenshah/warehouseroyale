@@ -31,7 +31,7 @@ export default function Game() {
   var sku = createRef();
   var quant = createRef();
   var chatRef = createRef();
-  //let navigate = useNavigate();
+  let navigate = useNavigate();
   // Low medium and high complexity for data
   // low is the numbering is ordered
   // medium is when you need to check more digits
@@ -99,11 +99,10 @@ export default function Game() {
           }
         }
       } else {
-        // let score = calculateLogs();
+        //called at round end
+        calculateLogs();
         // score.then((val) => {
-        //     // navigate(
-        //     //     "/performancemetric/" + val.right + "/" + val.wrong
-        //     // );
+        //navigate('/');
         // });
       }
     }, 1000);
@@ -375,27 +374,6 @@ export default function Game() {
             }}
           >
             FIND SKU
-          </button>
-          <button
-            className="send-btn white"
-            onClick={() => {
-              let score = calculateLogs();
-              score.then((val) => {
-                // navigate(
-                //     "/performancemetric/" +
-                //         val.right +
-                //         "/" +
-                //         val.wrong
-                // );
-              });
-
-              // window.removeEventListener(
-              //     "mousemove",
-              //     handleWindowMouseMove
-              // );
-            }}
-          >
-            Finish Game
           </button>
           <br></br>
           {timer}
