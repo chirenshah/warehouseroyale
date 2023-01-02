@@ -107,7 +107,7 @@ export default function UserList() {
     {
       field: 'username',
       headerName: 'User',
-      width: 200,
+      width: 180,
       renderCell: (params) => {
         return (
           <div className="userList__user">
@@ -123,14 +123,19 @@ export default function UserList() {
     },
     { field: 'email', headerName: 'Email', width: 200 },
     {
+      field: 'classId',
+      headerName: 'Class ID',
+      width: 120,
+    },
+    {
       field: 'teamId',
       headerName: 'Team ID',
-      width: 140,
+      width: 120,
     },
     {
       field: 'role',
       headerName: 'Employee Type',
-      width: 200,
+      width: 170,
     },
     {
       field: 'action',

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 // Material components
 import TextField from '@mui/material/TextField';
 import { FormLabel, FormControl, Radio, RadioGroup } from '@mui/material';
@@ -6,15 +7,19 @@ import { FormControlLabel } from '@mui/material';
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 // Utils
 import { getCurrentTime } from '../../../../utils/functions/getCurrentTime';
+// Firebase services
+import { createInstance } from '../../../../Database/firestore';
 // Helpers
 import { questions } from './helpers';
 // Css
 import './GameSetup.css';
-import { createInstance } from '../../../../Database/firestore';
 
 export default function GameSetup() {
+  const [showClassCreatedAlert, setShowClassCreatedAlert] = useState(false);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -36,14 +41,22 @@ export default function GameSetup() {
     }
     await createInstance(configuration);
 
-    alert('Game Created Sucessfully');
+    setShowClassCreatedAlert(true);
+    setTimeout(() => {
+      setShowClassCreatedAlert(false);
+    }, 10000);
   };
 
   return (
     <div className="gameSetup">
-      <WarehouseHeader title="Configure a game" />
-      <WarehouseCard>
-        <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
+        <WarehouseHeader title="Configure a game">
+          <WarehouseButton text="Submit" />
+        </WarehouseHeader>
+        <WarehouseCard>
+          {showClassCreatedAlert && (
+            <WarehouseAlert text="Class has been created successfully" />
+          )}
           <div className="gameSetup__inputs">
             <TextField
               label="Class Number"
@@ -112,10 +125,8 @@ export default function GameSetup() {
               </FormControl>
             ))}
           </div>
-
-          <WarehouseButton text="Submit" />
-        </form>
-      </WarehouseCard>
+        </WarehouseCard>
+      </form>
     </div>
   );
 }
