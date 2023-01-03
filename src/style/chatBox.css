@@ -4,6 +4,7 @@ main {
     overflow-y: scroll;
     display: flex;
     flex-direction: column-reverse;
+    z-index: 1;
 }
 
 main::-webkit-scrollbar {
@@ -52,4 +53,14 @@ li {
 .received p {
     background: #e5e5ea;
     color: black;
+}
+
+.teamList{
+    border: #6649b8 1px solid;
+    z-index: 10;
+}
+
+.teamList p{
+    border: #6649b8 1px solid;
+    margin: 1px;
 }

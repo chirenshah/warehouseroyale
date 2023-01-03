@@ -53,23 +53,31 @@ export function ChatBox({ expand }) {
         <div
           style={{
             display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          <input
-            onChange={(e) => {
-              setMessage(e.target.value);
-            }}
-            value={message}
-          />
-          <AiOutlineSend
-            width={10}
-            fontSize={30}
-            color="#6649b8"
-            onClick={() => {
-              chat_sendMessage(message, 'hetmandapara@asu.edu');
-              setMessage('');
-            }}
-          ></AiOutlineSend>
+          <div className="teamList">
+            <p>one</p>
+            <p>two</p>
+          </div>
+          <div>
+            <input
+              style={{ width: '80%' }}
+              onChange={(e) => {
+                setMessage(e.target.value);
+              }}
+              value={message}
+            />
+            <AiOutlineSend
+              width={10}
+              fontSize={30}
+              color="#6649b8"
+              onClick={() => {
+                chat_sendMessage(message, 'hetmandapara@asu.edu');
+                setMessage('');
+              }}
+            ></AiOutlineSend>
+          </div>
         </div>
         {messages &&
           messages.map((msg) => (

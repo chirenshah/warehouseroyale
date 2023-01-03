@@ -17,10 +17,10 @@ import {
   increment,
   limit,
   arrayRemove,
+  arrayUnion,
 } from 'firebase/firestore';
 
 import app from './config';
-
 export const db = getFirestore(app);
 export async function unsub() {
   let individualQueries = [];
@@ -123,6 +123,84 @@ export async function returnSku(setskuList) {
   });
 }
 
+export async function purchaseInventory(inventorySku, inventoryQuant) {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let temp = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  temp = temp.data()['Bins']['Receiving'];
+  for (let index = 0; index < inventoryQuant; index++) {
+    let tempObj = {};
+    tempObj[inventorySku] = Date();
+    temp.push(tempObj);
+  }
+  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
+    'Bins.Receiving': temp,
+    Points: increment(-inventoryQuant),
+  });
+}
+
+export async function binUpdate(from, to, id, set_data, timer) {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  const sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
+  console.log('Team ' + user_info.teamId);
+  try {
+    await runTransaction(db, async (transaction) => {
+      const sfDoc = await transaction.get(sfDocRef);
+      if (!sfDoc.exists()) {
+        throw Error('Document does not exist!');
+      }
+      const data = sfDoc.data()['Bins'];
+      let logs = sfDoc.data()['Logs'];
+      let sku = logs[id];
+      if (!(from in sku)) sku[from] = 0;
+      if (!(to in sku)) sku[to] = 0;
+      sku[from] -= 1;
+      sku[to] += 1;
+      if (sku[from] === 0) delete sku[from];
+      if (sku[to] === 0) delete sku[to];
+
+      let from_var = [];
+      let count = 0;
+
+      for (let j = 0; j < data[from].length; j++) {
+        if (Object.keys(data[from][j])[0] !== id) {
+          from_var.push(data[from][j]);
+        } else {
+          count += 1;
+          if (count > 1) {
+            from_var.push(data[from][j]);
+          }
+        }
+        // if (data[from].includes(id)) {
+        //   data[from] = data[from].filter((val) => val !== id);
+        // } else {
+        //   throw 'Exception';
+        // }
+      }
+      if (count === 0) {
+        throw Error('Exception');
+      }
+      data[from] = from_var;
+      if (to !== 'Trash') {
+        let temp = {};
+        temp[id] = timer;
+        if (to in data) {
+          data[to].push(temp);
+        } else {
+          data[to] = [];
+          data[to].push(temp);
+        }
+      }
+      transaction.update(sfDocRef, { Bins: data, Logs: logs });
+      set_data(data);
+    });
+    console.log('Transaction successfully committed!');
+  } catch (e) {
+    console.log('Transaction failed: ', e);
+  }
+}
+
 export async function updateLogs(from, to, id, quant) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   let sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
@@ -179,12 +257,14 @@ export async function createInstance(config) {
   let { bins, logs } = await writeInventory(config['Number Of SKU']);
   let temp = {
     Bins: { Receiving: bins },
-    Points: 0,
+    Points: [],
     O1: {},
     O2: {},
-    Logs: [],
+    Logs: logs,
+    IRI: [],
     start_time: config['start_time'],
     orders: [],
+    userList: [],
     userLogs: logs,
   };
   batch.set(doc(db, 'Class List', config['Class Number']), {});
@@ -224,73 +304,52 @@ export async function writeInventory(UniqueSku) {
   return { bins: fin_data, logs: logs };
 }
 
-export async function updateOrderList(selectData, label) {
-  let temp = {
-    orders: arrayRemove(selectData),
-  };
-  temp[label] = selectData;
-  updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
-    console.log(err)
-  );
-}
+// export async function updateOrderList(selectData, label) {
+//   let temp = {
+//     orders: arrayRemove(selectData),
+//   };
+//   temp[label] = selectData;
+//   updateDoc(doc(db, 'instance1', 'Room 1'), temp).catch((err) =>
+//     console.log(err)
+//   );
+// }
 export async function calculateLogs() {
-  let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
-  physicalLogs =
-    physicalLogs.data()[localStorage.warehouse_user_email.replace('.', ',')];
-  let actualLogs = await getDoc(doc(db, 'instance1', 'Room 1'));
+  let iri = 0;
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let data = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  let physicalLogs = data.data()['userLogs'];
+  let actualLogs = data.data()['Logs'];
+  console.log(data.data());
+  let skus = Object.keys(actualLogs);
 
-  let actualLogsMap = {};
-  actualLogs = actualLogs.data()['Logs'];
-  actualLogs.forEach((val) => {
-    val = val.split(':');
-    if (val[0] in actualLogsMap) {
-      actualLogsMap[val[0]].push([val[1], val[2]]);
-    } else {
-      actualLogsMap[val[0]] = [[val[1], val[2]]];
-    }
-  });
-  let right = 0;
-  let wrong = 0;
-  for (let i = 0; i < physicalLogs.length; i++) {
-    let phy = physicalLogs[i].split(':');
-    if (phy[0] in actualLogsMap) {
-      let flag = true;
-      for (let j = 0; j < actualLogsMap[phy[0]].length; j++) {
-        if (
-          (actualLogsMap[phy[0]][j][0] === phy[1]) &
-          (actualLogsMap[phy[0]][j][1] === phy[2])
-        ) {
-          right += 1;
-          actualLogsMap[phy[0]][j] = [-1, -1, -1];
-          flag = false;
-          break;
-        }
+  for (let i = 0; i < skus.length; i++) {
+    let temp = Object.keys(actualLogs[skus[i]]);
+    for (let j = 0; j < temp.length; j++) {
+      if (temp[j] in physicalLogs[skus[i]]) {
+        iri += Math.abs(
+          actualLogs[skus[i]][temp[j]] - physicalLogs[skus[i]][temp[j]]
+        );
+      } else {
+        iri += actualLogs[skus[i]][temp[j]];
       }
-      if (flag) {
-        wrong += 1;
-      }
-    } else {
-      wrong += 1;
     }
   }
   // scores[window.localStorage.admin.replace(".", ",")] = {
   //     right: right,
   //     wrong: wrong,
   // };
-  let temp = {};
-  temp['Score.' + localStorage.warehouse_user_email.replace('.', ',')] = {
-    right: right,
-    wrong: wrong,
-  };
-  updateDoc(doc(db, 'instance1', 'Logs'), temp);
-  return temp;
+  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
+    IRI: arrayUnion(iri),
+  });
 }
 
-export async function getPerformanceData() {
-  let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
-  physicalLogs = physicalLogs.data();
-  return physicalLogs;
-}
+// export async function getPerformanceData() {
+//   let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
+//   physicalLogs = physicalLogs.data();
+//   return physicalLogs;
+// }
 
 // Standard Normal variate using Box-Muller transform.
 function gaussianRandom(mean = 0, stdev = 1) {
@@ -301,12 +360,14 @@ function gaussianRandom(mean = 0, stdev = 1) {
   return z * stdev + mean;
 }
 export async function creatOrderOptions(range) {
-  let physicalLogs = await getDoc(doc(db, 'instance1', 'Logs'));
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let physicalLogs = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
   let max_sku = 15;
   let min_sku = 5;
   let OrderedList = [];
-  // console.log(physicalLogs.data());
-  let sku_ids = Object.keys(physicalLogs.data()['Bins']);
+  let sku_ids = Object.keys(physicalLogs.data()['userLogs']);
   for (let i = 0; i < range; i++) {
     let order = {};
     let amount = 0;
@@ -452,65 +513,6 @@ export async function calculateScore(data, bins_val, bin_label) {
 //     });
 // }
 
-export async function binUpdate(from, to, id, set_data, timer) {
-  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-  const sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
-  console.log('Team ' + user_info.teamId);
-  try {
-    await runTransaction(db, async (transaction) => {
-      const sfDoc = await transaction.get(sfDocRef);
-      if (!sfDoc.exists()) {
-        throw 'Document does not exist!';
-      }
-      const data = sfDoc.data()['Bins'];
-      let logs = sfDoc.data()['Logs'];
-      if (!logs) {
-        logs = [];
-      }
-      logs.push(
-        id + ':' + from + ':' + to + ':' + localStorage.warehouse_user_email
-      );
-      let from_var = [];
-      let count = 0;
-
-      for (let j = 0; j < data[from].length; j++) {
-        if (Object.keys(data[from][j])[0] !== id) {
-          from_var.push(data[from][j]);
-        } else {
-          count += 1;
-          if (count > 1) {
-            from_var.push(data[from][j]);
-          }
-        }
-        // if (data[from].includes(id)) {
-        //   data[from] = data[from].filter((val) => val !== id);
-        // } else {
-        //   throw 'Exception';
-        // }
-      }
-      if (count === 0) {
-        throw 'Exception';
-      }
-      data[from] = from_var;
-      if (to !== 'Trash') {
-        let temp = {};
-        temp[id] = timer;
-        if (to in data) {
-          data[to].push(temp);
-        } else {
-          data[to] = [];
-          data[to].push(temp);
-        }
-      }
-      transaction.update(sfDocRef, { Bins: data, Logs: logs });
-      set_data(data);
-    });
-    console.log('Transaction successfully committed!');
-  } catch (e) {
-    console.log('Transaction failed: ', e);
-  }
-}
-
 export async function binListener(
   set_data,
   setorderList,
@@ -536,6 +538,7 @@ export async function orderListListerner(setorderList) {
   onSnapshot(
     doc(db, user_info.classId, 'Team ' + user_info.teamId),
     async (snapshot) => {
+      console.log(Object.keys(snapshot.data()['userLogs']));
       setorderList(snapshot.data()['orders']);
     }
   );
@@ -554,7 +557,7 @@ export async function chat_sendMessage(message, to) {
   if (message !== '') {
     let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
     let emailDestination = '';
-    if (to != 'Everyone') {
+    if (to !== 'Everyone') {
       emailDestination = [user_info.email, to].sort().join('-');
     } else {
       emailDestination = to;
