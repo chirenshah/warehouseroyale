@@ -22,7 +22,10 @@ import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import Chart from '../../../../components/chart/Chart';
 // Firebase services
-import { updateShares } from '../../../../Database/firestoreService';
+import {
+  makeNotificationRead,
+  updateShares,
+} from '../../../../Database/firestoreService';
 // Constants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -149,6 +152,11 @@ export default function MyTeam() {
     setIsProceededToShare(false);
   };
 
+  const handleProceedToShare = async () => {
+    setIsProceededToShare(true);
+    makeNotificationRead(currentUser.email);
+  };
+
   return (
     <div className="myTeam">
       {response.error && <WarehouseSnackbar text={error || response.error} />}
@@ -170,9 +178,7 @@ export default function MyTeam() {
             ))}
           </List>
           <WarehouseButton
-            onClick={() => {
-              setIsProceededToShare(true);
-            }}
+            onClick={handleProceedToShare}
             text="Proceed to share"
           />
         </WarehouseCard>

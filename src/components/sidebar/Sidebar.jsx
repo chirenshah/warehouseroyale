@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+// Hooks
+import { useNotificationContext } from '../../hooks/useNotificationContext';
 // Material components
 import Badge from '@mui/material/Badge';
 // Components
@@ -12,6 +14,8 @@ export default function Sidebar({ sidebarConfig }) {
   const location = useLocation();
 
   const currentPage = location.pathname.split('/').splice(1)[0];
+
+  const { notification } = useNotificationContext();
 
   const [activeMenu, setActiveMenu] = useState(currentPage);
 
@@ -32,8 +36,8 @@ export default function Sidebar({ sidebarConfig }) {
                 }`}
                 onClick={() => setActiveMenu(path.substring(1))}
               >
-                {showBadge ? (
-                  <Badge color="primary" badgeContent={2}>
+                {showBadge && notification?.isNewNotification ? (
+                  <Badge color="success" badgeContent=" ">
                     {icon}
                     {item}
                   </Badge>

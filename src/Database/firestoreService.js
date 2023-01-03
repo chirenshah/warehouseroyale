@@ -18,10 +18,24 @@ import { hashPassword } from '../utils/functions/hashPassword';
 import { matchPassword } from '../utils/functions/matchPassword';
 import {
   COLLECTION_CHATS,
+  COLLECTION_NOTIFICATIONS,
   COLLECTION_TEAMS,
   COLLECTION_USERS,
   DOC_TEAMS,
 } from '../utils/constants';
+
+export const makeNotificationRead = async (documentId) => {
+  try {
+    const docRef = doc(db, COLLECTION_NOTIFICATIONS, documentId);
+
+    await setDoc(docRef, {
+      isNewNotification: false,
+    });
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
 
 export const getDocument = async (collectionName, documentId) => {
   try {
@@ -106,10 +120,20 @@ export const createNewUser = async (user) => {
         user.teamId
       );
 
-      const docSnap = await transaction.get(userRef);
+      const userSnap = await transaction.get(userRef);
 
-      if (docSnap.exists()) {
+      if (userSnap.exists()) {
         throw new Error('User with this email already exists');
+      }
+
+      if (user.role === 'employee') {
+        const teamSnap = await transaction.get(teamRef);
+        const managerEmail = teamSnap.data().manager.email;
+        const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, managerEmail);
+
+        transaction.set(notificationRef, {
+          isNewNotification: true,
+        });
       }
 
       user.password = hashPassword(user.password);
