@@ -102,16 +102,17 @@ export default function RecruitmentRoom() {
     );
 
     await callFirebaseService(
-      makeAnOffer(employeeToBeHiredDetails, manager.teamId, {
+      makeAnOffer(employeeToBeHiredDetails, manager, {
         share: shareOffered,
         teamId: manager.teamId,
+        classId: manager.classId,
       })
     );
   };
 
   const handleDeactivate = async (employee, currentTeamOffer) => {
     await callFirebaseService(
-      deactivateAnOffer(employee, manager.teamId, currentTeamOffer)
+      deactivateAnOffer(employee, manager, currentTeamOffer)
     );
   };
 

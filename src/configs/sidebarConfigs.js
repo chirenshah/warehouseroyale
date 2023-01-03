@@ -90,6 +90,7 @@ export const eDashboardSidebarConfig = [
     item: 'Offers Acceptance',
     icon: <FcApprove className="sidebar__icon" />,
     path: '/offers',
+    showBadge: true,
   },
   {
     item: 'Chat/Messenger',

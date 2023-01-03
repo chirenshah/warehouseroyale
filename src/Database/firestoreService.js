@@ -454,23 +454,31 @@ export const updateShares = async (data) => {
  *                  ADD employee to team offers
  *
  * @param {String} employeeToBeHired (object)
- * @param {String} teamId
+ * @param {String} manager (object)
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
-  console.log(employeeToBeHired);
+export const makeAnOffer = async (employeeToBeHired, manager, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employeeToBeHired.email);
+    const employeeRefInUsers = doc(
+      db,
+      COLLECTION_USERS,
+      employeeToBeHired.email
+    );
     const teamRef = doc(
       db,
-      employeeToBeHired.classId,
+      manager.classId,
       DOC_TEAMS,
       COLLECTION_TEAMS,
-      teamId
+      manager.teamId
+    );
+    const employeeRefInNotifications = doc(
+      db,
+      COLLECTION_NOTIFICATIONS,
+      employeeToBeHired.email
     );
 
     await runTransaction(db, async (transaction) => {
-      transaction.update(employeeRef, {
+      transaction.update(employeeRefInUsers, {
         offers: arrayUnion(offer),
       });
 
@@ -478,6 +486,10 @@ export const makeAnOffer = async (employeeToBeHired, teamId, offer) => {
         offers: arrayUnion({
           email: employeeToBeHired.email,
         }),
+      });
+
+      transaction.set(employeeRefInNotifications, {
+        isNewNotification: true,
       });
 
       console.log('Transaction successfully committed!');
@@ -554,24 +566,28 @@ export const fireAnEmployee = async (
  * @operations      REMOVE offer from employee offers
  *                  REMOVE employee from team offers
  *
- * @param {String} employee
- * @param {String} teamId
+ * @param {String} employee (object)
+ * @param {String} manager (object)
  * @param {Object} offer {teamId: '', share: ''}
  */
-export const deactivateAnOffer = async (employee, teamId, offer) => {
-  console.log(employee);
+export const deactivateAnOffer = async (employee, manager, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const employeeRefInUsers = doc(db, COLLECTION_USERS, employee.email);
     const teamRef = doc(
       db,
-      employee.classId,
+      manager.classId,
       DOC_TEAMS,
       COLLECTION_TEAMS,
-      teamId
+      manager.teamId
+    );
+    const employeeRefInNotifications = doc(
+      db,
+      COLLECTION_NOTIFICATIONS,
+      employee.email
     );
 
     await runTransaction(db, async (transaction) => {
-      transaction.update(employeeRef, {
+      transaction.update(employeeRefInUsers, {
         offers: arrayRemove(offer),
       });
 
@@ -580,6 +596,11 @@ export const deactivateAnOffer = async (employee, teamId, offer) => {
           email: employee.email,
         }),
       });
+
+      transaction.set(employeeRefInNotifications, {
+        isNewNotification: false,
+      });
+
       console.log('Transaction successfully committed!');
     });
   } catch (error) {
@@ -598,12 +619,12 @@ export const deactivateAnOffer = async (employee, teamId, offer) => {
  *                  ADD employee to new team employees
  *                  ADD offer to employee pastOffers
  *
- * @param {Object} employee (employee object)
- * @param {Object} offer {teamId: '', share: ''}
+ * @param {Object} employee (object)
+ * @param {Object} offer {teamId: '', share: '', classId: ''}
  */
 export const acceptOffer = async (employee, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const employeeRefInUsers = doc(db, COLLECTION_USERS, employee.email);
     const currentTeamRef = doc(
       db,
       employee.classId,
@@ -613,10 +634,15 @@ export const acceptOffer = async (employee, offer) => {
     );
     const newTeamRef = doc(
       db,
-      employee.classId,
+      offer.classId,
       DOC_TEAMS,
       COLLECTION_TEAMS,
       offer.teamId
+    );
+    const employeeRefInNotifications = doc(
+      db,
+      COLLECTION_NOTIFICATIONS,
+      employee.email
     );
 
     await runTransaction(db, async (transaction) => {
@@ -655,15 +681,15 @@ export const acceptOffer = async (employee, offer) => {
         Number(newManagerShare) - Number(offer.share);
 
       // Update employee share & teamId
-      transaction.update(employeeRef, offer);
+      transaction.update(employeeRefInUsers, offer);
 
       // Remove offer from employee offers
-      transaction.update(employeeRef, {
+      transaction.update(employeeRefInUsers, {
         offers: arrayRemove(offer),
       });
 
       // Add offer to employee pastOffers
-      transaction.update(employeeRef, {
+      transaction.update(employeeRefInUsers, {
         pastOffers: arrayUnion(offer),
       });
 
@@ -698,6 +724,10 @@ export const acceptOffer = async (employee, offer) => {
         }),
       });
 
+      transaction.update(employeeRefInNotifications, {
+        isNewNotification: false,
+      });
+
       console.log('Transaction successfully committed!');
     });
   } catch (error) {
@@ -711,23 +741,27 @@ export const acceptOffer = async (employee, offer) => {
  * @operations      REMOVE offer from employee offers
  *                  REMOVE offer from team offers
  *
- * @param {String} employee
- * @param {String} teamId
- * @param {Object} offer {teamId: '', share: ''}
+ * @param {String} employee (object)
+ * @param {Object} offer {teamId: '', share: '', classId: ''}
  */
-export const declineOffer = async (employee, teamId, offer) => {
+export const declineOffer = async (employee, offer) => {
   try {
-    const employeeRef = doc(db, COLLECTION_USERS, employee.email);
+    const employeeRefInUsers = doc(db, COLLECTION_USERS, employee.email);
     const teamRef = doc(
       db,
-      employee.classId,
+      offer.classId,
       DOC_TEAMS,
       COLLECTION_TEAMS,
-      teamId
+      offer.teamId
+    );
+    const employeeRefInNotifications = doc(
+      db,
+      COLLECTION_NOTIFICATIONS,
+      employee.email
     );
 
     await runTransaction(db, async (transaction) => {
-      transaction.update(employeeRef, {
+      transaction.update(employeeRefInUsers, {
         offers: arrayRemove(offer),
       });
 
@@ -735,6 +769,10 @@ export const declineOffer = async (employee, teamId, offer) => {
         offers: arrayRemove({
           email: employee.email,
         }),
+      });
+
+      transaction.update(employeeRefInNotifications, {
+        isNewNotification: false,
       });
 
       console.log('Transaction successfully committed!');

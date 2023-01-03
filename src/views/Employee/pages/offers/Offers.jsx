@@ -37,7 +37,7 @@ export default function Offers() {
   };
 
   const handleDeclineOffer = async (offer) => {
-    await callFirebaseService(declineOffer(employee, offer.teamId, offer));
+    await callFirebaseService(declineOffer(employee, offer));
   };
 
   return (
@@ -58,7 +58,7 @@ export default function Offers() {
             {!employee?.offers?.length ? (
               <h4>No active offers</h4>
             ) : (
-              employee?.offers?.map(({ teamId, share }, index) => (
+              employee?.offers?.map(({ teamId, share, classId }, index) => (
                 <div key={index}>
                   <h3>
                     {index + 1}. You are offered a position at Team {teamId} for{' '}
@@ -66,13 +66,17 @@ export default function Offers() {
                   </h3>
                   <div className="offers__acceptDecline">
                     <WarehouseButton
-                      onClick={() => handleAcceptOffer({ teamId, share })}
+                      onClick={() =>
+                        handleAcceptOffer({ teamId, share, classId })
+                      }
                       text="Accept"
                       success
                       loading={response.isPending}
                     />
                     <WarehouseButton
-                      onClick={() => handleDeclineOffer({ teamId, share })}
+                      onClick={() =>
+                        handleDeclineOffer({ teamId, share, classId })
+                      }
                       text="Decline"
                       warning
                       loading={response.isPending}
