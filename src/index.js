@@ -4,14 +4,15 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { AuthContextProvider } from './contexts/AuthContext';
+import { NotificationContextProvider } from './contexts/NotificationContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-<AuthContextProvider>
-    <App />
-</AuthContextProvider>
-
-
+  <AuthContextProvider>
+    <NotificationContextProvider>
+      <App />
+    </NotificationContextProvider>
+  </AuthContextProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
