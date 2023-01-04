@@ -122,7 +122,10 @@ export default function WarehouseChatSidebar({
           <WarehouseLoader />
         ) : (
           <UsersList
-            users={getUsersList(teams.find((team) => team.id === selectedTeam))}
+            users={getUsersList(
+              teams.find((team) => team.id === selectedTeam),
+              currentUser.email
+            )}
             handleShowList={(list) => handleShowList(list)}
             handleInitiateChat={handleInitiateChat}
           />
