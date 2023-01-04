@@ -827,8 +827,8 @@ export const addChat = async (senderId, receiverId, chat) => {
 
     const batch = writeBatch(db);
 
-    batch.set(senderRef, { typing: false });
-    batch.set(receiverRef, { typing: false });
+    batch.set(senderRef, { typing: false, isRead: true });
+    batch.set(receiverRef, { typing: false, isRead: false });
 
     batch.set(senderConversationsRef, chat);
     batch.set(receiverConversationsRef, chat);
@@ -836,6 +836,19 @@ export const addChat = async (senderId, receiverId, chat) => {
     await batch.commit();
 
     console.log('Batch successfully commited!');
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const markChatAsRead = async (documentId) => {
+  try {
+    const docRef = doc(db, COLLECTION_CHATS, documentId);
+
+    await setDoc(docRef, {
+      isRead: true,
+    });
   } catch (error) {
     console.error('Error: ', error);
     throw error;

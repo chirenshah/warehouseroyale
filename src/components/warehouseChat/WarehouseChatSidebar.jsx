@@ -1,6 +1,8 @@
 import { useState } from 'react';
 // Hooks
 import { useCollection } from '../../hooks/useCollection';
+// Material components
+import Badge from '@mui/material/Badge';
 // Components
 import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseSnackbar from '../ui/WarehouseSnackbar';
@@ -11,8 +13,10 @@ import { MdOutlineArrowBackIos } from 'react-icons/md';
 import { getUsersList } from './helpers/getUsersList';
 // Constants
 import { COLLECTION_TEAMS, DOC_TEAMS } from '../../utils/constants';
+import { markChatAsRead } from '../../Database/firestoreService';
 
 export default function WarehouseChatSidebar({
+  currentUser,
   classId,
   chatMembers,
   chatMembersPending,
@@ -97,6 +101,7 @@ export default function WarehouseChatSidebar({
           </h6>
         ) : (
           <ChatMembersList
+            currentUser={currentUser}
             chatMembers={chatMembers}
             activeChatMember={activeChatMember}
             setActiveChatMember={setActiveChatMember}
@@ -185,28 +190,44 @@ const UsersList = ({ users, handleShowList, handleInitiateChat }) => {
 };
 
 const ChatMembersList = ({
+  currentUser,
   chatMembers,
   activeChatMember,
   setActiveChatMember,
 }) => {
+  const handleMarkAsRead = async (memberEmail) => {
+    setActiveChatMember(memberEmail);
+    markChatAsRead(`${currentUser.email}/members/${memberEmail}`);
+  };
+
   return (
     <div className="warehouseChat__leftList">
-      {chatMembers.map((member) => (
-        <div
-          key={member.id}
-          onClick={() => setActiveChatMember(member.id)}
-          className={`warehouseChat__user ${
-            activeChatMember === member.id && 'active'
-          }`}
-        >
-          <img
-            src={'/assets/anonymous.png'}
-            alt={'chat avatar'}
-            className="warehouseChat__userImage"
-          />{' '}
-          <span>{member.id}</span>
-        </div>
-      ))}
+      {chatMembers.map((member) => {
+        return (
+          <div
+            key={member.id}
+            onClick={() => {
+              handleMarkAsRead(member.id);
+            }}
+            className={`warehouseChat__user ${
+              activeChatMember === member.id && 'active'
+            }`}
+          >
+            <img
+              src={'/assets/anonymous.png'}
+              alt={'chat avatar'}
+              className="warehouseChat__userImage"
+            />{' '}
+            {!member?.isRead ? (
+              <Badge color="success" badgeContent=" ">
+                <span>{member.id}</span>
+              </Badge>
+            ) : (
+              <span>{member.id}</span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };
