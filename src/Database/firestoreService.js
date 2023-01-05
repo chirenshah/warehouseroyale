@@ -825,6 +825,8 @@ export const addChat = async (senderId, receiverId, chat) => {
       )
     );
 
+    const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, receiverId);
+
     const batch = writeBatch(db);
 
     batch.set(senderRef, { typing: false, isRead: true });
@@ -832,6 +834,8 @@ export const addChat = async (senderId, receiverId, chat) => {
 
     batch.set(senderConversationsRef, chat);
     batch.set(receiverConversationsRef, chat);
+
+    batch.set(notificationRef, { isUnreadChat: true }, { merge: true });
 
     await batch.commit();
 

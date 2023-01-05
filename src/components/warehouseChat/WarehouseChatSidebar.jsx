@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // Hooks
 import { useCollection } from '../../hooks/useCollection';
 // Material components
@@ -9,11 +9,15 @@ import WarehouseSnackbar from '../ui/WarehouseSnackbar';
 // Material icons
 import { MdModeEdit } from 'react-icons/md';
 import { MdOutlineArrowBackIos } from 'react-icons/md';
+// Firebase services
+import {
+  makeNotificationRead,
+  markChatAsRead,
+} from '../../Database/firestoreService';
 // Helpers
 import { getUsersList } from './helpers/getUsersList';
 // Constants
 import { COLLECTION_TEAMS, DOC_TEAMS } from '../../utils/constants';
-import { markChatAsRead } from '../../Database/firestoreService';
 
 export default function WarehouseChatSidebar({
   currentUser,
@@ -28,6 +32,16 @@ export default function WarehouseChatSidebar({
   const [showChatMembersList, setShowChatMembersList] = useState(true);
   const [showTeamList, setShowTeamList] = useState(false);
   const [showUsersList, setShowUsersList] = useState(false);
+
+  useEffect(() => {
+    const callMakeNotificationRead = chatMembers?.every(
+      (member) => member.isRead
+    );
+
+    if (callMakeNotificationRead) {
+      makeNotificationRead(currentUser.email);
+    }
+  }, [chatMembers]);
 
   const {
     documents: teams,

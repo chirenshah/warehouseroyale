@@ -62,6 +62,7 @@ export const mDashboardSidebarConfig = [
     item: 'Messenger',
     icon: <TiMessages className="sidebar__icon" color={getRandomHsl()} />,
     path: '/messenger',
+    showBadge: true,
   },
   {
     item: 'Operation Room',
@@ -96,6 +97,7 @@ export const eDashboardSidebarConfig = [
     item: 'Chat/Messenger',
     icon: <TiMessages className="sidebar__icon" color={getRandomHsl()} />,
     path: '/chat',
+    showBadge: true,
   },
   {
     item: 'Operation Room',

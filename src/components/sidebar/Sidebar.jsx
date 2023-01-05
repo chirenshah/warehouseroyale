@@ -28,28 +28,37 @@ export default function Sidebar({ sidebarConfig }) {
       </Link>
       <div className="sidebar__menu">
         <ul className="sidebar__menuItems">
-          {sidebarConfig.map(({ item, icon, path, showBadge }) => (
-            <Link key={item} to={path}>
-              <li
-                className={`sidebar__item ${
-                  activeMenu === path.substring(1) && 'active'
-                }`}
-                onClick={() => setActiveMenu(path.substring(1))}
-              >
-                {showBadge && notification?.isNewNotification ? (
-                  <Badge color="success" badgeContent=" ">
-                    {icon}
-                    {item}
-                  </Badge>
-                ) : (
-                  <>
-                    {icon}
-                    {item}
-                  </>
-                )}
-              </li>
-            </Link>
-          ))}
+          {sidebarConfig.map(({ item, icon, path, showBadge }) => {
+            const showNotificationBadge =
+              showBadge && notification?.isNewNotification;
+            const showMessagNotificationeBadge =
+              showBadge &&
+              (item === 'Chat/Messenger' || item === 'Messenger') &&
+              notification?.isUnreadChat;
+
+            return (
+              <Link key={item} to={path}>
+                <li
+                  className={`sidebar__item ${
+                    activeMenu === path.substring(1) && 'active'
+                  }`}
+                  onClick={() => setActiveMenu(path.substring(1))}
+                >
+                  {showNotificationBadge || showMessagNotificationeBadge ? (
+                    <Badge color="success" badgeContent=" ">
+                      {icon}
+                      {item}
+                    </Badge>
+                  ) : (
+                    <>
+                      {icon}
+                      {item}
+                    </>
+                  )}
+                </li>
+              </Link>
+            );
+          })}
         </ul>
         {/* {process.env.NODE_ENV === 'development' && (
           <div className="sidebar__switchUser">
