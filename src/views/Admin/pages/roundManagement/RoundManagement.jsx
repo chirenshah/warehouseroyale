@@ -165,9 +165,7 @@ export default function RoundManagement() {
                       </h4>
                       <span>
                         {moment(
-                          convertFirebaseTimestampToMilliseconds(
-                            currentConfiguration?.start_time
-                          )
+                          convertFirebaseTimestampToMilliseconds(start_time)
                         ).format('MMMM Do YYYY, h:mm:ss a')}
                       </span>
                     </div>
