@@ -153,30 +153,34 @@ export default function RoundManagement() {
               )}
             </div>
           </WarehouseCard>
-          <WarehouseHeader title="Previous Rounds" />
-          {currentConfiguration?.previous_rounds?.length ? (
-            <WarehouseCard>
-              {currentConfiguration?.previous_rounds.map(
-                ({ round, start_time }, index) => {
-                  return (
-                    <div style={{ marginBottom: '1rem' }} key={round.round}>
-                      <h4>
-                        {index + 1}. Round: {round}:{' '}
-                      </h4>
-                      <span>
-                        {moment(
-                          convertFirebaseTimestampToMilliseconds(start_time)
-                        ).format('MMMM Do YYYY, h:mm:ss a')}
-                      </span>
-                    </div>
-                  );
-                }
+          {classId && (
+            <>
+              <WarehouseHeader title="Previous Rounds" />
+              {currentConfiguration?.previous_rounds?.length ? (
+                <WarehouseCard>
+                  {currentConfiguration?.previous_rounds.map(
+                    ({ round, start_time }, index) => {
+                      return (
+                        <div style={{ marginBottom: '1rem' }} key={round.round}>
+                          <h4>
+                            {index + 1}. Round: {round}:{' '}
+                          </h4>
+                          <span>
+                            {moment(
+                              convertFirebaseTimestampToMilliseconds(start_time)
+                            ).format('MMMM Do YYYY, h:mm:ss a')}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
+                </WarehouseCard>
+              ) : (
+                <WarehouseCard>
+                  <h4>There are no previous rounds</h4>
+                </WarehouseCard>
               )}
-            </WarehouseCard>
-          ) : (
-            <WarehouseCard>
-              <h4>There are no previous rounds</h4>
-            </WarehouseCard>
+            </>
           )}
         </>
       )}
