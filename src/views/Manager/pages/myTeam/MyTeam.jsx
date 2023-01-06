@@ -154,7 +154,7 @@ export default function MyTeam() {
 
   const handleProceedToShare = async () => {
     setIsProceededToShare(true);
-    makeNotificationRead(currentUser.email);
+    makeNotificationRead(currentUser.email, 'MyTeam');
   };
 
   return (

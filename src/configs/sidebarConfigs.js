@@ -51,7 +51,6 @@ export const mDashboardSidebarConfig = [
     item: 'My Team',
     icon: <FcConferenceCall className="sidebar__icon" />,
     path: '/my-team',
-    showBadge: true,
   },
   {
     item: 'Recruitment Room',
@@ -62,7 +61,6 @@ export const mDashboardSidebarConfig = [
     item: 'Messenger',
     icon: <TiMessages className="sidebar__icon" color={getRandomHsl()} />,
     path: '/messenger',
-    showBadge: true,
   },
   {
     item: 'Operation Room',
@@ -91,13 +89,11 @@ export const eDashboardSidebarConfig = [
     item: 'Offers Acceptance',
     icon: <FcApprove className="sidebar__icon" />,
     path: '/offers',
-    showBadge: true,
   },
   {
     item: 'Chat/Messenger',
     icon: <TiMessages className="sidebar__icon" color={getRandomHsl()} />,
     path: '/chat',
-    showBadge: true,
   },
   {
     item: 'Operation Room',

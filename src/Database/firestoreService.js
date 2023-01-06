@@ -24,13 +24,17 @@ import {
   DOC_TEAMS,
 } from '../utils/constants';
 
-export const makeNotificationRead = async (documentId) => {
+export const makeNotificationRead = async (documentId, item) => {
   try {
     const docRef = doc(db, COLLECTION_NOTIFICATIONS, documentId);
 
-    await setDoc(docRef, {
-      isNewNotification: false,
-    });
+    await setDoc(
+      docRef,
+      {
+        [`is${item}Notification`]: false,
+      },
+      { merge: true }
+    );
   } catch (error) {
     console.error('Error: ', error);
     throw error;
@@ -131,9 +135,13 @@ export const createNewUser = async (user) => {
         const managerEmail = teamSnap.data().manager.email;
         const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, managerEmail);
 
-        transaction.set(notificationRef, {
-          isNewNotification: true,
-        });
+        transaction.set(
+          notificationRef,
+          {
+            isMyTeamNotification: true,
+          },
+          { merge: true }
+        );
       }
 
       user.password = hashPassword(user.password);
@@ -471,7 +479,8 @@ export const makeAnOffer = async (employeeToBeHired, manager, offer) => {
       COLLECTION_TEAMS,
       manager.teamId
     );
-    const employeeRefInNotifications = doc(
+
+    const notificationRef = doc(
       db,
       COLLECTION_NOTIFICATIONS,
       employeeToBeHired.email
@@ -488,9 +497,13 @@ export const makeAnOffer = async (employeeToBeHired, manager, offer) => {
         }),
       });
 
-      transaction.set(employeeRefInNotifications, {
-        isNewNotification: true,
-      });
+      transaction.set(
+        notificationRef,
+        {
+          isOffersNotification: true,
+        },
+        { merge: true }
+      );
 
       console.log('Transaction successfully committed!');
     });
@@ -580,11 +593,8 @@ export const deactivateAnOffer = async (employee, manager, offer) => {
       COLLECTION_TEAMS,
       manager.teamId
     );
-    const employeeRefInNotifications = doc(
-      db,
-      COLLECTION_NOTIFICATIONS,
-      employee.email
-    );
+
+    const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, employee.email);
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRefInUsers, {
@@ -597,9 +607,13 @@ export const deactivateAnOffer = async (employee, manager, offer) => {
         }),
       });
 
-      transaction.set(employeeRefInNotifications, {
-        isNewNotification: false,
-      });
+      transaction.set(
+        notificationRef,
+        {
+          isOffersNotification: true,
+        },
+        { merge: true }
+      );
 
       console.log('Transaction successfully committed!');
     });
@@ -639,11 +653,7 @@ export const acceptOffer = async (employee, offer) => {
       COLLECTION_TEAMS,
       offer.teamId
     );
-    const employeeRefInNotifications = doc(
-      db,
-      COLLECTION_NOTIFICATIONS,
-      employee.email
-    );
+    const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, employee.email);
 
     await runTransaction(db, async (transaction) => {
       // Find current manager
@@ -724,9 +734,13 @@ export const acceptOffer = async (employee, offer) => {
         }),
       });
 
-      transaction.update(employeeRefInNotifications, {
-        isNewNotification: false,
-      });
+      transaction.update(
+        notificationRef,
+        {
+          isOffersNotification: false,
+        },
+        { merge: true }
+      );
 
       console.log('Transaction successfully committed!');
     });
@@ -754,11 +768,7 @@ export const declineOffer = async (employee, offer) => {
       COLLECTION_TEAMS,
       offer.teamId
     );
-    const employeeRefInNotifications = doc(
-      db,
-      COLLECTION_NOTIFICATIONS,
-      employee.email
-    );
+    const notificationRef = doc(db, COLLECTION_NOTIFICATIONS, employee.email);
 
     await runTransaction(db, async (transaction) => {
       transaction.update(employeeRefInUsers, {
@@ -771,9 +781,13 @@ export const declineOffer = async (employee, offer) => {
         }),
       });
 
-      transaction.update(employeeRefInNotifications, {
-        isNewNotification: false,
-      });
+      transaction.update(
+        notificationRef,
+        {
+          isOffersNotification: false,
+        },
+        { merge: true }
+      );
 
       console.log('Transaction successfully committed!');
     });
@@ -835,7 +849,11 @@ export const addChat = async (senderId, receiverId, chat) => {
     batch.set(senderConversationsRef, chat);
     batch.set(receiverConversationsRef, chat);
 
-    batch.set(notificationRef, { isUnreadChat: true }, { merge: true });
+    batch.set(
+      notificationRef,
+      { isMessageNotification: true },
+      { merge: true }
+    );
 
     await batch.commit();
 
@@ -850,9 +868,13 @@ export const markChatAsRead = async (documentId) => {
   try {
     const docRef = doc(db, COLLECTION_CHATS, documentId);
 
-    await setDoc(docRef, {
-      isRead: true,
-    });
+    await setDoc(
+      docRef,
+      {
+        isRead: true,
+      },
+      { merge: true }
+    );
   } catch (error) {
     console.error('Error: ', error);
     throw error;

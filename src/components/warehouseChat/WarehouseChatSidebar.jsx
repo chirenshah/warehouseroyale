@@ -39,7 +39,7 @@ export default function WarehouseChatSidebar({
     );
 
     if (callMakeNotificationRead) {
-      makeNotificationRead(currentUser.email);
+      makeNotificationRead(currentUser.email, 'Message');
     }
   }, [chatMembers]);
 

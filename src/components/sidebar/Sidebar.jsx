@@ -6,7 +6,6 @@ import { useNotificationContext } from '../../hooks/useNotificationContext';
 import Badge from '@mui/material/Badge';
 // Components
 import WarehouseLogo from '../ui/WarehouseLogo';
-// import SwitchUser from '../SwitchUser';
 // Css
 import './Sidebar.css';
 
@@ -28,13 +27,15 @@ export default function Sidebar({ sidebarConfig }) {
       </Link>
       <div className="sidebar__menu">
         <ul className="sidebar__menuItems">
-          {sidebarConfig.map(({ item, icon, path, showBadge }) => {
-            const showNotificationBadge =
-              showBadge && notification?.isNewNotification;
+          {sidebarConfig.map(({ item, icon, path }) => {
+            const showMyTeamNotificationBadge =
+              item === 'My Team' && notification?.isMyTeamNotification;
             const showMessagNotificationeBadge =
-              showBadge &&
               (item === 'Chat/Messenger' || item === 'Messenger') &&
-              notification?.isUnreadChat;
+              notification?.isMessageNotification;
+            const showOffersNotificationBadge =
+              item === 'Offers Acceptance' &&
+              notification?.isOffersNotification;
 
             return (
               <Link key={item} to={path}>
@@ -44,7 +45,9 @@ export default function Sidebar({ sidebarConfig }) {
                   }`}
                   onClick={() => setActiveMenu(path.substring(1))}
                 >
-                  {showNotificationBadge || showMessagNotificationeBadge ? (
+                  {showMessagNotificationeBadge ||
+                  showMyTeamNotificationBadge ||
+                  showOffersNotificationBadge ? (
                     <Badge color="success" badgeContent=" ">
                       {icon}
                       {item}
@@ -60,11 +63,6 @@ export default function Sidebar({ sidebarConfig }) {
             );
           })}
         </ul>
-        {/* {process.env.NODE_ENV === 'development' && (
-          <div className="sidebar__switchUser">
-            <SwitchUser />
-          </div>
-        )} */}
       </div>
     </div>
   );
