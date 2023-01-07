@@ -17,7 +17,9 @@
 
 .layout__outlet {
   flex-grow: 1;
-  margin-top: var(--topbarHeight);
+  margin-top: calc(
+    var(--topbarHeight) + 2rem
+  ); /* Next-round alert height = 2rem */
   padding: 2rem 0;
   background-color: hsl(var(--secondaryBg));
   min-height: 100vh;
