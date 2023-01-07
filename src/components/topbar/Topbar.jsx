@@ -13,12 +13,15 @@ import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseCard from '../ui/WarehouseCard';
 import WarehouseButton from '../ui/WarehouseButton';
 import UploadProgress from '../../views/Admin/components/user/UploadProgress/UploadProgress';
+// Utils
+import { convertFirebaseTimestampToLocaleTime } from '../../utils/functions/convertFirebaseTimestampToLocaleTime';
 // Constants
 import { COLLECTION_USERS } from '../../utils/constants';
 // Css
 import './Topbar.css';
+import WarehouseAlert from '../ui/WarehouseAlert';
 
-export default function Topbar() {
+export default function Topbar({ configuration }) {
   const navigate = useNavigate();
 
   const { user: currentUser } = useAuthContext();
@@ -46,37 +49,52 @@ export default function Topbar() {
   };
 
   return (
-    <div className="topbar">
-      {error || (userError && <WarehouseSnackbar text={error || userError} />)}
-      <Link to="/">
-        <span className="topbar__title">Dashboard</span>
-      </Link>
-      {isPending || isPendingUser ? (
-        <WarehouseLoader />
-      ) : (
-        <div onClick={() => setShowUserProfile(true)} className="topbar__user">
-          <img
-            src={user?.avatar || '/assets/anonymous.png'}
-            alt={user?.fullName}
-            className="topbar__userImage"
-          />{' '}
-          <span className="topbar__username">
-            Hi, {currentUser?.role === 'admin' ? 'Professor' : user?.fullName}
-          </span>
-          {showUserProfile && (
-            <UserProfile
-              ref={userProfileRef}
-              user={user}
-              avatar={user?.avatar || '/assets/anonymous.png'}
-              handleLogout={handleLogout}
-              setFile={setFile}
-              file={file}
-              currentUser={currentUser}
-            />
-          )}
-        </div>
+    <>
+      {configuration && (
+        <WarehouseAlert
+          style={{ width: '100%' }}
+          text={`Next round is starting at ${convertFirebaseTimestampToLocaleTime(
+            configuration.start_time
+          )}.`}
+          severity="warning"
+        />
       )}
-    </div>
+      <div className="topbar">
+        {error ||
+          (userError && <WarehouseSnackbar text={error || userError} />)}
+        <Link to="/">
+          <span className="topbar__title">Dashboard</span>
+        </Link>
+        {isPending || isPendingUser ? (
+          <WarehouseLoader />
+        ) : (
+          <div
+            onClick={() => setShowUserProfile(true)}
+            className="topbar__user"
+          >
+            <img
+              src={user?.avatar || '/assets/anonymous.png'}
+              alt={user?.fullName}
+              className="topbar__userImage"
+            />{' '}
+            <span className="topbar__username">
+              Hi, {currentUser?.role === 'admin' ? 'Professor' : user?.fullName}
+            </span>
+            {showUserProfile && (
+              <UserProfile
+                ref={userProfileRef}
+                user={user}
+                avatar={user?.avatar || '/assets/anonymous.png'}
+                handleLogout={handleLogout}
+                setFile={setFile}
+                file={file}
+                currentUser={currentUser}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from 'react';
+import { ConfigurationContextProvider } from './contexts/ConfigurationContext';
 import { useAuthContext } from './hooks/useAuthContext';
 import LoginForm from './components/LoginForm';
 import WarehouseLoader from './components/ui/WarehouseLoader';
@@ -13,8 +14,10 @@ function App() {
   return user ? (
     <Suspense fallback={<WarehouseLoader />}>
       {user.role === 'admin' && <ADashboard />}
-      {user.role === 'manager' && <MDashboard />}
-      {user.role === 'employee' && <EDashboard />}
+      <ConfigurationContextProvider>
+        {user.role === 'manager' && <MDashboard />}
+        {user.role === 'employee' && <EDashboard />}
+      </ConfigurationContextProvider>
     </Suspense>
   ) : (
     <LoginForm />
