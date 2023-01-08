@@ -1,8 +1,12 @@
 import PropTypes from 'prop-types';
 import Alert from '@mui/material/Alert';
 
-export default function WarehouseAlert({ text, severity }) {
-  return <Alert severity={severity}>{text}</Alert>;
+export default function WarehouseAlert({ text, severity, ...rest }) {
+  return (
+    <Alert {...rest} severity={severity}>
+      {text}
+    </Alert>
+  );
 }
 
 WarehouseAlert.propTypes = {

@@ -70,7 +70,6 @@ export default function WarehouseChat() {
   const loadNewChatMember = (newChatMember) => {
     chatMembers.unshift(newChatMember);
   };
-
   return (
     <WarehouseCard className="warehouseChat__warehouseCard">
       <div className="warehouseChat">
@@ -81,6 +80,7 @@ export default function WarehouseChat() {
         )}
         {/* ------------------------------ Chat sidebar ------------------------------ */}
         <WarehouseChatSidebar
+          currentUser={currentUser}
           classId={currentUser.classId}
           chatMembers={chatMembers}
           chatMembersPending={chatMembersPending}

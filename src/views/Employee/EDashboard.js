@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// Hooks
+import { useConfigurationContext } from '../../hooks/useConfigurationContext';
 // Components
 import Layout from '../../components/layout/Layout';
 // Pages
@@ -16,11 +18,20 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { DndProvider } from 'react-dnd';
 
 export default function EDashboard() {
+  const { configuration } = useConfigurationContext();
+
   return (
     <DndProvider backend={HTML5Backend}>
       <Router>
         <Routes>
-          <Route element={<Layout sidebarConfig={eDashboardSidebarConfig} />}>
+          <Route
+            element={
+              <Layout
+                sidebarConfig={eDashboardSidebarConfig}
+                configuration={configuration}
+              />
+            }
+          >
             <Route path="/" element={<Home />} />
             <Route path="/my-team" element={<MyTeam />} />
             <Route path="/offers" element={<Offers />} />

@@ -252,7 +252,9 @@ function DeleteManagerModal({
     documents: teamMembers,
     isPending: areTeamMembersPending,
     error: teamMembersError,
-  } = useCollection(COLLECTION_USERS, ['teamId', '==', manager.teamId]);
+  } = useCollection(COLLECTION_USERS, [
+    { fieldPath: 'teamId', queryOperator: '==', value: manager.teamId },
+  ]);
 
   const [selectedEmployee, setSelectedEmployee] = useState('');
 

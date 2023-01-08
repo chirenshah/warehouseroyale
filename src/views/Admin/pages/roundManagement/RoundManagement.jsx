@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import moment from 'moment';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
@@ -17,6 +18,7 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 // Firestore services
 import { getDocument } from '../../../../Database/firestoreService';
+import { serverTimestamp } from 'firebase/firestore';
 // Utils
 import { getCurrentTime } from '../../../../utils/functions/getCurrentTime';
 import { convertFirebaseTimestampToMilliseconds } from '../../../../utils/functions/convertFirebaseTimestampToMilliseconds';
@@ -58,13 +60,19 @@ export default function RoundManagement() {
       await callFirebaseService(getDocument(`${classId}`, DOC_CONFIGURATION));
     })();
   }, [classId]);
-
   const handleSubmit = async () => {
     const newRound = Number(currentConfiguration.current_round) + 1;
 
     await addDocument(`${classId}`, DOC_CONFIGURATION, {
+      previous_rounds: [
+        ...currentConfiguration.previous_rounds,
+        {
+          round: currentConfiguration.current_round,
+          start_time: currentConfiguration.start_time,
+        },
+      ],
       current_round: newRound,
-      start_time: startTime,
+      start_time: serverTimestamp(startTime),
     });
   };
 
@@ -77,65 +85,104 @@ export default function RoundManagement() {
       ) : classesError ? (
         <WarehouseAlert text={classesError} severity="error" />
       ) : (
-        <WarehouseCard>
-          <div className="roundManagement__inputs">
-            <FormControl sx={{ minWidth: 120 }}>
-              <InputLabel>Class</InputLabel>
-              <Select
-                value={classId}
-                label="Class"
-                onChange={(e) => {
-                  setClassId(e.target.value);
-                }}
-              >
-                {classIds.map((elm) => (
-                  <MenuItem key={elm} value={elm}>
-                    {elm}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            {!classId ? (
-              <WarehouseAlert text="Select a class" />
-            ) : currentConfigurationPending ? (
-              <WarehouseLoader />
-            ) : currentConfigurationError ? (
-              <WarehouseAlert
-                text={currentConfigurationError}
-                severity="error"
-              />
-            ) : convertFirebaseTimestampToMilliseconds(
-                currentConfiguration?.start_time
-              ) > Date.now() ? (
-              <WarehouseAlert
-                text={`Round ${currentConfiguration.current_round} is yet to be completed. New round only can be added after it's completion!`}
-              />
-            ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '1rem',
-                }}
-              >
-                <TextField
-                  label="Start Time"
-                  type="datetime-local"
-                  defaultValue={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  sx={{ width: 250 }}
-                  InputLabelProps={{
-                    shrink: true,
+        <>
+          <WarehouseCard>
+            <div className="roundManagement__inputs">
+              <FormControl sx={{ minWidth: 120 }}>
+                <InputLabel>Class</InputLabel>
+                <Select
+                  value={classId}
+                  label="Class"
+                  onChange={(e) => {
+                    setClassId(e.target.value);
                   }}
+                >
+                  {classIds.map((elm) => (
+                    <MenuItem key={elm} value={elm}>
+                      {elm}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {!classId ? (
+                <WarehouseAlert text="Select a class" />
+              ) : currentConfigurationPending ? (
+                <WarehouseLoader />
+              ) : currentConfigurationError ? (
+                <WarehouseAlert
+                  text={currentConfigurationError}
+                  severity="error"
                 />
-                <WarehouseButton
-                  onClick={handleSubmit}
-                  text="Submit"
-                  loading={response.isPending}
+              ) : convertFirebaseTimestampToMilliseconds(
+                  currentConfiguration?.start_time
+                ) > Date.now() ? (
+                <WarehouseAlert
+                  text={`Round ${
+                    currentConfiguration.current_round
+                  } is yet to be completed which will be played at ${moment(
+                    convertFirebaseTimestampToMilliseconds(
+                      currentConfiguration?.start_time
+                    )
+                  ).format(
+                    'MMMM Do YYYY, h:mm:ss a'
+                  )}. New round only can be added after it's completion!`}
                 />
-              </div>
-            )}
-          </div>
-        </WarehouseCard>
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '1rem',
+                  }}
+                >
+                  <TextField
+                    label="Start Time"
+                    type="datetime-local"
+                    defaultValue={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    sx={{ width: 250 }}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                  <WarehouseButton
+                    onClick={handleSubmit}
+                    text="Submit"
+                    loading={response.isPending}
+                  />
+                </div>
+              )}
+            </div>
+          </WarehouseCard>
+          {classId && (
+            <>
+              <WarehouseHeader title="Previous Rounds" />
+              {currentConfiguration?.previous_rounds?.length ? (
+                <WarehouseCard>
+                  {currentConfiguration?.previous_rounds.map(
+                    ({ round, start_time }, index) => {
+                      return (
+                        <div style={{ marginBottom: '1rem' }} key={round.round}>
+                          <h4>
+                            {index + 1}. Round: {round}:{' '}
+                          </h4>
+                          <span>
+                            {moment(
+                              convertFirebaseTimestampToMilliseconds(start_time)
+                            ).format('MMMM Do YYYY, h:mm:ss a')}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
+                </WarehouseCard>
+              ) : (
+                <WarehouseCard>
+                  <h4>There are no previous rounds</h4>
+                </WarehouseCard>
+              )}
+            </>
+          )}
+        </>
       )}
     </div>
   );

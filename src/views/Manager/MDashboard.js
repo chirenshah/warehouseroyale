@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+// Hooks
+import { useConfigurationContext } from '../../hooks/useConfigurationContext';
 // Components
 import Layout from '../../components/layout/Layout';
 // Pages
@@ -15,10 +17,19 @@ import GameLayout from '../../components/views/Manager/game/GameLayout';
 import { mDashboardSidebarConfig } from '../../configs/sidebarConfigs';
 
 export default function MDashboard() {
+  const { configuration } = useConfigurationContext();
+
   return (
     <Router>
       <Routes>
-        <Route element={<Layout sidebarConfig={mDashboardSidebarConfig} />}>
+        <Route
+          element={
+            <Layout
+              sidebarConfig={mDashboardSidebarConfig}
+              configuration={configuration}
+            />
+          }
+        >
           <Route path="/" element={<Home />} />
           <Route path="my-team" element={<MyTeam />} />
           <Route path="recruitment-room" element={<RecruitmentRoom />} />
