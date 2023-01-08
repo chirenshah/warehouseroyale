@@ -70,7 +70,6 @@ export default function WarehouseChat() {
   const loadNewChatMember = (newChatMember) => {
     chatMembers.unshift(newChatMember);
   };
-
   return (
     <WarehouseCard className="warehouseChat__warehouseCard">
       <div className="warehouseChat">
