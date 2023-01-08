@@ -27,7 +27,7 @@ export default function OperationRoomComp({ currentUser }) {
       setIsPending(true);
       try {
         const res = await getDocument(
-          `Class ${currentUser.classId}`,
+          `${currentUser.classId}`,
           'Configuration'
         );
         setConfiguration(res);

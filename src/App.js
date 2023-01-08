@@ -9,7 +9,6 @@ const EDashboard = lazy(() => import('./views/Employee/EDashboard'));
 
 function App() {
   const { user } = useAuthContext();
-
   return user ? (
     <Suspense fallback={<WarehouseLoader />}>
       {user.role === 'admin' && <ADashboard />}

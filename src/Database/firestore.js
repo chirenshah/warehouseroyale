@@ -31,7 +31,6 @@ export async function unsub() {
   list = list.data()['userList'];
   for (let i = 0; i < list.length; i++) {
     let chatName = [user_info.email, list[i]].sort().join('-');
-    console.log(chatName);
     individualQueries.push(
       query(
         collection(db, user_info.classId, 'Team ' + user_info.teamId, chatName),
@@ -42,9 +41,7 @@ export async function unsub() {
   }
   for (let j = 0; j < list.length; j++) {
     let messages = [];
-    onSnapshot(individualQueries[j], (snapshot) => {
-      console.log(snapshot.docs.map((doc) => messages.push(doc.data())));
-    });
+    onSnapshot(individualQueries[j], (snapshot) => {});
   }
   // onSnapshot(collection(db, 'instance1', 'Teams', 'Members'), (doc) => {
   //   var ans = {};
@@ -143,7 +140,6 @@ export async function purchaseInventory(inventorySku, inventoryQuant) {
 export async function binUpdate(from, to, id, set_data, timer) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   const sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
-  console.log('Team ' + user_info.teamId);
   try {
     await runTransaction(db, async (transaction) => {
       const sfDoc = await transaction.get(sfDocRef);
@@ -252,6 +248,39 @@ export async function updateLogs(from, to, id, quant) {
 //   updateDoc(sfDocRef, { Bins: tmp });
 // }
 
+export async function nextRound() {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let teamInfo = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  teamInfo = teamInfo.data();
+  let config = await getDoc(doc(db, user_info.classId, 'Configuration'));
+  config = config.data();
+  let { bins, logs } = await writeInventory(config['Number Of SKU']);
+  if (config['current_round'] < config['Number Of rounds']) {
+    let iri = calculateLogs(teamInfo['userLogs'], teamInfo['Logs']);
+    if (teamInfo['IRI'].length < config['current_round']) {
+      teamInfo['IRI'].push(iri);
+    } else {
+      teamInfo['IRI'][config['current_round'] - 1] = iri;
+    }
+    updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
+      O1: {},
+      O2: {},
+      orders: [],
+      Bins: { Receiving: bins },
+      Logs: logs,
+      userLogs: logs,
+      IRI: teamInfo['IRI'],
+    });
+    updateDoc(doc(db, user_info.classId, 'Configuration'), {
+      current_round: config['current_round'] + 1,
+    });
+  } else {
+    return false;
+  }
+}
+
 export async function createInstance(config) {
   const batch = writeBatch(db);
   let { bins, logs } = await writeInventory(config['Number Of SKU']);
@@ -262,11 +291,11 @@ export async function createInstance(config) {
     O2: {},
     Logs: logs,
     IRI: [],
-    start_time: config['start_time'],
     orders: [],
     userList: [],
     userLogs: logs,
   };
+
   batch.set(doc(db, 'Class List', config['Class Number']), {});
   for (let i = 0; i < config['Total no. of teams']; i++) {
     const teamRef = doc(db, config['Class Number'], 'Team ' + (i + 1));
@@ -313,17 +342,9 @@ export async function writeInventory(UniqueSku) {
 //     console.log(err)
 //   );
 // }
-export async function calculateLogs() {
+export function calculateLogs(physicalLogs, actualLogs) {
   let iri = 0;
-  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-  let data = await getDoc(
-    doc(db, user_info.classId, 'Team ' + user_info.teamId)
-  );
-  let physicalLogs = data.data()['userLogs'];
-  let actualLogs = data.data()['Logs'];
-  console.log(data.data());
   let skus = Object.keys(actualLogs);
-
   for (let i = 0; i < skus.length; i++) {
     let temp = Object.keys(actualLogs[skus[i]]);
     for (let j = 0; j < temp.length; j++) {
@@ -336,13 +357,7 @@ export async function calculateLogs() {
       }
     }
   }
-  // scores[window.localStorage.admin.replace(".", ",")] = {
-  //     right: right,
-  //     wrong: wrong,
-  // };
-  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
-    IRI: arrayUnion(iri),
-  });
+  return iri;
 }
 
 // export async function getPerformanceData() {
@@ -395,6 +410,13 @@ export async function calculateScore(data, bins_val, bin_label) {
   // check how many bin_vals are present in data
   // errors are counted by units of absence of what should be and the presence of what shouldnt be.
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+
+  let rounds = await getDoc(doc(db, user_info.classId, 'Configuration'));
+  rounds = rounds.data()['current_round'];
+  let Scoredata = await getDoc(
+    doc(db, user_info.classId, 'Team ' + user_info.teamId)
+  );
+  Scoredata = Scoredata.data()['Points'];
   if (!bins_val || bins_val.length < 1) {
     let temp = {};
     temp[bin_label] = {};
@@ -405,9 +427,6 @@ export async function calculateScore(data, bins_val, bin_label) {
     let temp = {};
     temp[bin_label] = {};
     temp['Bins.' + bin_label] = [];
-    // updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), {
-    //   'Bins.O1': [],
-    // });
     updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
     return;
   }
@@ -432,9 +451,13 @@ export async function calculateScore(data, bins_val, bin_label) {
     extra += data[val];
   });
   amount = parseInt(amount / Math.pow(2, extra));
-  let temp = {
-    Points: increment(amount),
-  };
+  let temp = {};
+  if (Scoredata.length < rounds) {
+    Scoredata.push(amount);
+  } else {
+    Scoredata[rounds - 1] += amount;
+  }
+  temp['Points'] = Scoredata;
   temp[bin_label] = {};
   temp['Bins.' + bin_label] = [];
   updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
@@ -513,19 +536,20 @@ export async function calculateScore(data, bins_val, bin_label) {
 //     });
 // }
 
-export async function binListener(
-  set_data,
-  setorderList,
-  setStartTime,
-  setselectedOrders
-) {
+export async function fetchStartTime(setStartTime) {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  getDoc(doc(db, user_info.classId, 'Configuration')).then((snapshot) => {
+    setStartTime(snapshot.data()['StartTime']);
+  });
+}
+
+export async function binListener(set_data, setorderList, setselectedOrders) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   onSnapshot(
     doc(db, user_info.classId, 'Team ' + user_info.teamId),
     async (snapshot) => {
       set_data(snapshot.data()['Bins']);
       setorderList(snapshot.data()['orders']);
-      setStartTime(snapshot.data()['start_time'].toDate());
       setselectedOrders({
         O1: snapshot.data()['O1'],
         O2: snapshot.data()['O2'],
@@ -538,20 +562,19 @@ export async function orderListListerner(setorderList) {
   onSnapshot(
     doc(db, user_info.classId, 'Team ' + user_info.teamId),
     async (snapshot) => {
-      console.log(Object.keys(snapshot.data()['userLogs']));
       setorderList(snapshot.data()['orders']);
     }
   );
 }
 
-// export async function updateOrderList(orderList, label) {
-//   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-//   let temp = {
-//     orders: arrayRemove(orderList),
-//   };
-//   temp[label] = orderList;
-//   updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
-// }
+export async function updateOrderList(orderList, label) {
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  let temp = {
+    orders: arrayRemove(orderList),
+  };
+  temp[label] = orderList;
+  updateDoc(doc(db, user_info.classId, 'Team ' + user_info.teamId), temp);
+}
 
 export async function chat_sendMessage(message, to) {
   if (message !== '') {

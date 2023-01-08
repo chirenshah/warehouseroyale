@@ -7,6 +7,8 @@ import {
   binListener,
   calculateLogs,
   calculateScore,
+  fetchStartTime,
+  nextRound,
   updateLogs,
   updateOrderList,
 } from '../Database/firestore';
@@ -24,6 +26,7 @@ import {
   AccordionSummary,
   Typography,
 } from '@mui/material';
+import { Timer } from './timer';
 export default function Game() {
   var label = '';
   var from = createRef();
@@ -64,50 +67,12 @@ export default function Game() {
   const [selectedOrders, setselectedOrders] = useState({ O1: {}, O2: {} });
   const [chat, setChat] = useState(true);
   const [message, setMessage] = useState('');
-  const [timer, settimer] = useState('19:00');
   const [selected, setSelected] = useState();
   const [showScreen, SetshowScreen] = useState(false);
-  const [StartTime, setStartTime] = useState(new Date());
 
   useEffect(() => {
-    binListener(setSku_data, setorderList, setStartTime, setselectedOrders);
+    binListener(setSku_data, setorderList, setselectedOrders);
   }, []);
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const timeObject = new Date();
-      let minute;
-      if (timer !== '00:00' && timer !== 'Expired') {
-        let diff = (timeObject.getTime() - StartTime) / 1000;
-        if (diff <= 0) {
-          alert("Game hasn't started yet");
-          settimer(() => 'Expired');
-        } else {
-          let minuteInt = 20 - parseInt(diff / 60, 10);
-          if (minuteInt < 0) {
-            settimer(() => 'Expired');
-          } else {
-            let seconds = parseInt(diff % 60, 10);
-            seconds = 59 - seconds;
-            if (minuteInt < 10) {
-              minute = '0' + minuteInt;
-            } else {
-              minute = minuteInt + '';
-            }
-            if (seconds < 10) seconds = '0' + seconds;
-            settimer(minute + ':' + seconds);
-          }
-        }
-      } else {
-        //called at round end
-        calculateLogs();
-        // score.then((val) => {
-        //navigate('/');
-        // });
-      }
-    }, 1000);
-    return () => clearTimeout(timeout);
-  }, [timer]);
 
   function chooseSelected(reference) {
     if (selected) {
@@ -210,7 +175,6 @@ export default function Game() {
                 >
                   select
                 </button>
-
                 <AccordionDetails>
                   {Object.keys(element).map((key, id) => {
                     if (key === 'amount') {
@@ -376,7 +340,7 @@ export default function Game() {
             FIND SKU
           </button>
           <br></br>
-          {timer}
+          <Timer />
           <Trash updateSelected={updateSelected} setSku_data={setSku_data} />
           <div className="chat-container" draggable ref={chatRef}>
             <button
