@@ -4,7 +4,6 @@ main {
     overflow-y: scroll;
     display: flex;
     flex-direction: column-reverse;
-    z-index: 1;
 }
 
 main::-webkit-scrollbar {
