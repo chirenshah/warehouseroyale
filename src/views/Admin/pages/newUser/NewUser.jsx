@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
 import { useCreateUser } from '../../../../hooks/useCreateUser';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Components
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
@@ -10,16 +11,17 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
-// Constants
-import { COLLECTION_CLASSES } from '../../../../utils/constants';
-// Css
-import './NewUser.css';
-import { useFirestore } from '../../../../hooks/useFirestore';
+// Firebase services
 import {
   getCollection,
   getDocument,
 } from '../../../../Database/firestoreService';
+// Helpers
 import { getTeams } from './helpers/getTeams';
+// Constants
+import { COLLECTION_CLASSES } from '../../../../utils/constants';
+// Css
+import './NewUser.css';
 
 export default function NewUser() {
   const navigate = useNavigate();
@@ -55,7 +57,7 @@ export default function NewUser() {
     teamId &&
       (async () => {
         await callFirebaseService(
-          getDocument(`${classId}/teams/teams`, teamId.split(' ')[1])
+          getDocument(`${classId}/teams/teams`, teamId)
         );
       })();
   }, [classId, teamId]);
@@ -67,9 +69,9 @@ export default function NewUser() {
     let role = '';
 
     if (!teamDoc || teamError === 'No such document exists') {
-      role = 'Manager';
+      role = 'manager';
     } else {
-      role = 'Employee';
+      role = 'employee';
     }
 
     setRole(role);
@@ -159,7 +161,7 @@ export default function NewUser() {
                 <div className="newUser__item">
                   <label>Team ID</label>
                   <select
-                    onChange={(e) => setTeamId(e.target.value)}
+                    onChange={(e) => setTeamId(e.target.value.split(' ')[1])}
                     value={teamId}
                     required
                     disabled={!classId}
