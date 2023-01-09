@@ -18,6 +18,7 @@ import { getCollection } from '../../../../Database/firestoreService';
 // Helpers
 import { getXAxisCategories } from './helpers';
 import { getTeamsChartData } from './helpers/getTeamsChartData';
+import { getTeamList } from './helpers/getTeamList';
 // Constants
 import {
   COLLECTION_CLASSES,
@@ -25,7 +26,6 @@ import {
 } from '../../../../utils/constants';
 // Css
 import './Home.css';
-import { getTeamList } from './helpers/getTeamList';
 
 export default function Home() {
   const [selectedClass, setSelectedClass] = useState('');

@@ -1,5 +1,6 @@
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
+import { useConfigurationContext } from '../../../../hooks/useConfigurationContext';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useFirestore } from '../../../../hooks/useFirestore';
 // Components
@@ -14,6 +15,8 @@ import {
   acceptOffer,
   declineOffer,
 } from '../../../../Database/firestoreService';
+// Utils
+import { isGameRunning } from '../../../../utils/functions/isGameRunning';
 // Consttants
 import { COLLECTION_USERS } from '../../../../utils/constants';
 // Css
@@ -21,6 +24,7 @@ import './Offers.css';
 
 export default function Offers() {
   const { user, updateUser } = useAuthContext();
+  const { configuration } = useConfigurationContext();
 
   const { response, callFirebaseService } = useFirestore();
 
@@ -39,6 +43,12 @@ export default function Offers() {
   const handleDeclineOffer = async (offer) => {
     await callFirebaseService(declineOffer(employee, offer));
   };
+
+  if (isGameRunning(configuration?.start_time)) {
+    return (
+      <WarehouseAlert text="You cannot access the Offers room until the current round completes." />
+    );
+  }
 
   return (
     <div className="offers">
