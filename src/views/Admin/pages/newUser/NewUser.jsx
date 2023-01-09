@@ -162,7 +162,7 @@ export default function NewUser() {
                   <label>Team ID</label>
                   <select
                     onChange={(e) => setTeamId(e.target.value.split(' ')[1])}
-                    value={teamId}
+                    value={teamId.split(' ')[1]}
                     required
                     disabled={!classId}
                   >
