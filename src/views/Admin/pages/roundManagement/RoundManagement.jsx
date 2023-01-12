@@ -42,8 +42,6 @@ export default function RoundManagement() {
     error: classesError,
   } = useCollection(COLLECTION_CLASSES);
 
-  const classIds = classes?.map((elm) => elm.id);
-
   const {
     response: {
       document: currentConfiguration,
@@ -60,6 +58,7 @@ export default function RoundManagement() {
       await callFirebaseService(getDocument(`${classId}`, DOC_CONFIGURATION));
     })();
   }, [classId]);
+
   const handleSubmit = async () => {
     const newRound = Number(currentConfiguration.current_round) + 1;
 
@@ -84,6 +83,8 @@ export default function RoundManagement() {
         <WarehouseLoader />
       ) : classesError ? (
         <WarehouseAlert text={classesError} severity="error" />
+      ) : !classes.length ? (
+        <WarehouseAlert text="No classes found" />
       ) : (
         <>
           <WarehouseCard>
@@ -97,9 +98,9 @@ export default function RoundManagement() {
                     setClassId(e.target.value);
                   }}
                 >
-                  {classIds.map((elm) => (
-                    <MenuItem key={elm} value={elm}>
-                      {elm}
+                  {classes.map(({ id }) => (
+                    <MenuItem key={id} value={id}>
+                      {id}
                     </MenuItem>
                   ))}
                 </Select>

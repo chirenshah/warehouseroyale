@@ -64,7 +64,7 @@ export function useCollection(
         console.error('Error: ', error);
       }
     })();
-  }, [collectionName, whereQuery, orderQuery]);
+  }, [collectionName, whereQuery, orderQuery, isSubCollection]);
 
   return { documents, isPending, error };
 }

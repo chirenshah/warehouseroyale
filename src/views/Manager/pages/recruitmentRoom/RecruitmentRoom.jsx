@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 // Hooks
 import { useAuthContext } from '../../../../hooks/useAuthContext';
+import { convertFirebaseTimestampToMilliseconds } from '../../../../utils/functions/convertFirebaseTimestampToMilliseconds';
 import { useDocument } from '../../../../hooks/useDocument';
 import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
+import { useConfigurationContext } from '../../../../hooks/useConfigurationContext';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,12 +19,15 @@ import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
+import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 // Firestore services
 import {
   deactivateAnOffer,
   fireAnEmployee,
   makeAnOffer,
 } from '../../../../Database/firestoreService';
+// Utils
+import { isGameRunning } from '../../../../utils/functions/isGameRunning';
 // Helpers
 import { getCurrentTeamOffer, getEmployeeDetails } from './helpers';
 // Constants
@@ -36,6 +41,7 @@ import './RecruitmentRoom.css';
 
 export default function RecruitmentRoom() {
   const { user: manager } = useAuthContext();
+  const { configuration } = useConfigurationContext();
 
   const { response, callFirebaseService } = useFirestore();
 
@@ -129,6 +135,12 @@ export default function RecruitmentRoom() {
       )
     );
   };
+
+  if (isGameRunning(configuration?.start_time)) {
+    return (
+      <WarehouseAlert text="You cannot access the Recruitment room until the current round completes." />
+    );
+  }
 
   return (
     <div className="recruitmentRoom">

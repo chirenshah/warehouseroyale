@@ -3,6 +3,7 @@ import {
   barChartOptions,
   columnChartOptions,
   pieChartOptions,
+  donutChartOptions,
   stackedColumnChartOptions,
 } from '../../configs/chartConfigs';
 import './Chart.css';
@@ -16,6 +17,8 @@ export default function Chart({ type, chartType, series, xAxis }) {
         return columnChartOptions;
       case 'pie':
         return pieChartOptions;
+      case 'donut':
+        return donutChartOptions;
       case 'stacked':
         return stackedColumnChartOptions;
       default:
@@ -27,7 +30,7 @@ export default function Chart({ type, chartType, series, xAxis }) {
   if (type === 'bar' || type === 'stacked') {
     options.xaxis.categories = xAxis;
   }
-  if (type === 'pie') {
+  if (type === 'pie' || type === 'donut') {
     options.labels = xAxis;
   }
 

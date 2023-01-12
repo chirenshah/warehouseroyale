@@ -13,13 +13,14 @@ import WarehouseLoader from '../ui/WarehouseLoader';
 import WarehouseCard from '../ui/WarehouseCard';
 import WarehouseButton from '../ui/WarehouseButton';
 import UploadProgress from '../../views/Admin/components/user/UploadProgress/UploadProgress';
+import WarehouseAlert from '../ui/WarehouseAlert';
 // Utils
 import { convertFirebaseTimestampToLocaleTime } from '../../utils/functions/convertFirebaseTimestampToLocaleTime';
+import { convertFirebaseTimestampToMilliseconds } from '../../utils/functions/convertFirebaseTimestampToMilliseconds';
 // Constants
 import { COLLECTION_USERS } from '../../utils/constants';
 // Css
 import './Topbar.css';
-import WarehouseAlert from '../ui/WarehouseAlert';
 
 export default function Topbar({ configuration }) {
   const navigate = useNavigate();
@@ -48,9 +49,13 @@ export default function Topbar({ configuration }) {
     navigate('/');
   };
 
+  const showNextRoundAlert =
+    convertFirebaseTimestampToMilliseconds(configuration?.start_time) >
+    new Date(Date.now()).getTime();
+
   return (
     <>
-      {configuration && (
+      {showNextRoundAlert && (
         <WarehouseAlert
           style={{ width: '100%' }}
           text={`Next round is starting at ${convertFirebaseTimestampToLocaleTime(

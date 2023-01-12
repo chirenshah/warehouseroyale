@@ -12,6 +12,7 @@ import {
   runTransaction,
   writeBatch,
   serverTimestamp,
+  getDocs,
 } from 'firebase/firestore';
 import { db } from './firestore';
 import { hashPassword } from '../utils/functions/hashPassword';
@@ -50,6 +51,34 @@ export const getDocument = async (collectionName, documentId) => {
     }
 
     return docSnap.data();
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const getCollection = async (collectionName, whereQuery) => {
+  try {
+    const docs = [];
+
+    let q;
+    if (whereQuery) {
+      q = query(
+        collection(db, collectionName),
+        ...whereQuery.map((filter) =>
+          where(filter.fieldPath, filter.queryOperator, filter.value)
+        )
+      );
+    }
+    if (!whereQuery) {
+      q = query(collection(db, collectionName));
+    }
+
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach((doc) => docs.push({ ...doc.data(), id: doc.id }));
+
+    return docs;
   } catch (error) {
     console.error('Error: ', error);
     throw error;
@@ -875,6 +904,23 @@ export const markChatAsRead = async (documentId) => {
       },
       { merge: true }
     );
+  } catch (error) {
+    console.error('Error: ', error);
+    throw error;
+  }
+};
+
+export const downloadChat = async (documentId) => {
+  try {
+    const chatMembersRef = doc(
+      collection(db, COLLECTION_CHATS, documentId, 'members')
+    );
+
+    const res = [];
+
+    const membersSnapshot = await getDocs(chatMembersRef);
+
+    return res;
   } catch (error) {
     console.error('Error: ', error);
     throw error;

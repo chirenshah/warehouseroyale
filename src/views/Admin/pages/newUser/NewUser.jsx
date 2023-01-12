@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
 import { useCreateUser } from '../../../../hooks/useCreateUser';
+import { useFirestore } from '../../../../hooks/useFirestore';
 // Components
 import WarehouseHeader from '../../../../components/ui/WarehouseHeader';
 import WarehouseCard from '../../../../components/ui/WarehouseCard';
@@ -10,35 +11,29 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
-// Constants
+// Firebase services
 import {
-  COLLECTION_CLASSES,
-  COLLECTION_TEAMS,
-  DOC_TEAMS,
-} from '../../../../utils/constants';
+  getCollection,
+  getDocument,
+} from '../../../../Database/firestoreService';
+// Helpers
+import { getTeams } from './helpers/getTeams';
+// Constants
+import { COLLECTION_CLASSES } from '../../../../utils/constants';
 // Css
 import './NewUser.css';
 
 export default function NewUser() {
   const navigate = useNavigate();
 
-  const [classId, setClassId] = useState(null);
-  const [role, setRole] = useState('manager');
-  const [teamId, setTeamId] = useState(null);
-  const [teamIdError, setTeamIdError] = useState(null);
+  const [classId, setClassId] = useState('');
+  const [role, setRole] = useState('');
+  const [teamId, setTeamId] = useState('');
   const [fullName, setFullName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(null);
+  const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
-
-  const {
-    documents: teams,
-    isPending: areteamsPending,
-    error: teamsError,
-  } = useCollection(`${classId}/${DOC_TEAMS}/${COLLECTION_TEAMS}`);
-
-  const teamIds = teams?.map((team) => team.id);
 
   const {
     documents: classes,
@@ -46,25 +41,41 @@ export default function NewUser() {
     error: classesError,
   } = useCollection(COLLECTION_CLASSES);
 
-  const classIds = classes?.map((elm) => elm.id);
+  const { response: classCollection, callFirebaseService: callGetCollection } =
+    useFirestore();
 
   useEffect(() => {
-    classes?.length && setClassId(classes[0].id);
-  }, [classes]);
+    classId &&
+      (async () => {
+        await callGetCollection(getCollection(classId));
+      })();
+  }, [classId]);
 
-  const isTeamIdAvailable = (teamId, teamIds) => {
-    return teamIds?.includes(teamId);
-  };
+  const { response: team, callFirebaseService } = useFirestore();
 
   useEffect(() => {
-    setTeamIdError(null);
+    teamId &&
+      (async () => {
+        await callFirebaseService(
+          getDocument(`${classId}/teams/teams`, teamId)
+        );
+      })();
+  }, [classId, teamId]);
 
-    if (role === 'manager') {
-      if (isTeamIdAvailable(teamId, teamIds)) {
-        setTeamIdError('Team ID is already occupied');
-      }
+  useEffect(() => {
+    const teamDoc = team.document;
+    const teamError = team.error;
+
+    let role = '';
+
+    if (!teamDoc || teamError === 'No such document exists') {
+      role = 'manager';
+    } else {
+      role = 'employee';
     }
-  }, [role, teamId, teamIds]);
+
+    setRole(role);
+  }, [team]);
 
   const {
     createUser,
@@ -76,9 +87,17 @@ export default function NewUser() {
     e.preventDefault();
 
     // TODO: Put validation checks
-    if (teamIdError) {
+    if (
+      !classId ||
+      !teamId ||
+      !role ||
+      !fullName ||
+      !username ||
+      !email ||
+      !password ||
+      !phone
+    )
       return;
-    }
 
     await createUser({
       fullName,
@@ -99,16 +118,21 @@ export default function NewUser() {
   return (
     <div className="newUser">
       {classesError && <WarehouseAlert text={classesError} severity="error" />}
-      {teamsError && <WarehouseAlert text={teamsError} severity="error" />}
+      {classCollection.error && (
+        <WarehouseAlert text={classCollection.error} severity="error" />
+      )}
+      {team.error && team.error !== 'No such document exists' && (
+        <WarehouseAlert text={team.error} severity="error" />
+      )}
       {createUserError && <WarehouseSnackbar text={createUserError} />}
       <WarehouseHeader title="New User" />
       {classesPending ? (
         <WarehouseLoader />
-      ) : !classIds.length ? (
+      ) : !classes.length ? (
         <WarehouseAlert text="Please create a class first" />
       ) : (
         <WarehouseCard>
-          <form className="newUser__form" onSubmit={handleSubmit}>
+          <form className="newUser__form">
             <div className="newUser__items">
               <div className="newUser__item">
                 <label>Class</label>
@@ -117,65 +141,52 @@ export default function NewUser() {
                     setClassId(e.target.value);
                   }}
                   value={classId}
-                  name="classId"
-                  id="classId"
                 >
-                  {classIds.map((elm) => (
-                    <option key={elm} value={elm}>
-                      {elm}
+                  <option value="" disabled>
+                    Select class
+                  </option>
+                  {classes.map(({ id }) => (
+                    <option key={id} value={id}>
+                      {id}
                     </option>
                   ))}
                 </select>
               </div>
-              <div className="newUser__item">
-                <label>Role</label>
-                <select
-                  onChange={(e) => {
-                    setRole(e.target.value);
-                    setTeamId(null);
-                  }}
-                  value={role}
-                  name="role"
-                  id="role"
-                >
-                  <option value="manager">Manager</option>
-                  <option value="employee">Employee</option>
-                </select>
-              </div>
-              <div className="newUser__item">
-                <label>Team ID</label>
-                {areteamsPending ? (
-                  <WarehouseLoader sm left />
-                ) : role === 'employee' ? (
+
+              {classCollection.isPending ? (
+                <div className="newUser__item">
+                  <WarehouseLoader sm />
+                </div>
+              ) : (
+                <div className="newUser__item">
+                  <label>Team ID</label>
                   <select
-                    onChange={(e) => setTeamId(e.target.value)}
-                    value={teamId}
-                    name="teamId"
-                    id="teamId"
+                    onChange={(e) => setTeamId(e.target.value.split(' ')[1])}
+                    value={teamId.split(' ')[1]}
                     required
+                    disabled={!classId}
                   >
-                    <option value="" disabled selected>
+                    <option value="" disabled>
                       Select Team ID
                     </option>
-                    {teamIds?.map((teamId) => (
+                    {getTeams(classCollection.document)?.map((teamId) => (
                       <option key={teamId} value={teamId}>
                         {teamId}
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              <div className="newUser__item">
+                <label>Role</label>
+                {team.isPending ? (
+                  <WarehouseLoader sm />
                 ) : (
-                  <input
-                    onChange={(e) => setTeamId(e.target.value)}
-                    value={teamId}
-                    type="number"
-                    placeholder="Enter team id"
-                    required
-                  />
-                )}
-                {teamIdError && (
-                  <span className="inputError">{teamIdError}</span>
+                  <input type="text" value={role} required disabled />
                 )}
               </div>
+
               <div className="newUser__item">
                 <label>Full Name</label>
                 <input
@@ -230,6 +241,7 @@ export default function NewUser() {
               </div>
             </div>
             <WarehouseButton
+              onClick={handleSubmit}
               text="Create"
               success
               type="submit"

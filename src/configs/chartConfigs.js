@@ -82,6 +82,27 @@ export const pieChartOptions = {
   ],
 };
 
+export const donutChartOptions = {
+  chart: {
+    type: 'donut',
+  },
+  labels: [],
+  colors: [COLOR_1, COLOR_2, COLOR_3, COLOR_4, COLOR_5],
+  responsive: [
+    {
+      breakpoint: 480,
+      options: {
+        chart: {
+          width: 200,
+        },
+        legend: {
+          position: 'bottom',
+        },
+      },
+    },
+  ],
+};
+
 export const stackedColumnChartOptions = {
   chart: {
     type: 'bar',
