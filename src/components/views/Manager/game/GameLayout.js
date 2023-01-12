@@ -9,11 +9,14 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import {
   creatOrderOptions,
+  nextRound,
   orderListListerner,
   purchaseInventory,
   returnSku,
   updateOrderList,
 } from '../../../../Database/firestore';
+import { Timer } from '../../../timer';
+import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme({
   palette: {
@@ -35,6 +38,7 @@ function GameLayout() {
   const [sku_list, setskuList] = useState([]);
   const [inventoryQuant, setInventoryQuant] = useState(0);
   const [inventorySku, setInventorySku] = useState('');
+  let navigate = useNavigate();
 
   useEffect(() => {
     orderListListerner(setOrderList);
@@ -43,6 +47,11 @@ function GameLayout() {
       setOfferList(data);
     });
   }, []);
+
+  function onExpire() {
+    nextRound();
+    navigate('/');
+  }
 
   function selectBtnClickHandler(e) {
     let idx = selectedOffer[1];
@@ -105,6 +114,7 @@ function GameLayout() {
                 >
                   Select
                 </Button>
+                <Timer minutes={20} onExpire={onExpire} />
               </Box>
             </Box>
             <hr className="horizontal_dotted_line" />

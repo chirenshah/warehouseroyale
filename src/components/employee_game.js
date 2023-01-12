@@ -117,6 +117,11 @@ export default function Game() {
       ></Bins>
     );
   });
+
+  function onExpire() {
+    navigate('/');
+  }
+
   return (
     <div style={{ overflowX: 'hidden' }}>
       <section className="inventory">
@@ -340,7 +345,7 @@ export default function Game() {
             FIND SKU
           </button>
           <br></br>
-          <Timer />
+          <Timer minutes={20} onExpire={onExpire} />
           <Trash updateSelected={updateSelected} setSku_data={setSku_data} />
           <div className="chat-container" draggable ref={chatRef}>
             <button

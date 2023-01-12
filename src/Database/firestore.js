@@ -273,10 +273,8 @@ export async function nextRound() {
       userLogs: logs,
       IRI: teamInfo['IRI'],
     });
-    updateDoc(doc(db, user_info.classId, 'Configuration'), {
-      current_round: config['current_round'] + 1,
-    });
   } else {
+    // what do we do
     return false;
   }
 }
@@ -374,13 +372,29 @@ function gaussianRandom(mean = 0, stdev = 1) {
   // Transform to the desired mean and standard deviation:
   return z * stdev + mean;
 }
+
 export async function creatOrderOptions(range) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   let physicalLogs = await getDoc(
     doc(db, user_info.classId, 'Team ' + user_info.teamId)
   );
-  let max_sku = 15;
-  let min_sku = 5;
+  let config = await getDoc(db, user_info.classId, 'Configuration');
+  let volume = config.data()['Volume per order'];
+  let variability =
+    config.data()['Variability- Standard Deviation in points and units'];
+  let max_sku = volume == 'High' ? 15 : 8;
+  let min_sku = volume == 'High' ? 5 : 1;
+  switch (variability) {
+    case 'High':
+      var sd = 1;
+      break;
+    case 'Medium':
+      var sd = 0.6;
+      break;
+    case 'Low':
+      var sd = 0.3;
+      break;
+  }
   let OrderedList = [];
   let sku_ids = Object.keys(physicalLogs.data()['userLogs']);
   for (let i = 0; i < range; i++) {
@@ -392,7 +406,7 @@ export async function creatOrderOptions(range) {
           Math.random() * (max_sku - min_sku) + min_sku
         );
         order[sku_ids[j]] = quantity;
-        let val = Math.floor(quantity * gaussianRandom(1, 0.3));
+        let val = Math.floor(quantity * gaussianRandom(1, sd));
         amount += val;
       }
     }
@@ -537,9 +551,11 @@ export async function calculateScore(data, bins_val, bin_label) {
 // }
 
 export async function fetchStartTime(setStartTime) {
+  console.log('fetching start time');
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   getDoc(doc(db, user_info.classId, 'Configuration')).then((snapshot) => {
-    setStartTime(snapshot.data()['StartTime']);
+    setStartTime(snapshot.data()['start_time'].toDate());
+    console.log(snapshot.data()['start_time'].toDate());
   });
 }
 
