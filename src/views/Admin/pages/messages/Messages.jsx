@@ -1,7 +1,8 @@
 import { useState } from 'react';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import useFetchClassesAndTeams from '../../../../hooks/useFetchClassesAndTeams';
+import { useFirestore } from '../../../../hooks/useFirestore';
+import { useFetchClassesAndTeams } from '../../../../hooks/useFetchClassesAndTeams';
 // Material components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,6 +14,10 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
+// Firebase services
+import { downloadChat } from '../../../../Database/firestoreService';
+// Utils
+import { downloadTextFile } from '../../../../utils/functions/downloadTextFile';
 // Helpers
 import { getTeamList } from '../home/helpers/getTeamList';
 // Constants
@@ -38,10 +43,16 @@ export default function Messages() {
     teamMembers,
   } = useFetchClassesAndTeams();
 
+  const { response, callFirebaseService } = useFirestore();
+
   const handleDownload = async () => {
     const member = teamMembers.document.find(
       (member) => member.fullName === selectedTeamMember
     );
+
+    await callFirebaseService(downloadChat(member.email));
+
+    downloadTextFile(response.document);
   };
 
   return (
@@ -119,7 +130,11 @@ export default function Messages() {
               </FormControl>
             )}
             {selectedTeamMember && (
-              <WarehouseButton onClick={handleDownload} text="Download" />
+              <WarehouseButton
+                onClick={handleDownload}
+                text="Download"
+                loading={response.isPending}
+              />
             )}
           </div>
         </WarehouseCard>

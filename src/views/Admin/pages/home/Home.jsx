@@ -1,6 +1,6 @@
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import useFetchClassesAndTeams from '../../../../hooks/useFetchClassesAndTeams';
+import { useFetchClassesAndTeams } from '../../../../hooks/useFetchClassesAndTeams';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';

@@ -912,7 +912,7 @@ export const markChatAsRead = async (documentId) => {
 
 export const downloadChat = async (documentId) => {
   try {
-    const chatMembersRef = doc(
+    const chatMembersRef = query(
       collection(db, COLLECTION_CHATS, documentId, 'members')
     );
 
@@ -920,7 +920,34 @@ export const downloadChat = async (documentId) => {
 
     const membersSnapshot = await getDocs(chatMembersRef);
 
-    return res;
+    const promise = new Promise((resolve, reject) => {
+      membersSnapshot.forEach(async (memberDoc) => {
+        const memberChatObj = {};
+
+        memberChatObj[memberDoc.id] = [];
+
+        const conversationsSnap = await getDocs(
+          collection(memberDoc.ref, 'conversations')
+        );
+
+        conversationsSnap.docs.forEach((conversationDoc) => {
+          memberChatObj[memberDoc.id] = [
+            ...memberChatObj[memberDoc.id],
+            {
+              sender: conversationDoc.data().sender,
+              text: conversationDoc.data().text,
+            },
+          ];
+        });
+
+        res.push(memberChatObj);
+        if (res.length === membersSnapshot.size) {
+          resolve(res);
+        }
+      });
+    });
+
+    return await promise;
   } catch (error) {
     console.error('Error: ', error);
     throw error;

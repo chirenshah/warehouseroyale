@@ -3,7 +3,7 @@ import { useFirestore } from './useFirestore';
 import { getCollection } from '../Database/firestoreService';
 import { COLLECTION_USERS } from '../utils/constants';
 
-export default function useFetchClassesAndTeams() {
+export function useFetchClassesAndTeams() {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('');
 
