@@ -52,12 +52,15 @@ export default function Messages() {
 
     await callFirebaseService(downloadChat(member.email));
 
+    if (!response.document) return;
+
     downloadTextFile(response.document);
   };
 
   return (
     <div className="messages">
       <WarehouseHeader title="Download messages" />
+      {response.error && <WarehouseAlert text={response.error} />}
       {classesPending ? (
         <WarehouseLoader />
       ) : classesError ? (

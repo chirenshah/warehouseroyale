@@ -830,6 +830,8 @@ export const addChat = async (senderId, receiverId, chat) => {
   try {
     chat.createdAt = serverTimestamp(Date.now());
 
+    const senderDocRef = doc(db, COLLECTION_CHATS, senderId);
+
     const senderRef = doc(
       db,
       COLLECTION_CHATS,
@@ -872,6 +874,8 @@ export const addChat = async (senderId, receiverId, chat) => {
 
     const batch = writeBatch(db);
 
+    batch.set(senderDocRef, { email: senderId });
+
     batch.set(senderRef, { typing: false, isRead: true });
     batch.set(receiverRef, { typing: false, isRead: false });
 
@@ -912,15 +916,23 @@ export const markChatAsRead = async (documentId) => {
 
 export const downloadChat = async (documentId) => {
   try {
+    const foundMemberInChats = await getDoc(
+      doc(db, COLLECTION_CHATS, documentId)
+    );
+
+    if (!foundMemberInChats.exists()) {
+      throw new Error(`No chats found for the member ${documentId}`);
+    }
+
     const chatMembersRef = query(
       collection(db, COLLECTION_CHATS, documentId, 'members')
     );
 
-    const res = [];
-
     const membersSnapshot = await getDocs(chatMembersRef);
 
     const promise = new Promise((resolve, reject) => {
+      const res = [];
+
       membersSnapshot.forEach(async (memberDoc) => {
         const memberChatObj = {};
 
