@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
-import { useFirestore } from '../../../../hooks/useFirestore';
+import { useFetchClassesAndTeams } from '../../../../hooks/useFetchClassesAndTeams';
 // Material Components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,61 +12,30 @@ import WarehouseCard from '../../../../components/ui/WarehouseCard';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 import Chart from '../../../../components/chart/Chart';
-// Firebase services
-import { getCollection } from '../../../../Database/firestoreService';
 // Helpers
 import { getXAxisCategories } from './helpers';
 import { getTeamsChartData } from './helpers/getTeamsChartData';
 import { getTeamList } from './helpers/getTeamList';
 // Constants
-import {
-  COLLECTION_CLASSES,
-  COLLECTION_USERS,
-} from '../../../../utils/constants';
+import { COLLECTION_CLASSES } from '../../../../utils/constants';
 // Css
 import './Home.css';
 
 export default function Home() {
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState('');
-
   const {
     documents: classes,
     isPending: classesPending,
     error: classesError,
   } = useCollection(COLLECTION_CLASSES);
 
-  const { response: classCollection, callFirebaseService } = useFirestore();
-
-  useEffect(() => {
-    selectedClass &&
-      (async () => {
-        await callFirebaseService(getCollection(selectedClass));
-      })();
-  }, [selectedClass]);
-
-  const { response: teamMembers, callFirebaseService: callGetCollection } =
-    useFirestore();
-
-  useEffect(() => {
-    selectedTeam &&
-      (async () => {
-        await callGetCollection(
-          getCollection(COLLECTION_USERS, [
-            {
-              fieldPath: 'teamId',
-              queryOperator: '==',
-              value: selectedTeam.split(' ')[1],
-            },
-            {
-              fieldPath: 'classId',
-              queryOperator: '==',
-              value: selectedClass,
-            },
-          ])
-        );
-      })();
-  }, [selectedTeam]);
+  const {
+    selectedClass,
+    setSelectedClass,
+    selectedTeam,
+    setSelectedTeam,
+    classCollection,
+    teamMembers,
+  } = useFetchClassesAndTeams();
 
   return (
     <div className="home">

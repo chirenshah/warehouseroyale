@@ -830,6 +830,8 @@ export const addChat = async (senderId, receiverId, chat) => {
   try {
     chat.createdAt = serverTimestamp(Date.now());
 
+    const senderDocRef = doc(db, COLLECTION_CHATS, senderId);
+
     const senderRef = doc(
       db,
       COLLECTION_CHATS,
@@ -872,6 +874,8 @@ export const addChat = async (senderId, receiverId, chat) => {
 
     const batch = writeBatch(db);
 
+    batch.set(senderDocRef, { email: senderId });
+
     batch.set(senderRef, { typing: false, isRead: true });
     batch.set(receiverRef, { typing: false, isRead: false });
 
@@ -912,15 +916,50 @@ export const markChatAsRead = async (documentId) => {
 
 export const downloadChat = async (documentId) => {
   try {
-    const chatMembersRef = doc(
+    const foundMemberInChats = await getDoc(
+      doc(db, COLLECTION_CHATS, documentId)
+    );
+
+    if (!foundMemberInChats.exists()) {
+      throw new Error(`No chats found for the member ${documentId}`);
+    }
+
+    const chatMembersRef = query(
       collection(db, COLLECTION_CHATS, documentId, 'members')
     );
 
-    const res = [];
-
     const membersSnapshot = await getDocs(chatMembersRef);
 
-    return res;
+    const promise = new Promise((resolve, reject) => {
+      const res = [];
+
+      membersSnapshot.forEach(async (memberDoc) => {
+        const memberChatObj = {};
+
+        memberChatObj[memberDoc.id] = [];
+
+        const conversationsSnap = await getDocs(
+          collection(memberDoc.ref, 'conversations')
+        );
+
+        conversationsSnap.docs.forEach((conversationDoc) => {
+          memberChatObj[memberDoc.id] = [
+            ...memberChatObj[memberDoc.id],
+            {
+              sender: conversationDoc.data().sender,
+              text: conversationDoc.data().text,
+            },
+          ];
+        });
+
+        res.push(memberChatObj);
+        if (res.length === membersSnapshot.size) {
+          resolve(res);
+        }
+      });
+    });
+
+    return await promise;
   } catch (error) {
     console.error('Error: ', error);
     throw error;

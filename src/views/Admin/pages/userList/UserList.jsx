@@ -53,6 +53,7 @@ export default function UserList() {
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [sheetValidationError, setSheetValidationError] = useState(null);
 
   const fileTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -82,8 +83,13 @@ export default function UserList() {
   };
 
   const handleFileUpload = async () => {
-    const usersJson = await parseExcel(file);
-    await callCreateNewUsers(createNewUsers(usersJson));
+    try {
+      const usersJson = await parseExcel(file);
+      await callCreateNewUsers(createNewUsers(usersJson));
+    } catch (error) {
+      console.error('Error: ', error);
+      setSheetValidationError(error.message);
+    }
   };
 
   // Popover-----------------------------------------------------------
@@ -200,8 +206,11 @@ export default function UserList() {
 
       <WarehouseHeader title="Upload an Excel Sheet instead!" my />
       <WarehouseCard>
-        {newUsersResponse.error && (
-          <WarehouseAlert text={newUsersResponse.error} severity="error" />
+        {(newUsersResponse.error || sheetValidationError) && (
+          <WarehouseAlert
+            text={newUsersResponse.error || sheetValidationError}
+            severity="error"
+          />
         )}
         <div className="userList__upload">
           <label>

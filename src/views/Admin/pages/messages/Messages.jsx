@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 // Hooks
 import { useCollection } from '../../../../hooks/useCollection';
 import { useFirestore } from '../../../../hooks/useFirestore';
+import { useFetchClassesAndTeams } from '../../../../hooks/useFetchClassesAndTeams';
 // Material components
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -14,19 +15,18 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseLoader from '../../../../components/ui/WarehouseLoader';
 import WarehouseAlert from '../../../../components/ui/WarehouseAlert';
 // Firebase services
-import { getCollection } from '../../../../Database/firestoreService';
+import { downloadChat } from '../../../../Database/firestoreService';
 // Utils
+import { downloadTextFile } from '../../../../utils/functions/downloadTextFile';
+// Helpers
+import { getTeamList } from '../home/helpers/getTeamList';
 // Constants
-import {
-  COLLECTION_CLASSES,
-  COLLECTION_USERS,
-} from '../../../../utils/constants';
+import { COLLECTION_CLASSES } from '../../../../utils/constants';
 // Css
 import './Messages.css';
 
 export default function Messages() {
-  const [selectedClass, setSelectedClass] = useState('');
-  const [selectedMember, setSelectedMember] = useState('');
+  const [selectedTeamMember, setSelectedTeamMember] = useState('');
 
   const {
     documents: classes,
@@ -34,27 +34,33 @@ export default function Messages() {
     error: classesError,
   } = useCollection(COLLECTION_CLASSES);
 
-  const { response: members, callFirebaseService } = useFirestore();
+  const {
+    selectedClass,
+    setSelectedClass,
+    selectedTeam,
+    setSelectedTeam,
+    classCollection,
+    teamMembers,
+  } = useFetchClassesAndTeams();
 
-  useEffect(() => {
-    (async () => {
-      await callFirebaseService(
-        getCollection(COLLECTION_USERS, [
-          {
-            fieldPath: 'classId',
-            queryOperator: '==',
-            value: selectedClass,
-          },
-        ])
-      );
-    })();
-  }, [selectedClass]);
+  const { response, callFirebaseService } = useFirestore();
 
-  const handleDownload = async () => {};
+  const handleDownload = async () => {
+    const member = teamMembers.document.find(
+      (member) => member.fullName === selectedTeamMember
+    );
+
+    await callFirebaseService(downloadChat(member.email));
+
+    if (!response.document) return;
+
+    downloadTextFile(response.document);
+  };
 
   return (
     <div className="messages">
       <WarehouseHeader title="Download messages" />
+      {response.error && <WarehouseAlert text={response.error} />}
       {classesPending ? (
         <WarehouseLoader />
       ) : classesError ? (
@@ -71,7 +77,6 @@ export default function Messages() {
                 label="Class"
                 onChange={(e) => {
                   setSelectedClass(e.target.value);
-                  setSelectedMember('');
                 }}
               >
                 {classes.map(({ id }) => (
@@ -81,23 +86,45 @@ export default function Messages() {
                 ))}
               </Select>
             </FormControl>
-            {!selectedClass ? (
-              <WarehouseAlert text="Select a class" />
-            ) : members.isPending ? (
+
+            {classesPending ? (
               <WarehouseLoader />
-            ) : members.error ? (
-              <WarehouseAlert text={members.error} />
-            ) : !members.document.length ? (
-              <WarehouseAlert text="No members found" />
+            ) : classesError ? (
+              <WarehouseAlert text={classesError} severity="error" />
+            ) : !classes.length ? (
+              <WarehouseAlert text="No team found" />
+            ) : (
+              <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                <InputLabel>Team</InputLabel>
+                <Select
+                  value={selectedTeam}
+                  label="Team"
+                  onChange={(e) => {
+                    setSelectedTeam(e.target.value);
+                  }}
+                >
+                  {getTeamList(classCollection.document).map((team) => (
+                    <MenuItem key={team} value={team}>
+                      {team}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+
+            {teamMembers.isPending ? (
+              <WarehouseLoader />
+            ) : teamMembers.error ? (
+              <WarehouseAlert text={teamMembers.error} />
             ) : (
               <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
                 <InputLabel>Member</InputLabel>
                 <Select
-                  value={selectedMember}
+                  value={selectedTeamMember}
                   label="Member"
-                  onChange={(e) => setSelectedMember(e.target.value)}
+                  onChange={(e) => setSelectedTeamMember(e.target.value)}
                 >
-                  {members?.document?.map(({ fullName, email }) => (
+                  {teamMembers?.document?.map(({ fullName, email }) => (
                     <MenuItem key={email} value={fullName}>
                       {fullName}
                     </MenuItem>
@@ -105,8 +132,12 @@ export default function Messages() {
                 </Select>
               </FormControl>
             )}
-            {selectedMember && (
-              <WarehouseButton onClick={handleDownload} text="Download" />
+            {selectedTeamMember && (
+              <WarehouseButton
+                onClick={handleDownload}
+                text="Download"
+                loading={response.isPending}
+              />
             )}
           </div>
         </WarehouseCard>
