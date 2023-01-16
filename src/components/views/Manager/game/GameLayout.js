@@ -13,7 +13,8 @@ import {
   orderListListerner,
   purchaseInventory,
   returnSku,
-  updateOrderList,
+  updateIRI,
+  updateUpcomingOrders,
 } from '../../../../Database/firestore';
 import { Timer } from '../../../timer';
 import { useNavigate } from 'react-router-dom';
@@ -49,14 +50,19 @@ function GameLayout() {
   }, []);
 
   function onExpire() {
-    nextRound();
+    updateIRI();
     navigate('/');
   }
 
   function selectBtnClickHandler(e) {
     let idx = selectedOffer[1];
-    console.log(selectedOffer[0].current);
-    updateOrderList([offerList[idx - 1], ...orderList.slice(0, 5)]);
+    // while (
+    //   orderList[orderList.length - 1]['status'] === 'Successful' ||
+    //   'Partial'
+    // ) {
+    //   orderList.pop();
+    // }
+    updateUpcomingOrders([offerList[idx - 1], ...orderList.slice(0, 5)]);
     selectedOffer[0].current.classList.remove('selected-offer-card');
     setSelectedOffer(null);
     setOfferList((prev) => {

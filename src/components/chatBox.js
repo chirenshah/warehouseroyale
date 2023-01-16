@@ -27,18 +27,14 @@ export function ChatBox({ expand }) {
   //   receiver: 'Everyone',
   //   createdAt: new Date().getTime(),
   // });
+
+  let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
+  // let list = getDocs(doc(db, user_info.classId, 'Team ' + user_info.teamId)).get("userList");
   const q = query(
-    collection(db, 'instance1', 'Room 1', 'Chats'),
+    collection(db, user_info.classId, 'Team ' + user_info.teamId, 'Chats'),
     orderBy('createdAt', 'desc'),
     limit(100)
   );
-
-  useEffect(() => {
-    unsub();
-  });
-  // let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-  // let list = getDocs(doc(db, user_info.classId, 'Team ' + user_info.teamId)).get("userList");
-
   let [messages] = useCollectionData(q, { idField: 'id' });
   return (
     <>
@@ -56,10 +52,6 @@ export function ChatBox({ expand }) {
             flexDirection: 'column',
           }}
         >
-          <div className="teamList">
-            <p>one</p>
-            <p>two</p>
-          </div>
           <div>
             <input
               style={{ width: '80%' }}
@@ -73,7 +65,7 @@ export function ChatBox({ expand }) {
               fontSize={30}
               color="#6649b8"
               onClick={() => {
-                chat_sendMessage(message, 'hetmandapara@asu.edu');
+                chat_sendMessage(message);
                 setMessage('');
               }}
             ></AiOutlineSend>

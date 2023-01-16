@@ -29,6 +29,7 @@ import {
 } from '../../../../utils/constants';
 // Css
 import './RoundManagement.css';
+import { nextRound } from '../../../../Database/firestore';
 
 export default function RoundManagement() {
   const { response, addDocument } = useFirestore();
@@ -73,6 +74,11 @@ export default function RoundManagement() {
       current_round: newRound,
       start_time: serverTimestamp(startTime),
     });
+    currentConfiguration['start_time'] = new Date(startTime);
+    let teamsLength = parseInt(currentConfiguration['Total no. of teams']);
+    for (let index = 0; index < teamsLength; index++) {
+      nextRound(`${classId}`, 'Team ' + (index + 1), currentConfiguration);
+    }
   };
 
   return (

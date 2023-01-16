@@ -9,6 +9,7 @@ import {
   calculateScore,
   fetchStartTime,
   nextRound,
+  updateIRI,
   updateLogs,
   updateOrderList,
 } from '../Database/firestore';
@@ -72,6 +73,7 @@ export default function Game() {
 
   useEffect(() => {
     binListener(setSku_data, setorderList, setselectedOrders);
+    console.log(orderList);
   }, []);
 
   function chooseSelected(reference) {
@@ -119,6 +121,7 @@ export default function Game() {
   });
 
   function onExpire() {
+    updateIRI();
     navigate('/');
   }
 
@@ -147,61 +150,71 @@ export default function Game() {
           ))}
         </div>
         <div className="orderList">
-          {orderList.map((element, idx) => (
-            <div key={idx} className="orderList-content">
-              <Accordion>
-                <AccordionSummary
-                  expandIcon={<BiDownArrow />}
-                  aria-controls="panel1a-content"
-                  id="panel1a-header"
-                >
-                  <Typography>
-                    Points : <span>{element['amount']}</span>
-                  </Typography>
-                </AccordionSummary>
-                <button
-                  className="submit-btn"
-                  style={{ width: '70%', margin: 0 }}
-                  onClick={() => {
-                    if (Object.keys(selectedOrders['O1']).length === 0) {
-                      let temp = selectedOrders;
-                      temp['O1'] = element;
-                      // setselectedOrders(temp);
-                      updateOrderList(element, 'O1');
-                    } else if (Object.keys(selectedOrders['O2']).length === 0) {
-                      let temp = selectedOrders;
-                      temp['O2'] = element;
-                      // setselectedOrders(temp);
-                      updateOrderList(element, 'O2');
-                    } else {
-                      alert("Previous order's need to be completed");
-                    }
-                  }}
-                >
-                  select
-                </button>
-                <AccordionDetails>
-                  {Object.keys(element).map((key, id) => {
-                    if (key === 'amount') {
-                      return '';
-                    } else {
-                      return (
-                        <div className="cards" key={id}>
-                          <p
-                            style={{
-                              margin: 0,
-                            }}
-                          >
-                            {key}:<span>{element[key]}</span>
-                          </p>
-                        </div>
-                      );
-                    }
-                  })}
-                </AccordionDetails>
-              </Accordion>
-            </div>
-          ))}
+          {orderList.map(
+            (element, idx) =>
+              element['status'] === 'Not Selected' && (
+                <div key={idx} className="orderList-content">
+                  <Accordion>
+                    <AccordionSummary
+                      expandIcon={<BiDownArrow />}
+                      aria-controls="panel1a-content"
+                      id="panel1a-header"
+                    >
+                      <Typography>
+                        Points : <span>{element['Points']}</span>
+                      </Typography>
+                    </AccordionSummary>
+                    <button
+                      className="submit-btn"
+                      style={{ width: '70%', margin: 0 }}
+                      onClick={() => {
+                        if (Object.keys(selectedOrders['O1']).length === 0) {
+                          let temp = selectedOrders;
+                          temp['O1'] = element;
+                          // setselectedOrders(temp);
+                          orderList[idx]['status'] = 'Selected';
+                          updateOrderList(orderList, idx, 'O1');
+                        } else if (
+                          Object.keys(selectedOrders['O2']).length === 0
+                        ) {
+                          let temp = selectedOrders;
+                          temp['O2'] = element;
+                          // setselectedOrders(temp);
+                          updateOrderList(element, 'O2');
+                        } else {
+                          alert("Previous order's need to be completed");
+                        }
+                      }}
+                    >
+                      select
+                    </button>
+                    <AccordionDetails>
+                      {Object.keys(element).map((key, id) => {
+                        if (
+                          key === 'Points' ||
+                          key === 'title' ||
+                          key === 'status'
+                        ) {
+                          return '';
+                        } else {
+                          return (
+                            <div className="cards" key={id}>
+                              <p
+                                style={{
+                                  margin: 0,
+                                }}
+                              >
+                                {key}:<span>{element[key]}</span>
+                              </p>
+                            </div>
+                          );
+                        }
+                      })}
+                    </AccordionDetails>
+                  </Accordion>
+                </div>
+              )
+          )}
         </div>
       </section>
       <section className="center">
@@ -222,15 +235,19 @@ export default function Game() {
                 calculateScore(selectedOrders['O1'], sku_data['O1'], 'O1');
               }}
             >
-              Send Order 1
+              Send {selectedOrders['O1']['title']}
             </button>
           </div>
 
           <div className="order">
-            <p>Order 1 </p>
+            <p>{selectedOrders['O1']['title']} </p>
             <div className="order-content">
               {Object.keys(selectedOrders['O1']).map((value, key) => {
-                if (value !== 'amount') {
+                if (
+                  value !== 'Points' &&
+                  value !== 'title' &&
+                  value !== 'status'
+                ) {
                   return (
                     <div className="cards" key={key}>
                       {value} :{selectedOrders['O1'][value]}
@@ -256,14 +273,18 @@ export default function Game() {
                 calculateScore(selectedOrders['O2'], sku_data['O2'], 'O2');
               }}
             >
-              Send Order 2
+              Send {selectedOrders['O2']['title']}
             </button>
           </div>
           <div className="order">
-            <p>Order 2 </p>
+            <p>{selectedOrders['O2']['title']}</p>
             <div className="order-content">
               {Object.keys(selectedOrders['O2']).map((value, key) => {
-                if (value !== 'amount') {
+                if (
+                  value !== 'Points' &&
+                  value !== 'title' &&
+                  value !== 'status'
+                ) {
                   return (
                     <div className="cards" key={key}>
                       {value} :{selectedOrders['O2'][value]}
