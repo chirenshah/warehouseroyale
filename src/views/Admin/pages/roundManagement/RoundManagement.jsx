@@ -18,7 +18,6 @@ import WarehouseButton from '../../../../components/ui/WarehouseButton';
 import WarehouseSnackbar from '../../../../components/ui/WarehouseSnackbar';
 // Firestore services
 import { getDocument } from '../../../../Database/firestoreService';
-import { serverTimestamp } from 'firebase/firestore';
 // Utils
 import { getCurrentTime } from '../../../../utils/functions/getCurrentTime';
 import { convertFirebaseTimestampToMilliseconds } from '../../../../utils/functions/convertFirebaseTimestampToMilliseconds';
@@ -62,7 +61,6 @@ export default function RoundManagement() {
 
   const handleSubmit = async () => {
     const newRound = Number(currentConfiguration.current_round) + 1;
-
     await addDocument(`${classId}`, DOC_CONFIGURATION, {
       previous_rounds: [
         ...currentConfiguration.previous_rounds,
@@ -72,12 +70,17 @@ export default function RoundManagement() {
         },
       ],
       current_round: newRound,
-      start_time: serverTimestamp(startTime),
+      start_time: new Date(startTime),
     });
-    currentConfiguration['start_time'] = new Date(startTime);
+
     let teamsLength = parseInt(currentConfiguration['Total no. of teams']);
     for (let index = 0; index < teamsLength; index++) {
-      nextRound(`${classId}`, 'Team ' + (index + 1), currentConfiguration);
+      nextRound(
+        `${classId}`,
+        'Team ' + (index + 1),
+        currentConfiguration,
+        new Date(startTime)
+      );
     }
   };
 

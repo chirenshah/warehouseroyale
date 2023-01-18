@@ -139,7 +139,6 @@ export async function purchaseInventory(inventorySku, inventoryQuant) {
 
 export async function binUpdate(from, to, id, set_data, timer) {
   let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
-  console.log();
   const sfDocRef = doc(db, user_info.classId, 'Team ' + user_info.teamId);
   try {
     await runTransaction(db, async (transaction) => {
@@ -259,14 +258,11 @@ export async function updateLogs(from, to, id, quant) {
 //   updateDoc(sfDocRef, { Bins: tmp });
 // }
 
-export async function nextRound(classId, teamId, config) {
+export async function nextRound(classId, teamId, config, time) {
   //let user_info = JSON.parse(localStorage.getItem('warehouse_user'));
   let teamInfo = await getDoc(doc(db, classId, teamId));
   teamInfo = teamInfo.data();
-  let { bins, logs } = await writeInventory(
-    config['Number Of SKU'],
-    config['start_time']
-  );
+  let { bins, logs } = await writeInventory(config['Number Of SKU'], time);
   if (config['current_round'] < config['Number Of rounds']) {
     let iri = calculateLogs(teamInfo['userLogs'], teamInfo['Logs']);
     teamInfo['IRI'][config['current_round'] - 1] = iri;
@@ -349,7 +345,6 @@ export async function writeInventory(UniqueSku, startTime) {
     let temp = {};
     var randomVar = Math.round(Math.random() * (data.length - 1));
     temp[data[randomVar]] = startTime;
-    console.log(temp);
     if (data[randomVar] in logs) {
       logs[data[randomVar]]['Receiving'] += 1;
     } else {

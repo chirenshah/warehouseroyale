@@ -32,9 +32,7 @@ export default function GameSetup() {
       event.target['Max members in a team'].value;
     configuration[`previous_rounds`] = [];
     configuration[`current_round`] = 1;
-    configuration['start_time'] = serverTimestamp(
-      new Date(event.target['start_time'].value)
-    );
+    configuration['start_time'] = new Date(event.target['start_time'].value);
     configuration['Total no. of teams'] =
       event.target['Total no. of teams'].value;
     configuration['Number Of SKU'] = event.target['Number Of SKU'].value;
